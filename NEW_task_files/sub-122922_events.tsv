@@ -1,0 +1,118 @@
+trial_number	onset	duration	offset	trial_type	condition	response	response_time	stim_id	stim_file	stim_category	stim_name	recognition_accuracy	recognition_responsetime	position_correct	position_response	position_accuracy	position_responsetime	unscanned	ctl_miss_hit	ctl_miss_ws_cs
+004	16.099	2.9989999999999988	19.098	CTL1	CTL	2.0	1.205		None	None	None	-1		6	-1.0	-1		0	control	control
+005	20.098	3.000000000000004	23.098000000000006	Enc1	Enc	2.0	1.139	Old54	None	sporting	Badminton Racquet	1	1.912	8	8.0	2	2.0580000000000003	0	hit	correctsource
+006	31.097	3.000000000000004	34.097	Enc2	Enc	2.0	1.77	Old01	None	animal	camel_new	1	1.167	5	9.0	1	1.9269999999999998	0	hit	wrongsource
+007	41.597	2.9990000000000023	44.596	Enc3	Enc	2.0	1.881	Old59	None	sporting	fishing rod	1	1.61	5	9.0	1	2.081	0	hit	wrongsource
+008	45.096	3.0	48.096	Enc4	Enc	2.0	2.3930000000000002	Old42	None	musical	acoustic guitar_new	1	1.5719999999999998	6	9.0	1	1.117	0	hit	wrongsource
+009	54.096	2.9989999999999952	57.095	Enc5	Enc	2.0	1.9569999999999999	Old46	None	musical	drums_old	1	1.954	5	9.0	1	0.77	0	hit	wrongsource
+010	59.095	3.0	62.095	Enc6	Enc	2.0	1.96	Old78	None	vegie	carrot	1	1.6340000000000001	9	5.0	1	2.048	0	hit	wrongsource
+011	64.095	3.0	67.095	CTL2	CTL		0.0		None	None	None	-1		5	-1.0	-1		0	control	control
+012	71.094	3.0	74.094	CTL3	CTL	2.0	1.6030000000000002		None	None	None	-1		6	-1.0	-1		0	control	control
+013	76.594	3.0	79.594	CTL4	CTL	2.0	1.611		None	None	None	-1		6	-1.0	-1		0	control	control
+014	81.093	2.9999999999999862	84.09299999999998	CTL5	CTL	2.0	1.5719999999999998		None	None	None	-1		9	-1.0	-1		0	control	control
+015	89.09299999999998	3.0	92.093	Enc7	Enc	2.0	2.7739999999999996	Old55	None	sporting	bicycle_old	1	2.63	6	6.0	2	2.2840000000000003	0	hit	correctsource
+016	93.092	3.0	96.092	Enc8	Enc	2.0	2.233	Old09	None	animal	parrot	1	2.0380000000000003	8	9.0	1	3.259	0	hit	wrongsource
+017	99.092	3.0	102.092	CTL6	CTL	2.0	1.114		None	None	None	-1		9	-1.0	-1		0	control	control
+018	105.092	2.9989999999999952	108.091	Enc9	Enc	2.0	2.35	Old40	None	hard	musical_recorder	1	1.5019999999999998	9	5.0	1	1.784	0	hit	wrongsource
+019	110.591	3.0	113.591	Enc10	Enc	2.0	1.985	Old04	None	animal	dalmation_old	1	1.746	5	5.0	2	3.147	0	hit	correctsource
+020	120.09	3.0	123.09	Enc11	Enc	2.0	1.9569999999999999	Old36	None	kitchen	scrubbing brush	0	2.589	9	-1.0	0		0	missed	missed
+021	125.59	3.0	128.59	Enc12	Enc	2.0	1.4080000000000001	Old39	None	kitchen	wooden spoon_old	0	5.343999999999999	5	-1.0	0		0	missed	missed
+022	130.59	2.9989999999999952	133.589	Enc13	Enc	2.0	2.2569999999999997	Old68	None	fruit	green grapes	1	1.035	8	9.0	1	0.624	0	hit	wrongsource
+023	138.089	3.0	141.089	Enc14	Enc	2.0	1.5919999999999999	Old67	None	fruit	cherry	1	2.412	8	5.0	1	1.003	0	hit	wrongsource
+024	145.588	3.0	148.588	Enc15	Enc	2.0	2.267	Old72	None	vegie	cauliflower	1	3.0860000000000003	9	5.0	1	0.9540000000000001	0	hit	wrongsource
+025	151.088	3.0	154.088	Enc16	Enc	2.0	2.685	Old73	None	vegie	corn02	1	1.186	8	8.0	2	1.649	0	hit	correctsource
+026	155.088	2.999000000000024	158.08700000000005	Enc17	Enc	2.0	2.548	Old03	None	animal	chimpanzee	1	2.127	5	9.0	1	2.425	0	hit	wrongsource
+027	159.58700000000005	3.0	162.58700000000005	CTL7	CTL	2.0	1.367		None	None	None	-1		5	-1.0	-1		0	control	control
+028	166.58700000000005	3.0	169.58700000000005	CTL8	CTL	2.0	1.1159999999999999		None	None	None	-1		8	-1.0	-1		0	control	control
+029	172.58599999999996	3.0	175.58599999999996	Enc18	Enc	2.0	1.6	Old38	None	kitchen	white strainer	1	3.572	8	6.0	1	1.892	0	hit	wrongsource
+030	176.58599999999996	3.0	179.58599999999996	Enc19	Enc	2.0	1.659	Old20	None	food	frenchfries	1	1.327	8	9.0	1	1.369	0	hit	wrongsource
+031	180.586	2.999000000000024	183.585	Enc20	Enc	2.0	2.04	Old18	None	food	cracker02	1	1.574	5	5.0	2	1.534	0	hit	correctsource
+032	184.085	3.0	187.085	Enc21	Enc	2.0	2.085	Old76	None	vegie	mushroom	0	2.485	9	-1.0	0		0	missed	missed
+033	190.585	3.0	193.585	Enc22	Enc	2.0	2.049	Old15	None	food	bottleofredwine01	1	1.339	9	5.0	1	4.644	0	hit	wrongsource
+034	198.084	3.0	201.084	CTL9	CTL	2.0	0.9129999999999999		None	None	None	-1		8	-1.0	-1		0	control	control
+035	210.583	3.0	213.583	Enc23	Enc	2.0	1.548	Old12	None	animal	siamese cat	0	2.092	6	-1.0	0		0	missed	missed
+036	217.083	3.0	220.083	CTL10	CTL	2.0	0.8009999999999999		None	None	None	-1		9	-1.0	-1		0	control	control
+037	224.082	3.0	227.082	Enc24	Enc	2.0	1.5	Old19	None	food	croissant01	1	1.2209999999999999	8	6.0	1	1.099	0	hit	wrongsource
+038	231.082	2.9989999999999952	234.081	Enc25	Enc	2.0	1.679	Old50	None	musical	tuba	1	1.48	8	6.0	1	0.596	0	hit	wrongsource
+039	235.081	3.0	238.081	Enc26	Enc	2.0	2.009	Old24	None	food	softcheese	1	1.885	9	6.0	1	0.624	0	hit	wrongsource
+040	244.081	2.999000000000024	247.08	Enc27	Enc	2.0	1.5119999999999998	Old49	None	musical	triangle	1	2.461	5	5.0	2	3.386	0	hit	correctsource
+041	253.58	2.999999999999972	256.58	Enc28	Enc	2.0	1.5519999999999998	Old32	None	kitchen	martini glass	0	2.18	6	-1.0	0		0	missed	missed
+042	258.58	2.999000000000024	261.579	Enc29	Enc	2.0	2.1319999999999997	Old51	None	musical	violin_old	1	1.338	9	5.0	1	3.6830000000000003	0	hit	wrongsource
+043	263.079	3.0	266.079	Enc30	Enc	2.0	1.8119999999999998	Old44	None	musical	clarinet_new	1	1.28	8	9.0	1	2.924	0	hit	wrongsource
+044	268.579	3.0	271.579	Enc31	Enc	2.0	1.8319999999999999	Old33	None	kitchen	peppermill	0	5.245	6	-1.0	0		0	missed	missed
+045	276.078	3.0	279.078	Enc32	Enc	2.0	1.9369999999999998	Old11	None	animal	sheep	1	1.4080000000000001	6	5.0	1	2.766	0	hit	wrongsource
+046	279.578	3.0	282.578	CTL11	CTL	2.0	1.506		None	None	None	-1		6	-1.0	-1		0	control	control
+047	283.578	2.999000000000024	286.577	Enc33	Enc	2.0	1.8769999999999998	Old10	None	animal	penguin	0	4.942	9	-1.0	0		0	missed	missed
+048	288.077	3.0	291.077	Enc34	Enc	2.0	1.806	Old64	None	sporting	snow shoes_old	1	4.837	8	9.0	1	1.6030000000000002	0	hit	wrongsource
+049	293.077	3.0	296.077	CTL12	CTL	2.0	1.008		None	None	None	-1		6	-1.0	-1		1	control	control
+050	300.076	3.0	303.076	Enc35	Enc	2.0	1.5130000000000001	Old13	None	animal	zebra_old	0	5.662000000000001	9	-1.0	0		1	missed	missed
+051	305.076	3.0	308.076	Enc36	Enc	2.0	1.849	Old56	None	sporting	boxing_gloves	1	1.496	8	8.0	2	1.347	1	hit	correctsource
+052	310.575	3.0	313.575	Enc37	Enc	2.0	1.6680000000000001	Old26	None	food	toast	1	1.859	9	6.0	1	2.44	1	hit	wrongsource
+053	315.575	3.0	318.575	Enc38	Enc	2.0	2.595	Old66	None	fruit	blackberry_new	1	4.578	6	5.0	1	0.6509999999999999	1	hit	wrongsource
+054	333.074	2.999000000000024	336.0730000000001	Enc39	Enc	2.0	2.299	Old21	None	food	pecan02	1	2.3080000000000003	5	9.0	1	1.383	1	hit	wrongsource
+055	340.0730000000001	3.0	343.0730000000001	CTL13	CTL	2.0	0.895		None	None	None	-1		5	-1.0	-1		1	control	control
+056	344.5730000000001	3.0	347.5730000000001	Enc40	Enc	2.0	1.98	Old25	None	food	shellpasta	1	1.771	6	6.0	2	0.7709999999999999	1	hit	correctsource
+057	348.57199999999995	3.0	351.57199999999995	CTL14	CTL	2.0	1.095		None	None	None	-1		9	-1.0	-1		1	control	control
+058	354.57199999999995	3.0	357.57199999999995	CTL15	CTL	2.0	0.6509999999999999		None	None	None	-1		8	-1.0	-1		1	control	control
+059	363.071	3.0	366.071	CTL16	CTL	2.0	1.3		None	None	None	-1		9	-1.0	-1		1	control	control
+060	368.071	3.0	371.071	Enc41	Enc	2.0	1.8559999999999999	Old47	None	musical	harmonica_new	1	1.5759999999999998	6	9.0	1	3.872	1	hit	wrongsource
+061	373.571	2.999000000000024	376.57	Enc42	Enc	2.0	1.209	Old28	None	kitchen	big cooking pot	0	1.1740000000000002	8	-1.0	0		1	missed	missed
+062	379.57	3.0	382.57	Enc43	Enc	2.0	1.032	Old35	None	kitchen	plate	0	3.29	9	-1.0	0		1	missed	missed
+063	385.57	2.999000000000024	388.569	Enc44	Enc	2.0	1.5330000000000001	Old69	None	fruit	lemon_new	1	3.8289999999999997	5	8.0	1	1.2109999999999999	1	hit	wrongsource
+064	390.569	3.0	393.569	Enc45	Enc	2.0	1.4780000000000002	Old62	None	sporting	rollerblade	0	3.28	6	-1.0	0		1	missed	missed
+065	398.569	2.999000000000024	401.568	Enc46	Enc	2.0	1.462	Old63	None	sporting	skipping rope	1	1.3630000000000002	9	9.0	2	2.347	1	hit	correctsource
+066	406.068	3.0	409.068	CTL17	CTL	2.0	0.7709999999999999		None	None	None	-1		8	-1.0	-1		1	control	control
+067	419.567	3.0	422.567	Enc47	Enc	2.0	0.736	Old71	None	fruit	watermelon_old	1	2.164	6	5.0	1	1.3880000000000001	1	hit	wrongsource
+068	425.066	3.0	428.066	Enc48	Enc	2.0	1.85	Old27	None	Kitchen	apron	0	2.375	9	-1.0	0		1	missed	missed
+069	430.566	3.0	433.566	CTL18	CTL	2.0	0.868		None	None	None	-1		5	-1.0	-1		1	control	control
+070	439.565	3.0	442.565	CTL19	CTL	2.0	0.669		None	None	None	-1		5	-1.0	-1		1	control	control
+071	446.065	3.0	449.065	Enc49	Enc	2.0	1.9509999999999998	Old23	None	food	rawchicken	1	1.349	6	8.0	1	2.23	1	hit	wrongsource
+072	450.565	2.999000000000024	453.564	CTL20	CTL	2.0	1.046		None	None	None	-1		8	-1.0	-1		1	control	control
+073	456.064	3.0	459.064	CTL21	CTL	2.0	0.863		None	None	None	-1		9	-1.0	-1		1	control	control
+074	463.064	2.999000000000024	466.0630000000001	Enc50	Enc	2.0	2.311	Old05	None	animal	farm pig	1	1.696	8	9.0	1	1.98	1	hit	wrongsource
+075	468.0630000000001	3.0	471.0630000000001	Enc51	Enc	2.0	1.995	Old58	None	sporting	hockey stick_old	0	4.423	9	-1.0	0		1	missed	missed
+076	474.0630000000001	2.99899999999991	477.062	CTL22	CTL	2.0	0.764		None	None	None	-1		8	-1.0	-1		1	control	control
+077	480.062	3.0	483.062	Enc52	Enc	2.0	1.095	Old48	None	musical	piano_old	1	2.27	8	6.0	1	1.075	1	hit	wrongsource
+078	487.062	2.999000000000024	490.061	Enc53	Enc	2.0	1.1079999999999999	Old16	None	food	candy	1	1.7409999999999999	9	9.0	2	1.262	1	hit	correctsource
+079	490.561	3.0	493.561	CTL23	CTL	2.0	0.935		None	None	None	-1		9	-1.0	-1		1	control	control
+080	501.561	2.999000000000024	504.56	CTL24	CTL	2.0	2.385		None	None	None	-1		6	-1.0	-1		1	control	control
+081	507.56	3.0	510.56	Enc54	Enc	2.0	2.104	Old41	None	musical	accordion_old	1	1.55	5	6.0	1	1.679	1	hit	wrongsource
+082	511.06	2.999999999999943	514.06	Enc55	Enc	2.0	1.999	Old34	None	kitchen	pitcher	1	1.8530000000000002	8	8.0	2	0.6659999999999999	1	hit	correctsource
+083	515.559	3.0	518.559	Enc56	Enc	2.0	1.287	Old37	None	kitchen	tea cup and saucer	1	2.821	5	9.0	1	1.46	1	hit	wrongsource
+084	522.559	3.0	525.559	CTL25	CTL	2.0	0.882		None	None	None	-1		6	-1.0	-1		1	control	control
+085	530.558	3.0	533.558	Enc57	Enc	2.0	2.184	Old70	None	fruit	pineapple_old	1	1.959	6	8.0	1	3.16	1	hit	wrongsource
+086	541.057	3.0	544.057	CTL26	CTL	2.0	1.433		None	None	None	-1		6	-1.0	-1		1	control	control
+087	545.057	3.0	548.057	CTL27	CTL	2.0	2.064		None	None	None	-1		9	-1.0	-1		1	control	control
+088	549.557	3.0	552.557	Enc58	Enc	2.0	2.93	Old14	None	food	baguette01	1	1.341	5	6.0	1	4.053999999999999	1	hit	wrongsource
+089	553.056	3.0	556.056	Enc59	Enc	2.0	1.386	Old74	None	vegie	garlic01a	0	2.6060000000000003	6	-1.0	0		1	missed	missed
+090	557.556	3.0	560.556	Enc60	Enc	2.0	1.7590000000000001	Old52	None	musical	xylophone_old	1	3.7910000000000004	8	6.0	1	1.935	1	hit	wrongsource
+091	562.556	2.99899999999991	565.555	CTL28	CTL	2.0	0.838		None	None	None	-1		5	-1.0	-1		1	control	control
+092	566.555	3.0	569.555	CTL29	CTL	2.0	0.777		None	None	None	-1		8	-1.0	-1		1	control	control
+093	574.555	3.0	577.555	CTL30	CTL	2.0	0.6759999999999999		None	None	None	-1		9	-1.0	-1		1	control	control
+094	579.554	3.0	582.554	CTL31	CTL	2.0	0.948		None	None	None	-1		6	-1.0	-1		1	control	control
+095	588.054	2.999000000000024	591.053	Enc61	Enc	2.0	1.275	Old29	None	kitchen	coffee pot	0	1.82	5	-1.0	0		1	missed	missed
+096	591.553	3.0	594.553	CTL32	CTL	2.0	0.9990000000000001		None	None	None	-1		5	-1.0	-1		1	control	control
+097	602.553	2.999000000000024	605.552	Enc62	Enc	2.0	0.879	Old65	None	sporting	soccer ball_new	0	1.7109999999999999	5	-1.0	0		1	missed	missed
+098	606.552	3.0	609.552	CTL33	CTL	2.0	0.9420000000000001		None	None	None	-1		5	-1.0	-1		1	control	control
+099	610.052	3.0	613.052	Enc63	Enc	2.0	2.65	Old02	None	animal	cheetah	1	1.796	5	8.0	1	1.619	1	hit	wrongsource
+100	616.5509999999998	3.0	619.5509999999998	Enc64	Enc	2.0	1.453	Old08	None	animal	monarch_old	1	1.2919999999999998	9	8.0	1	1.775	1	hit	wrongsource
+101	621.0509999999998	3.0	624.0509999999998	Enc65	Enc	2.0	1.114	Old60	None	sporting	karate clothing	0	2.602	9	-1.0	0		1	missed	missed
+102	626.5509999999998	2.999000000000024	629.55	Enc66	Enc	2.0	1.217	Old75	None	vegie	green capsicum	1	2.381	5	6.0	1	2.4290000000000003	1	hit	wrongsource
+103	639.05	2.999000000000024	642.049	Enc67	Enc	2.0	0.8340000000000001	Old57	None	sporting	footballhelmet	1	1.3730000000000002	8	5.0	1	1.1320000000000001	1	hit	wrongsource
+104	642.549	3.0	645.549	CTL34	CTL	2.0	0.9590000000000001		None	None	None	-1		8	-1.0	-1		1	control	control
+105	646.549	3.0	649.549	Enc68	Enc	2.0	1.358	Old31	None	kitchen	ladle	0	4.5889999999999995	6	-1.0	0		1	missed	missed
+106	652.549	2.999000000000024	655.548	Enc69	Enc	2.0	1.025	Old07	None	animal	lion_new	1	4.225	6	6.0	2	2.8960000000000004	1	hit	correctsource
+107	656.548	3.0	659.548	CTL35	CTL	2.0	1.033		None	None	None	-1		8	-1.0	-1		1	control	control
+108	661.548	3.0	664.548	CTL36	CTL	2.0	0.8109999999999999		None	None	None	-1		6	-1.0	-1		1	control	control
+109	665.048	2.999000000000024	668.047	Enc70	Enc	2.0	1.379	Old61	None	sporting	mini-trampoline	1	1.7280000000000002	5	9.0	1	2.258	1	hit	wrongsource
+110	670.047	3.0	673.047	CTL37	CTL	2.0	0.912		None	None	None	-1		5	-1.0	-1		1	control	control
+111	681.546	3.0	684.546	Enc71	Enc	2.0	1.409	Old43	None	musical	harp_new	1	1.44	6	5.0	1	1.325	1	hit	wrongsource
+112	686.046	3.0	689.046	Enc72	Enc	2.0	1.17	Old06	None	animal	frog	0	3.1839999999999997	8	-1.0	0		1	missed	missed
+113	690.046	3.0	693.046	Enc73	Enc	2.0	1.87	Old45	None	musical	double bass	1	1.435	9	9.0	2	1.168	1	hit	correctsource
+114	694.045	3.0	697.045	Enc74	Enc	2.0	1.926	Old17	None	food	chocolatemilk	1	1.74	8	6.0	1	0.9420000000000001	1	hit	wrongsource
+115	701.045	3.0	704.045	Enc75	Enc	2.0	1.3730000000000002	Old77	None	vegie	radish	1	1.817	9	9.0	2	1.558	1	hit	correctsource
+116	713.544	3.0	716.544	CTL38	CTL	2.0	0.8079999999999999		None	None	None	-1		8	-1.0	-1		1	control	control
+117	721.043	3.0	724.043	CTL39	CTL	2.0	0.9570000000000001		None	None	None	-1		9	-1.0	-1		1	control	control
+118	724.543	3.0	727.543	Enc76	Enc	2.0	1.129	Old53	None	sporting	americanfootball	1	3.221	6	6.0	2	1.22	1	hit	correctsource
+119	731.5419999999998	3.0	734.5419999999998	Enc77	Enc	2.0	1.5659999999999998	Old30	None	kitchen	cookie cutter	1	1.4340000000000002	5	9.0	1	1.319	1	hit	wrongsource
+120	735.5419999999998	3.0	738.5419999999998	Enc78	Enc	2.0	1.165	Old22	None	food	pickle01a	1	1.308	6	5.0	1	1.63	1	hit	wrongsource
