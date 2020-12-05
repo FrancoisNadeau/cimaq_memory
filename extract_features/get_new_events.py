@@ -1,8 +1,63 @@
-# taskfilesdir = os.path.expanduser("~/../../data/cisl/DATA/cimaq_03-19/derivatives/CIMAQ_fmri_memory/data/task_files/processed")
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
-# outTask_dir = os.path.expanduser("~/cimaq_memory/NEW_task_files")
 
-def get_new_events(taskfilesdir, outTask_dir):
+
+import glob
+import nibabel
+import nilearn
+import numpy as np
+import os
+import pandas as pd
+import scipy
+import sys
+
+from matplotlib import pyplot as plt
+from nilearn.plotting import plot_design_matrix
+from nilearn.glm.first_level import FirstLevelModel
+from nilearn.glm.first_level import make_first_level_design_matrix
+from nilearn import image
+from nilearn import plotting
+from nilearn.plotting import plot_stat_map, plot_anat, plot_img, show
+from numpy import nan as NaN
+from os import listdir as ls
+from os.path import basename as bname
+from os.path import dirname as dname
+from os.path import join
+from pandas import DataFrame as df
+from cimaq_utils import loadimages
+from pandas import DataFrame as df
+
+"""
+Overview:
+Conversion from Nistats to Nilearn
+Added optional 'savefiles' argument to allow user to overwrite files to disk or not
+"""
+
+def get_new_events(taskfilesdir= "~/../../data/cisl/DATA/cimaq_03-19/derivatives/CIMAQ_fmri_memory/data/task_files/processed",
+                   outTask_dir="~/cimaq_memory/NEW_task_files",
+                  savefiles=False):
+    ''' 
+        Create BIDS compliant "_task-memory_events.tsv" from files outputed by "eprime2events.py"
+        
+        Parameters
+        ----------
+            taskfilesdir ("str"): Path to input folder as string.
+                                  Should not be edited unless files are moved in the datbase.
+            outTask_dir ("str"):  Path to output folder.
+            
+            savefiles ("bool"):   Default=False
+                                  If True, saves newly created files to disk in "outTask_dir"
+                                  as ".tsv" files. If "outTask_dir" is not empty,
+                                  overwites any file with matching name.
+        Returns
+        -------
+            newvents: ("list")
+            all_events: ("list")
+    '''
+          
+    taskfilesdir = os.path.expanduser(taskfilesdir)
+    outTask_dir = os.path.expanduser(outTask_dir)
     #rename "trial_type" column as "condition"
     taskfiles = [(os.path.splitext(bname(file))[0], pd.read_csv(join(taskfilesdir, file), sep='\t'))
                  for file in ls(taskfilesdir) if "events" in file and file.endswith(".tsv")]
@@ -64,33 +119,46 @@ def get_new_events(taskfilesdir, outTask_dir):
         print('Number of encoding trials:  ', countEnc)
         print('Number of control trials:  ', countCTL)
 
-        #Export Dataframe to events.tsv file    
-        s_task[1].to_csv(outTask_dir+'/sub-'+id+'_events.tsv',
-                      sep='\t', header=True, index=False)
+
 
         #keep only trials for which fMRI data was collected
 # #        s_task[1] = s_task[1][s_task[1]['unscanned']==0]
 
         s_task[1]['unscanned'] = 0
-    
+
         #Save vectors of trial labels (e.g., encoding vs control)
         #to label trials for classification analyses
         ttypes1 = s_task[1]['condition']
-        ttypes1.to_csv(outTask_dir+'/sub-'+id+'_enco_ctl.tsv',
-                       sep='\t', header=True, index=False)
 
         ttypes2 = s_task[1]['ctl_miss_hit']
-        ttypes2.to_csv(outTask_dir+'/sub-'+id+'_ctl_miss_hit.tsv',
-                       sep='\t', header=True, index=False)
 
         ttypes3 = s_task[1]['ctl_miss_ws_cs']
-        ttypes3.to_csv(outTask_dir+'/sub-'+id+'_ctl_miss_ws_cs.tsv',
-                       sep='\t', header=True, index=False)
 
         new_events.append([(s_task[0], s_task[1]), ttypes1, ttypes2, ttypes3])
+        
+# Allows user to overwrite files to disk or not 
+        if savefiles == True:
+                    #Export Dataframe to events.tsv file    
+            s_task[1].to_csv(outTask_dir+'/sub-'+id+'_events.tsv',
+                          sep='\t', header=True, index=False)
+            ttypes1.to_csv(outTask_dir+'/sub-'+id+'_enco_ctl.tsv',
+                           sep='\t', header=True, index=False)
+            ttypes2.to_csv(outTask_dir+'/sub-'+id+'_ctl_miss_hit.tsv',
+                           sep='\t', header=True, index=False)
+            ttypes3.to_csv(outTask_dir+'/sub-'+id+'_ctl_miss_ws_cs.tsv',
+                           sep='\t', header=True, index=False)
+
     #from s_task[1] dataframe, create an events dataframe to create a design matrix 
     #that will be inputed into a first-level model in nistats
     ev_cols = ['onset', 'duration', 'trial_type', 'condition', 'ctl_miss_hit', 
                'ctl_miss_ws_cs', 'trial_number']
     all_events = s_task[1][ev_cols]
     return new_events, all_events
+# taskfilesdir 
+# outTask_dir = 
+
+def main():
+    get_new_events()
+    
+if __name__ == "__main__":
+    main()
