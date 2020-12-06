@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import chardet
+import os
 from chardet import detect
 from os.path import basename as bname
 
@@ -22,14 +24,14 @@ def get_encoding(sheetlist):
 
     sheetlist = sorted(sheetlist)
     results = []
-    detector = udet()
     for sheetpath in sheetlist:
         bsheet = open(sheetpath, "rb").read()
         rezz = chardet.detect(bsheet)
         results.append((rezz))
-    encodings = tuple(zip([bname(sheetpath)
+    encodings = dict(zip([sheetpath
                            for sheetpath in sheetlist],
-                          results))
+                              results))
+    
     return encodings
     
 def main():

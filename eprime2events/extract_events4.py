@@ -17,12 +17,13 @@ from os.path import dirname as dname
 from os.path import expanduser as xpu
 from os.path import join
 from pandas import DataFrame as df
+from tqdm import tqdm
 from cimaq_utils import flatten
 from cimaq_utils import loadimages
 
 def extract_events4(
     zipdir="~/../../data/cisl/DATA/cimaq_03-19/derivatives/CIMAQ_fmri_memory/data/task_files/zipped_eprime",
-    outdir="~/extracted_eprimeX"):
+    outdir="~/extracted_eprimeF"):
 
     # Initializing BIDS compliant participants sheet
     outdir, zipdir = xpu(outdir), xpu(zipdir)
@@ -35,11 +36,13 @@ def extract_events4(
                        for zfile in loadimages(zipdir) if zfile.endswith(".zip")],
                       columns=["sub-ID", "pscid","dccid", "zfilename",
                                "zipdirpaths", "extdirpaths"]).set_index("sub-ID").sort_index()
+#     participants["archnames"] = [[zipfile.ZipFile.namelist() for 
+
     [os.makedirs(extdirpath, exist_ok=True) for extdirpath in participants.extdirpaths]
-    for row in participants.iterrows():
+    for row in tqdm(participants.iterrows()):
         with zipfile.ZipFile(row[1]["zipdirpaths"], "r") as archv:
-            row[1]["archnames"] = archv.namelist()
-            archv.extractall(row[1]["extdirpaths"])
+            archv.extractall(row[1]["extdirpaths"], members=[item for item in archv.namelist()
+                                                             if not item.startswith("._")])
         archv.close()
 
     participants["nitems_pre"] = [len(ls(join(outdir, row[0])))
