@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-# encoding: utf-8
 
-import zipfile
 from chardet import UniversalDetector as udet
 from os import listdir as ls
 from os.path import expanduser as xpu
@@ -26,12 +24,13 @@ def NEW_sniffer2(filelist):
 '''
     results = []
     fnames = []
-    for filename in filelist:
-        with zipfile.ZipFile(open(filename), 'r') as archv:
-            sniffed = (chardet.detect(archv)['encoding'],
-                       archv.namelist(), len(archv.namelist()))                    
-            results.append(sniffed)
+    for fpath in filelist:
+        detector = udet()
+        detector.reset()
+        with (open(fpath), 'r') as opf:
+            detector.feed(opf)
             detector.close()
+            results.append((bname(fpath), detector.result['encoding']))
     return results
 
 def main():
