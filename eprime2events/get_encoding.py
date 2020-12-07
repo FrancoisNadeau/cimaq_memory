@@ -28,9 +28,7 @@ def get_encoding(sheetlist):
         bsheet = open(sheetpath, "rb").read()
         rezz = chardet.detect(bsheet)
         results.append((rezz))
-    encodings = dict(zip([sheetpath
-                           for sheetpath in sheetlist],
-                              results))
+    encodings = dict(zip(sheetlist, results))
     
     return encodings
     
