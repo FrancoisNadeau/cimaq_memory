@@ -4,7 +4,7 @@ import chardet
 import os
 from chardet import detect
 from os.path import basename as bname
-from get_encoding import get_encoding
+from cimaq_utils import get_encoding
 
 def sniffsheet(indir="~/extracted_eprimeF"):
     indir = xpu(indir)
@@ -23,3 +23,9 @@ def sniffsheet(indir="~/extracted_eprimeF"):
                 for item in flatten([list(df(p1.to_dict()['encp'].values()))])
                if "CIMAQ" in bname(item)])))
     return p1, prefixes
+
+def main():
+    sniffsheet()
+    
+if __name__ == '__main__':
+    main()
