@@ -1,0 +1,118 @@
+	category	Stim	OldNumber	Recognition_ACC	Recognition_RESP	Recognition_RT	Spatial_RESP	Spatial_RT
+0	OLD	vegie_cauliflower.bmp	Old72	1	1	2.007	9	582
+1	OLD	food_baguette01.bmp	Old14	1	1	0.885	8	537
+2	New	food_drink.bmp	New05	1	2	1.482	8	537
+3	OLD	sporting_footballhelmet.bmp	Old57	1	1	1.094	5	529
+4	New	animal_seal.bmp	New38	1	2	1.514	5	529
+5	OLD	kitchen_peppermill.bmp	Old33	1	1	1.069	5	585
+6	OLD	animal_parrot.bmp	Old09	0	2	0.808	5	585
+7	New	musical_bongo drum.bmp	New23	1	2	1.27	5	585
+8	OLD	vegie_green capsicum.bmp	Old75	1	1	1.498	6	908
+9	OLD	kitchen_tea cup and saucer.bmp	Old37	1	1	0.879	5	634
+10	OLD	musical_clarinet_new.bmp	Old44	1	1	1.279	5	571
+11	OLD	sporting_mini-trampoline.bmp	Old61	1	1	0.795	6	578
+12	OLD	animal_camel_new.bmp	Old01	1	1	0.737	5	522
+13	OLD	fruit_green grapes.bmp	Old68	1	1	0.756	5	932
+14	OLD	sporting_hockey stick_old.bmp	Old58	1	1	1.094	9	737
+15	OLD	animal_lion_new.bmp	Old07	1	1	0.69	5	589
+16	OLD	sporting_bicycle_old.bmp	Old55	1	1	1.524	6	470
+17	New	food_bagel01.bmp	New17	1	2	1.097	6	470
+18	New	vegie_snowpea01.bmp	New27	1	2	1.884	6	470
+19	OLD	fruit_blackberry_new.bmp	Old66	1	1	0.912	5	634
+20	OLD	sporting_skipping rope.bmp	Old63	1	1	0.767	5	559
+21	OLD	vegie_carrot.bmp	Old78	1	1	0.776	6	535
+22	OLD	kitchen_martini glass.bmp	Old32	0	2	1.703	6	535
+23	OLD	sporting_karate clothing.bmp	Old60	1	1	1.098	9	517
+24	New	fruit_apricot_new.bmp	New04	1	2	0.981	9	517
+25	New	food_walnut01c.bmp	New34	1	2	1.028	9	517
+26	OLD	sporting_boxing_gloves.bmp	Old56	0	2	0.946	9	517
+27	OLD	sporting_fishing rod.bmp	Old59	1	1	0.963	6	572
+28	New	animal_ostrich.bmp	New26	1	2	0.979	6	572
+29	New	sporting_basketball_new.bmp	New14	1	2	1.579	6	572
+30	New	musical_uculele_new.bmp	New39	0	1	0.979	6	683
+31	New	vegie_cucumber.bmp	New33	0	1	1.614	5	541
+32	New	food_pizza.bmp	New22	1	2	0.878	5	541
+33	New	kitchen_spatula_old.bmp	New37	1	2	1.33	5	541
+34	OLD	food_pickle01a.bmp	Old22	0	2	1.899	5	541
+35	New	animal_horse.bmp	New20	1	2	0.863	5	541
+36	OLD	fruit_watermelon_old.bmp	Old71	1	1	1.187	5	1138
+37	New	sporting_weighlifting.bmp	New25	1	2	0.996	5	1138
+38	OLD	sporting_soccer ball_new.bmp	Old65	1	1	0.946	9	515
+39	OLD	sporting_Badminton Racquet.bmp	Old54	1	1	1.069	8	545
+40	New	animal_giraffe.bmp	New03	1	2	0.842	8	545
+41	OLD	Kitchen_apron.bmp	Old27	0	2	0.855	8	545
+42	OLD	vegie_radish.bmp	Old77	1	1	1.203	5	1153
+43	New	fruit_granny smith apple.bmp	New16	1	2	0.834	5	1153
+44	New	kitchen_toaster_old.bmp	New30	1	2	0.671	5	1153
+45	OLD	food_croissant01.bmp	Old19	1	1	1.459	6	455
+46	New	fruit_cherry.bmp	Old67	0	2	0.708	6	455
+47	OLD	kitchen_plate.bmp	Old35	1	1	1.366	5	1190
+48	OLD	animal_monarch_old.bmp	Old08	1	1	0.902	5	440
+49	OLD	animal_sheep.bmp	Old11	1	1	1.301	6	417
+50	OLD	fruit_pineapple_old.bmp	Old70	0	2	1.037	6	417
+51	New	kitchen_kettle_new.bmp	New24	1	2	1.426	6	417
+52	OLD	sporting_rollerblade.bmp	Old62	1	1	0.92	8	530
+53	OLD	kitchen_white strainer.bmp	Old38	1	1	0.795	9	1249
+54	OLD	food_shellpasta.bmp	Old25	1	1	0.95	5	455
+55	OLD	hard_musical_recorder.bmp	Old40	1	1	0.708	8	510
+56	New	kitchen_fork_old.bmp	New18	1	2	1.248	8	510
+57	OLD	animal_zebra_old.bmp	Old13	1	1	1.861	8	434
+58	OLD	food_bottleofredwine01.bmp	Old15	1	1	0.831	8	516
+59	OLD	kitchen_pitcher.bmp	Old34	1	1	0.823	8	444
+60	OLD	kitchen_wooden spoon_old.bmp	Old39	1	1	0.825	6	1727
+61	OLD	kitchen_cookie cutter.bmp	Old30	1	1	0.745	8	426
+62	OLD	musical_acoustic guitar_new.bmp	Old42	1	1	0.656	9	1652
+63	OLD	animal_dalmation_old.bmp	Old04	1	1	1.136	5	378
+64	New	musical_french horn_old.bmp	New12	1	2	1.153	5	378
+65	OLD	vegie_corn02.bmp	Old73	1	1	1.114	6	452
+66	OLD	food_toast.bmp	Old26	0	2	0.832	6	452
+67	OLD	food_pecan02.bmp	Old21	1	1	1.11	6	552
+68	New	vegie_broccoli.bmp	New36	1	2	1.808	6	552
+69	New	kitchen_garlic press.bmp	New07	1	2	1.022	6	552
+70	OLD	animal_siamese cat.bmp	Old12	1	1	0.972	5	980
+71	OLD	musical_double bass.bmp	Old45	1	1	1.172	6	667
+72	New	musical_bagpipes.bmp	New35	1	2	1.239	6	667
+73	OLD	sporting_snow shoes_old.bmp	Old64	1	1	0.972	5	412
+74	New	animal_pigeon.bmp	New32	1	2	1.57	5	412
+75	OLD	animal_farm pig.bmp	Old05	1	1	1.034	9	912
+76	New	animal_gorilla.bmp	New15	1	2	2.282	9	912
+77	New	sporting_baseball bat_new.bmp	New08	1	2	1.478	9	912
+78	New	animal_dolphin_old.bmp	New09	1	2	0.906	9	912
+79	New	sporting_flippers.bmp	New02	1	2	0.813	9	912
+80	OLD	animal_cheetah.bmp	Old02	1	1	1.043	8	472
+81	OLD	musical_tuba.bmp	Old50	0	2	1.204	8	472
+82	OLD	food_cracker02.bmp	Old18	1	1	1.018	6	353
+83	OLD	musical_drums_old.bmp	Old46	1	1	0.953	8	440
+84	OLD	food_softcheese.bmp	Old24	1	1	0.877	5	393
+85	OLD	kitchen_coffee pot.bmp	Old29	1	1	0.776	6	551
+86	OLD	food_frenchfries.bmp	Old20	0	2	2.728	6	551
+87	OLD	musical_accordion_old.bmp	Old41	1	1	0.698	9	1493
+88	OLD	animal_penguin.bmp	Old10	1	1	0.8	6	439
+89	OLD	musical_violin_old.bmp	Old51	1	1	0.708	5	1654
+90	OLD	musical_piano_old.bmp	Old48	1	1	0.731	8	797
+91	OLD	musical_harp_new.bmp	Old43	1	1	0.868	6	416
+92	OLD	food_candy.bmp	Old16	1	1	0.758	9	919
+93	OLD	vegie_mushroom.bmp	Old76	1	1	0.752	9	1337
+94	New	food_bread.bmp	New28	1	2	1.298	9	1337
+95	OLD	sporting_americanfootball.bmp	Old53	1	1	1.006	8	491
+96	OLD	kitchen_ladle.bmp	Old31	1	1	0.879	5	331
+97	OLD	animal_frog.bmp	Old06	1	1	0.923	5	629
+98	New	fruit_rasberry.bmp	New10	1	2	1.49	5	629
+99	New	musical_zamponia windflute.bmp	New29	1	2	0.942	5	629
+100	New	musical_tambourine_new.bmp	New06	1	2	0.879	5	629
+101	OLD	musical_triangle.bmp	Old49	1	1	0.923	9	468
+102	New	kitchen_baking spatula.bmp	New01	1	2	1.112	9	468
+103	OLD	kitchen_big cooking pot.bmp	Old28	1	1	0.906	6	341
+104	New	vegie_pumpkin.bmp	New21	1	2	0.982	6	341
+105	OLD	musical_harmonica_new.bmp	Old47	1	1	0.925	8	391
+106	New	food_cookie01.bmp	New11	0	1	1.59	5	1461
+107	OLD	food_chocolatemilk.bmp	Old17	1	1	0.906	5	428
+108	New	sporting_windsurf.bmp	New31	1	2	1.122	5	428
+109	OLD	vegie_garlic01a.bmp	Old74	1	1	1.691	8	631
+110	New	sporting_golf ball.bmp	New19	1	2	1.084	8	631
+111	New	kitchen_ramekin.bmp	New13	1	2	0.712	8	631
+112	OLD	fruit_lemon_new.bmp	Old69	1	1	1.21	6	407
+113	OLD	animal_chimpanzee.bmp	Old03	1	1	0.75	9	422
+114	OLD	kitchen_scrubbing brush.bmp	Old36	1	1	2.092	5	575
+115	OLD	musical_xylophone_old.bmp	Old52	1	1	0.959	5	303
+116	OLD	food_rawchicken.bmp	Old23	1	1	1.53	9	452
