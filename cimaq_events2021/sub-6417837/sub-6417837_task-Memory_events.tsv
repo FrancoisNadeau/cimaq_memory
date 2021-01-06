@@ -1,0 +1,235 @@
+	Condition	CorrectSource	Stim_RT	stimOnsetSec	stimDurSec	ImageID	tNumXcond
+0	1.0	6.0	1.5630000000000002	False	False	False	False
+1	1.0	5.0	1.099	False	False		
+2	1.0	6.0	1.077	False	False		
+3	1.0	9.0	1.348	False	False		
+4	1.0	8.0	1.776	False	False		
+5	1.0	9.0	1.147	False	False		
+6	1.0	8.0	1.629	False	False		
+7	0.0	8.0	1.432	False	False		
+8	0.0	5.0	0.991	False	False		
+9	1.0	6.0	1.03	False	False		
+10	0.0	6.0	0.8640000000000001	False	False		
+11	1.0	5.0	1.777	False	False		
+12	1.0	6.0	1.915	False	False		
+13	0.0	8.0	0.946	False	False		
+14	1.0	6.0	1.1320000000000001	False	False		
+15	1.0	8.0	2.273	False	False		
+16	1.0	5.0	1.922	False	False		
+17	1.0	9.0	2.177	False	False		
+18	1.0	9.0	1.88	False	False		
+19	1.0	5.0	1.5959999999999999	False	False		
+20	1.0	5.0	2.116	False	False		
+21	1.0	5.0	0.478	False	False		
+22	0.0	8.0	0.856	False	False		
+23	0.0	5.0	0.787	False	False		
+24	1.0	8.0	0.738	False	False		
+25	1.0	6.0	1.2670000000000001	False	False		
+26	1.0	5.0	1.642	False	False		
+27	0.0	5.0	0.77	False	False		
+28	1.0	6.0	0.603	False	False		
+29	1.0	5.0	1.3230000000000002	False	False		
+30	0.0	6.0	0.5489999999999999	False	False		
+31	1.0	8.0	0.65	False	False		
+32	1.0	5.0	0.63	False	False		
+33	1.0	9.0	1.229	False	False		
+34	1.0	8.0	1.982	False	False		
+35	1.0	9.0	1.8880000000000001	False	False		
+36	1.0	8.0	2.294	False	False		
+37	1.0	6.0	0.897	False	False		
+38	0.0	9.0	0.925	False	False		
+39	0.0	8.0	0.815	False	False		
+40	1.0	9.0	1.515	False	False		
+41	1.0	6.0	1.341	False	False		
+42	1.0	9.0	1.36	False	False		
+43	1.0	6.0	1.651	False	False		
+44	0.0	5.0	1.189	False	False		
+45	1.0	5.0	1.585	False	False		
+46	1.0	9.0	0.9109999999999999	False	False		
+47	0.0	9.0	0.889	False	False		
+48	1.0	8.0	1.479	False	False		
+49	0.0	6.0	0.8009999999999999	False	False		
+50	0.0	6.0	0.7070000000000001	False	False		
+51	0.0	6.0	0.479	False	False		
+52	0.0	9.0	0.546	False	False		
+53	1.0	6.0	0.44299999999999995	False	False		
+54	1.0	6.0	1.403	False	False		
+55	1.0	5.0	1.785	False	False		
+56	1.0	6.0	1.3519999999999999	False	False		
+57	1.0	9.0	0.932	False	False		
+58	1.0	8.0	1.726	False	False		
+59	1.0	9.0	2.121	False	False		
+60	1.0	8.0	2.475	False	False		
+61	1.0	9.0	1.831	False	False		
+62	1.0	6.0	0.522	False	False		
+63	1.0	6.0	0.8690000000000001	False	False		
+64	1.0	8.0	0.583	False	False		
+65	1.0	9.0	1.1159999999999999	False	False		
+66	1.0	6.0	1.161	False	False		
+67	0.0	8.0	0.657	False	False		
+68	1.0	5.0	0.722	False	False		
+69	0.0	9.0	0.626	False	False		
+70	0.0	8.0	0.589	False	False		
+71	0.0	5.0	0.511	False	False		
+72	1.0	9.0	0.565	False	False		
+73	1.0	8.0	1.693	False	False		
+74	1.0	8.0	2.097	False	False		
+75	1.0	6.0	1.048	False	False		
+76	0.0	5.0	0.461	False	False		
+77	1.0	9.0	1.5919999999999999	False	False		
+78	0.0	8.0	0.606	False	False		
+79	1.0	9.0	1.474	False	False		
+80	0.0	9.0	0.6579999999999999	False	False		
+81	0.0	8.0	0.6509999999999999	False	False		
+82	0.0	9.0	0.722	False	False		
+83	0.0	5.0	0.608	False	False		
+84	1.0	5.0	1.351	False	False		
+85	0.0	6.0	1.137	False	False		
+86	0.0	6.0	0.51	False	False		
+87	1.0	8.0	0.643	False	False		
+88	0.0	9.0	0.5329999999999999	False	False		
+89	1.0	8.0	0.628	False	False		
+90	1.0	5.0	0.755	False	False		
+91	1.0	8.0	0.7170000000000001	False	False		
+92	0.0	8.0	0.537	False	False		
+93	1.0	9.0	0.988	False	False		
+94	1.0	8.0	1.3090000000000002	False	False		
+95	1.0	8.0	1.8090000000000002	False	False		
+96	0.0	8.0	0.674	False	False		
+97	0.0	5.0	0.758	False	False		
+98	1.0	5.0	1.24	False	False		
+99	0.0	9.0	0.42	False	False		
+100	0.0	9.0	1.021	False	False		
+101	0.0	6.0	0.7140000000000001	False	False		
+102	1.0	9.0	0.7559999999999999	False	False		
+103	0.0	6.0	0.8290000000000001	False	False		
+104	0.0	5.0	0.5670000000000001	False	False		
+105	0.0	6.0	0.613	False	False		
+106	1.0	5.0	1.099	False	False		
+107	1.0	9.0	0.508	False	False		
+108	1.0	8.0	0.7240000000000001	False	False		
+109	1.0	6.0	0.649	False	False		
+110	1.0	9.0	0.738	False	False		
+111	0.0	9.0	0.884	False	False		
+112	1.0	5.0	0.653	False	False		
+113	1.0	6.0	0.491	False	False		
+114	1.0	5.0	0.71	False	False		
+115	1.0	5.0	0.594	False	False		
+116	1.0	8.0	1.212	False	False		
+117				False	False		
+118				False	False		
+119				False	False		
+120				False	False		
+121				False	False		
+122				False	False		
+123				False	False		
+124				False	False		
+125				False	False		
+126				False	False		
+127				False	False		
+128				False	False		
+129				False	False		
+130				False	False		
+131				False	False		
+132				False	False		
+133				False	False		
+134				False	False		
+135				False	False		
+136				False	False		
+137				False	False		
+138				False	False		
+139				False	False		
+140				False	False		
+141				False	False		
+142				False	False		
+143				False	False		
+144				False	False		
+145				False	False		
+146				False	False		
+147				False	False		
+148				False	False		
+149				False	False		
+150				False	False		
+151				False	False		
+152				False	False		
+153				False	False		
+154				False	False		
+155				False	False		
+156				False	False		
+157				False	False		
+158				False	False		
+159				False	False		
+160				False	False		
+161				False	False		
+162				False	False		
+163				False	False		
+164				False	False		
+165				False	False		
+166				False	False		
+167				False	False		
+168				False	False		
+169				False	False		
+170				False	False		
+171				False	False		
+172				False	False		
+173				False	False		
+174				False	False		
+175				False	False		
+176				False	False		
+177				False	False		
+178				False	False		
+179				False	False		
+180				False	False		
+181				False	False		
+182				False	False		
+183				False	False		
+184				False	False		
+185				False	False		
+186				False	False		
+187				False	False		
+188				False	False		
+189				False	False		
+190				False	False		
+191				False	False		
+192				False	False		
+193				False	False		
+194				False	False		
+195				False	False		
+196				False	False		
+197				False	False		
+198				False	False		
+199				False	False		
+200				False	False		
+201				False	False		
+202				False	False		
+203				False	False		
+204				False	False		
+205				False	False		
+206				False	False		
+207				False	False		
+208				False	False		
+209				False	False		
+210				False	False		
+211				False	False		
+212				False	False		
+213				False	False		
+214				False	False		
+215				False	False		
+216				False	False		
+217				False	False		
+218				False	False		
+219				False	False		
+220				False	False		
+221				False	False		
+222				False	False		
+223				False	False		
+224				False	False		
+225				False	False		
+226				False	False		
+227				False	False		
+228				False	False		
+229				False	False		
+230				False	False		
+231				False	False		
+232				False	False		
+233				False	False		

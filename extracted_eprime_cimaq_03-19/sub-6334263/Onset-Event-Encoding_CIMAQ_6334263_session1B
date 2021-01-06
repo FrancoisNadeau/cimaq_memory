@@ -1,0 +1,240 @@
+1             CTL           CTL0                        Control        0.052         3 
+1             CTL           CTL0                        Fixation       3.052         1.5 
+2             Enc           Enc00                       Encoding       4.552         3 
+2             Enc           Enc00                       Fixation       7.551         0.5 
+3             Enc           Enc000                      Encoding       8.051         3 
+3             Enc           Enc000                      Fixation       11.051        0.5 
+4             CTL           CTL01                       Control        11.551        3 
+4             CTL           CTL01                       Fixation       14.551        5.5 
+5             Enc           Enc01         Old53         Encoding       20.05         3 
+5             Enc           Enc01         Old53         Fixation       23.05         0.5 
+6             Enc           Enc02         Old03         Encoding       23.55         3 
+6             Enc           Enc02         Old03         Fixation       26.55         1 
+7             Enc           Enc03         Old16         Encoding       27.549        3 
+7             Enc           Enc03         Old16         Fixation       30.549        1 
+8             Enc           Enc04         Old71         Encoding       31.549        3 
+8             Enc           Enc04         Old71         Fixation       34.549        1.5 
+9             Enc           Enc05         Old63         Encoding       36.049        3 
+9             Enc           Enc05         Old63         Fixation       39.048        2 
+10            Enc           Enc06         Old40         Encoding       41.048        3 
+10            Enc           Enc06         Old40         Fixation       44.048        3 
+11            CTL           CTL02                       Control        47.048        3 
+11            CTL           CTL02                       Fixation       50.047        0.5 
+12            CTL           CTL03                       Control        50.547        3 
+12            CTL           CTL03                       Fixation       53.547        4 
+13            Enc           Enc07         Old39         Encoding       57.547        3 
+13            Enc           Enc07         Old39         Fixation       60.547        2.5 
+14            CTL           CTL04                       Control        63.046        3 
+14            CTL           CTL04                       Fixation       66.046        1.5 
+15            Enc           Enc08         Old45         Encoding       67.546        3 
+15            Enc           Enc08         Old45         Fixation       70.546        2 
+16            Enc           Enc09         Old26         Encoding       72.545        3 
+16            Enc           Enc09         Old26         Fixation       75.545        3.5 
+17            CTL           CTL05                       Control        79.045        3 
+17            CTL           CTL05                       Fixation       82.045        0.5 
+18            Enc           Enc10         Old36         Encoding       82.544        3 
+18            Enc           Enc10         Old36         Fixation       85.544        2.5 
+19            Enc           Enc11         Old08         Encoding       88.044        3 
+19            Enc           Enc11         Old08         Fixation       91.044        0.5 
+20            Enc           Enc12         Old18         Encoding       91.544        3 
+20            Enc           Enc12         Old18         Fixation       94.543        1 
+21            Enc           Enc13         Old73         Encoding       95.543        3 
+21            Enc           Enc13         Old73         Fixation       98.543        1.5 
+22            Enc           Enc14         Old24         Encoding       100.043       3 
+22            Enc           Enc14         Old24         Fixation       103.043       2.5 
+23            Enc           Enc15         Old34         Encoding       105.542       3 
+23            Enc           Enc15         Old34         Fixation       108.542       3 
+24            Enc           Enc16         Old32         Encoding       111.542       3 
+24            Enc           Enc16         Old32         Fixation       114.542       1 
+25            Enc           Enc17         Old15         Encoding       115.541       3 
+25            Enc           Enc17         Old15         Fixation       118.541       1.5 
+26            CTL           CTL06                       Control        120.041       3 
+26            CTL           CTL06                       Fixation       123.041       1.5 
+27            Enc           Enc18         Old06         Encoding       124.541       3 
+27            Enc           Enc18         Old06         Fixation       127.54        1 
+28            Enc           Enc19         Old41         Encoding       128.54        3 
+28            Enc           Enc19         Old41         Fixation       131.54        2.5 
+29            CTL           CTL07                       Control        134.04        3 
+29            CTL           CTL07                       Fixation       137.04        2.5 
+30            Enc           Enc20         Old68         Encoding       139.539       3 
+30            Enc           Enc20         Old68         Fixation       142.539       0.5 
+31            Enc           Enc21         Old57         Encoding       143.039       3 
+31            Enc           Enc21         Old57         Fixation       146.039       5.5 
+32            Enc           Enc22         Old67         Encoding       151.538       3 
+32            Enc           Enc22         Old67         Fixation       154.538       5.5 
+33            Enc           Enc23         Old05         Encoding       160.037       3 
+33            Enc           Enc23         Old05         Fixation       163.037       2 
+34            Enc           Enc24         Old04         Encoding       165.037       3 
+34            Enc           Enc24         Old04         Fixation       168.037       1 
+35            Enc           Enc25         Old42         Encoding       169.037       3 
+35            Enc           Enc25         Old42         Fixation       172.036       3 
+36            Enc           Enc26         Old65         Encoding       175.036       3 
+36            Enc           Enc26         Old65         Fixation       178.036       3.5 
+37            CTL           CTL08                       Control        181.536       3 
+37            CTL           CTL08                       Fixation       184.535       0.5 
+38            CTL           CTL09                       Control        185.035       3 
+38            CTL           CTL09                       Fixation       188.035       1.5 
+39            CTL           CTL10                       Control        189.535       3 
+39            CTL           CTL10                       Fixation       192.534       9.5 
+40            CTL           CTL11                       Control        202.034       3 
+40            CTL           CTL11                       Fixation       205.033       2 
+41            Enc           Enc27         Old48         Encoding       207.033       3 
+41            Enc           Enc27         Old48         Fixation       210.033       2 
+42            CTL           CTL12                       Control        212.033       3 
+42            CTL           CTL12                       Fixation       215.032       1 
+43            Enc           Enc28         Old25         Encoding       216.032       3 
+43            Enc           Enc28         Old25         Fixation       219.032       0.5 
+44            CTL           CTL13                       Control        219.532       3 
+44            CTL           CTL13                       Fixation       222.532       0.5 
+45            Enc           Enc29         Old37         Encoding       223.032       3 
+45            Enc           Enc29         Old37         Fixation       226.031       2 
+46            Enc           Enc30         Old56         Encoding       228.031       3 
+46            Enc           Enc30         Old56         Fixation       231.031       4.5 
+47            Enc           Enc31         Old09         Encoding       235.531       3 
+47            Enc           Enc31         Old09         Fixation       238.53        3.5 
+48            Enc           Enc32         Old72         Encoding       242.03        3 
+48            Enc           Enc32         Old72         Fixation       245.03        8 
+49            Enc           Enc33         Old22         Encoding       253.029       3 
+49            Enc           Enc33         Old22         Fixation       256.029       9 
+50            Enc           Enc34         Old14         Encoding       265.028       3 
+50            Enc           Enc34         Old14         Fixation       268.028       0.5 
+51            CTL           CTL14                       Control        268.528       3 
+51            CTL           CTL14                       Fixation       271.527       2.5 
+52            Enc           Enc35         Old69         Encoding       274.027       3 
+52            Enc           Enc35         Old69         Fixation       277.027       8.5 
+53            Enc           Enc36         Old12         Encoding       285.526       3 
+53            Enc           Enc36         Old12         Fixation       288.526       0.5 
+54            Enc           Enc37         Old11         Encoding       289.026       3 
+54            Enc           Enc37         Old11         Fixation       292.025       5.5 
+55            Enc           Enc38         Old46         Encoding       297.525       3 
+55            Enc           Enc38         Old46         Fixation       300.525       3 
+56            CTL           CTL15                       Control        303.524       3 
+56            CTL           CTL15                       Fixation       306.524       4 
+57            CTL           CTL16                       Control        310.524       3 
+57            CTL           CTL16                       Fixation       313.524       6.5 
+58            Enc           Enc39         Old59         Encoding       320.023       3 
+58            Enc           Enc39         Old59         Fixation       323.023       0.5 
+59            Enc           Enc40         Old62         Encoding       323.523       3 
+59            Enc           Enc40         Old62         Fixation       326.522       11.5 
+60            Enc           Enc41         Old78         Encoding       338.021       3 
+60            Enc           Enc41         Old78         Fixation       341.021       9.5 
+61            CTL           CTL17                       Control        350.52        3 
+61            CTL           CTL17                       Fixation       353.52        1 
+62            Enc           Enc42         Old61         Encoding       354.52        3 
+62            Enc           Enc42         Old61         Fixation       357.52        5.5 
+63            Enc           Enc43         Old19         Encoding       363.019       3 
+63            Enc           Enc43         Old19         Fixation       366.019       1.5 
+64            Enc           Enc44         Old30         Encoding       367.519       3 
+64            Enc           Enc44         Old30         Fixation       370.518       1 
+65            CTL           CTL18                       Control        371.518       3 
+65            CTL           CTL18                       Fixation       374.518       2 
+66            Enc           Enc45         Old17         Encoding       376.518       3 
+66            Enc           Enc45         Old17         Fixation       379.52        3.5 
+67            Enc           Enc46         Old27         Encoding       383.017       3 
+67            Enc           Enc46         Old27         Fixation       386.017       1.5 
+68            CTL           CTL19                       Control        387.517       3 
+68            CTL           CTL19                       Fixation       390.517       0.5 
+69            CTL           CTL20                       Control        391.016       3 
+69            CTL           CTL20                       Fixation       394.016       2.5 
+70            CTL           CTL21                       Control        396.516       3 
+70            CTL           CTL21                       Fixation       399.517       0.5 
+71            CTL           CTL22                       Control        400.016       3 
+71            CTL           CTL22                       Fixation       403.015       2.5 
+72            CTL           CTL23                       Control        405.515       3 
+72            CTL           CTL23                       Fixation       408.515       2 
+73            CTL           CTL24                       Control        410.515       3 
+73            CTL           CTL24                       Fixation       413.514       11 
+74            Enc           Enc47         Old38         Encoding       424.513       3 
+74            Enc           Enc47         Old38         Fixation       427.513       1 
+75            Enc           Enc48         Old13         Encoding       428.513       3 
+75            Enc           Enc48         Old13         Fixation       431.513       1.5 
+76            Enc           Enc49         Old49         Encoding       433.013       3 
+76            Enc           Enc49         Old49         Fixation       436.012       0.5 
+77            Enc           Enc50         Old47         Encoding       436.512       3 
+77            Enc           Enc50         Old47         Fixation       439.512       0.5 
+78            Enc           Enc51         Old10         Encoding       440.012       3 
+78            Enc           Enc51         Old10         Fixation       443.012       2 
+79            CTL           CTL25                       Control        445.012       3 
+79            CTL           CTL25                       Fixation       448.011       1 
+80            CTL           CTL26                       Control        449.011       3 
+80            CTL           CTL26                       Fixation       452.011       2 
+81            Enc           Enc52         Old52         Encoding       454.011       3 
+81            Enc           Enc52         Old52         Fixation       457.01        4 
+82            Enc           Enc53         Old60         Encoding       461.01        3 
+82            Enc           Enc53         Old60         Fixation       464.01        4.5 
+83            Enc           Enc54         Old44         Encoding       468.509       3 
+83            Enc           Enc54         Old44         Fixation       471.509       8.5 
+84            Enc           Enc55         Old55         Encoding       480.008       3 
+84            Enc           Enc55         Old55         Fixation       483.008       1 
+85            CTL           CTL27                       Control        484.008       3 
+85            CTL           CTL27                       Fixation       487.008       6 
+86            Enc           Enc56         Old28         Encoding       493.007       3 
+86            Enc           Enc56         Old28         Fixation       496.007       1.5 
+87            CTL           CTL28                       Control        497.507       3 
+87            CTL           CTL28                       Fixation       500.509       13 
+88            Enc           Enc57         Old64         Encoding       513.505       3 
+88            Enc           Enc57         Old64         Fixation       516.505       1.5 
+89            Enc           Enc58         Old75         Encoding       518.005       3 
+89            Enc           Enc58         Old75         Fixation       521.005       1.5 
+90            Enc           Enc59         Old58         Encoding       522.505       3 
+90            Enc           Enc59         Old58         Fixation       525.504       7.5 
+91            CTL           CTL29                       Control        533.004       3 
+91            CTL           CTL29                       Fixation       536.003       1.5 
+92            Enc           Enc60         Old54         Encoding       537.503       3 
+92            Enc           Enc60         Old54         Fixation       540.503       3.5 
+93            CTL           CTL30                       Control        544.003       3 
+93            CTL           CTL30                       Fixation       547.002       1 
+94            Enc           Enc61         Old01         Encoding       548.002       3 
+94            Enc           Enc61         Old01         Fixation       551.002       1.5 
+95            CTL           CTL31                       Control        552.502       3 
+95            CTL           CTL31                       Fixation       555.502       3.5 
+96            Enc           Enc62         Old33         Encoding       559.001       3 
+96            Enc           Enc62         Old33         Fixation       562.001       4.5 
+97            CTL           CTL32                       Control        566.501       3 
+97            CTL           CTL32                       Fixation       569.5         3 
+98            Enc           Enc63         Old66         Encoding       572.5         3 
+98            Enc           Enc63         Old66         Fixation       575.5         0.5 
+99            Enc           Enc64         Old76         Encoding       576           3 
+99            Enc           Enc64         Old76         Fixation       578.999       8 
+100           CTL           CTL33                       Control        586.999       3 
+100           CTL           CTL33                       Fixation       589.998       5 
+101           CTL           CTL34                       Control        594.998       3 
+101           CTL           CTL34                       Fixation       597.998       0.5 
+102           Enc           Enc65         Old70         Encoding       598.498       3 
+102           Enc           Enc65         Old70         Fixation       601.497       1 
+103           Enc           Enc66         Old74         Encoding       602.497       3 
+103           Enc           Enc66         Old74         Fixation       605.497       11.5 
+104           CTL           CTL35                       Control        616.996       3 
+104           CTL           CTL35                       Fixation       619.996       2.5 
+105           Enc           Enc67         Old07         Encoding       622.495       3 
+105           Enc           Enc67         Old07         Fixation       625.495       2 
+106           Enc           Enc68         Old02         Encoding       627.495       3 
+106           Enc           Enc68         Old02         Fixation       630.495       0.5 
+107           Enc           Enc69         Old31         Encoding       630.995       3 
+107           Enc           Enc69         Old31         Fixation       633.994       1 
+108           Enc           Enc70         Old50         Encoding       634.994       3 
+108           Enc           Enc70         Old50         Fixation       637.994       1 
+109           Enc           Enc71         Old35         Encoding       638.994       3 
+109           Enc           Enc71         Old35         Fixation       641.994       0.5 
+110           CTL           CTL36                       Control        642.494       3 
+110           CTL           CTL36                       Fixation       645.493       7.5 
+111           Enc           Enc72         Old20         Encoding       652.993       3 
+111           Enc           Enc72         Old20         Fixation       655.992       15 
+112           Enc           Enc73         Old77         Encoding       670.991       3 
+112           Enc           Enc73         Old77         Fixation       673.991       0.5 
+113           CTL           CTL37                       Control        674.491       3 
+113           CTL           CTL37                       Fixation       677.491       1 
+114           CTL           CTL38                       Control        678.49        3 
+114           CTL           CTL38                       Fixation       681.49        0.5 
+115           Enc           Enc74         Old51         Encoding       681.99        3 
+115           Enc           Enc74         Old51         Fixation       684.99        9 
+116           Enc           Enc75         Old43         Encoding       693.989       3 
+116           Enc           Enc75         Old43         Fixation       696.989       6 
+117           CTL           CTL39                       Control        702.988       3 
+117           CTL           CTL39                       Fixation       705.988       10.5 
+118           Enc           Enc76         Old21         Encoding       716.487       3 
+118           Enc           Enc76         Old21         Fixation       719.487       5 
+119           Enc           Enc77         Old29         Encoding       724.486       3 
+119           Enc           Enc77         Old29         Fixation       727.486       1 
+120           Enc           Enc78         Old23         Encoding       728.486       3 
+120           Enc           Enc78         Old23         Fixation       731.486       18.5 

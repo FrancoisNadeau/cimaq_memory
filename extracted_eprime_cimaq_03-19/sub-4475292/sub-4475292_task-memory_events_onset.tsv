@@ -1,0 +1,9 @@
+	stimOnsetSec	stimDurSec	fixOnsetSec	fixDurSec	ImageID	tNumXcond
+0	14.566	3.0	17.561	6.5	Old57	Enc01
+1	24.069	3.0	27.065	2.0	Old03	Enc02
+2	29.079	3.0	32.074	1.5	Old24	Enc03
+3	33.589	3.0	36.585	1.0	Old73	Enc04
+4	37.6	3.0	40.596	8.5	Old61	Enc05
+5	49.10100000000001	3.0	52.096	2.0	Old41	Enc06
+6	54.11	3.0	57.106	2.5	Old36	Enc07
+7	59.619	3.0	62.615	1.5	False	CTL01

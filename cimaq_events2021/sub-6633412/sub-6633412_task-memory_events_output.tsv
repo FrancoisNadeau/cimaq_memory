@@ -1,0 +1,118 @@
+	category	Stim	OldNumber	Recognition_ACC	Recognition_RESP	Recognition_RT	Spatial_RESP	Spatial_RT	stimOnsetSec	stimDurSec	fixOnsetSec	fixDurSec	ImageID	tNumXcond
+0	OLD	musical_xylophone_old.bmp	Old52	1	1	9.476	6	5553	11.534	3.0	14.543	5.5	False	CTL01
+1	OLD	vegie_corn02.bmp	Old73	1	1	2.41	9	3864	20.042	3.0	23.051	0.5	Old56	Enc01
+2	OLD	sporting_rollerblade.bmp	Old62	1	1	2.036	5	4666	23.553	3.0	26.561999999999998	1.0	Old09	Enc02
+3	OLD	musical_piano_old.bmp	Old48	1	1	6.606	8	3590	27.565	3.0	30.574	1.0	Old20	Enc03
+4	New	food_bread.bmp	New28	1	2	6.893	8	3590	31.576999999999998	3.0	34.586	1.5	Old78	Enc04
+5	OLD	hard_musical_recorder.bmp	Old40	1	1	1.8090000000000002	9	4184	36.074	3.0	39.083	2.0	Old53	Enc05
+6	New	kitchen_fork_old.bmp	New18	1	2	2.408	9	4184	41.071999999999996	3.0	44.081	3.0	Old43	Enc06
+7	OLD	food_toast.bmp	Old26	1	1	2.701	8	1481	47.073	3.0	50.082	0.5	False	CTL02
+8	New	animal_horse.bmp	New20	1	2	3.404	8	1481	50.583999999999996	3.0	53.593	4.0	False	CTL03
+9	New	kitchen_spatula_old.bmp	New37	1	2	2.497	8	1481	57.588	3.0	60.597	2.5	Old29	Enc07
+10	OLD	musical_triangle.bmp	Old49	1	1	4.891	5	3096	63.088	3.0	66.097	1.5	False	CTL04
+11	OLD	food_rawchicken.bmp	Old23	1	1	2.275	5	1328	67.584	3.0	70.593	2.0	Old46	Enc08
+12	OLD	animal_cheetah.bmp	Old02	1	1	3.1519999999999997	8	673	72.583	3.0	75.59100000000002	3.5	Old23	Enc09
+13	OLD	animal_dalmation_old.bmp	Old04	1	1	3.245	5	922	79.085	3.0	82.094	0.5	False	CTL05
+14	New	sporting_baseball bat_new.bmp	New08	1	2	5.2829999999999995	5	922	82.596	3.0	85.605	2.5	Old38	Enc10
+15	New	sporting_weighlifting.bmp	New25	1	2	1.879	5	922	88.095	3.0	91.104	0.5	Old03	Enc11
+16	New	animal_gorilla.bmp	New15	1	2	1.235	5	922	91.606	3.0	94.615	1.0	Old26	Enc12
+17	OLD	sporting_soccer ball_new.bmp	Old65	1	1	2.097	9	1860	95.618	3.0	98.627	1.5	Old70	Enc13
+18	New	kitchen_toaster_old.bmp	New30	1	2	1.7209999999999999	9	1860	100.115	3.0	103.124	2.5	Old17	Enc14
+19	OLD	musical_accordion_old.bmp	Old41	1	1	1.354	6	2666	105.61399999999999	3.0	108.62299999999999	3.0	Old30	Enc15
+20	OLD	musical_tuba.bmp	Old50	0	2	3.6860000000000004	6	2666	111.616	3.0	114.625	1.0	Old32	Enc16
+21	New	food_pizza.bmp	New22	1	2	1.416	6	2666	115.62799999999999	3.0	118.637	1.5	Old18	Enc17
+22	OLD	musical_double bass.bmp	Old45	1	1	2.174	9	903	120.124	3.0	123.133	1.5	False	CTL06
+23	OLD	sporting_skipping rope.bmp	Old63	0	2	2.696	9	903	124.62100000000001	3.0	127.63	1.0	Old07	Enc18
+24	OLD	kitchen_scrubbing brush.bmp	Old36	1	1	1.867	9	2215	128.63299999999998	3.0	131.642	2.5	Old40	Enc19
+25	OLD	animal_sheep.bmp	Old11	1	1	2.254	9	2403	134.13299999999998	3.0	137.142	2.5	False	CTL07
+26	OLD	food_pickle01a.bmp	Old22	1	1	1.489	9	1444	139.632	3.0	142.641	0.5	Old77	Enc20
+27	New	musical_french horn_old.bmp	New12	1	2	2.688	9	1444	143.143	3.0	146.15200000000002	5.5	Old61	Enc21
+28	OLD	sporting_bicycle_old.bmp	Old55	0	2	4.468	9	1444	151.65200000000002	3.0	154.661	5.5	Old74	Enc22
+29	New	animal_seal.bmp	New38	1	2	1.5930000000000002	9	1444	160.16	3.0	163.16899999999998	2.0	Old12	Enc23
+30	OLD	vegie_carrot.bmp	Old78	1	1	1.328	9	3618	165.15900000000002	3.0	168.168	1.0	Old01	Enc24
+31	New	vegie_pumpkin.bmp	New21	1	2	1.631	9	3618	169.171	3.0	172.18	3.0	Old51	Enc25
+32	OLD	fruit_green grapes.bmp	Old68	1	1	1.381	9	580	175.172	3.0	178.18099999999998	3.5	Old54	Enc26
+33	New	sporting_windsurf.bmp	New31	1	2	1.676	9	580	181.675	3.0	184.683	0.5	False	CTL08
+34	OLD	musical_acoustic guitar_new.bmp	Old42	1	1	2.279	8	6123	185.185	3.0	188.19400000000002	1.5	False	CTL09
+35	OLD	sporting_mini-trampoline.bmp	Old61	1	1	2.43	5	3661	189.68200000000002	3.0	192.69099999999997	9.5	False	CTL10
+36	OLD	vegie_mushroom.bmp	Old76	1	1	1.818	9	2257	202.18599999999998	3.0	205.195	2.0	False	CTL11
+37	New	animal_pigeon.bmp	New32	1	2	1.5	9	2257	207.18400000000003	3.0	210.19299999999998	2.0	Old48	Enc27
+38	OLD	animal_monarch_old.bmp	Old08	0	2	1.5830000000000002	9	2257	212.18200000000002	3.0	215.19099999999997	1.0	False	CTL12
+39	New	sporting_golf ball.bmp	New19	1	2	1.79	9	2257	216.17700000000002	3.0	219.18599999999998	0.5	Old22	Enc28
+40	OLD	food_bottleofredwine01.bmp	Old15	1	1	1.6369999999999998	9	2402	219.688	3.0	222.697	0.5	False	CTL13
+41	OLD	food_pecan02.bmp	Old21	1	1	1.625	8	1431	223.19799999999998	3.0	226.207	2.0	Old28	Enc29
+42	New	food_bagel01.bmp	New17	1	2	1.5090000000000001	8	1431	228.197	3.0	231.206	4.5	Old63	Enc30
+43	OLD	kitchen_tea cup and saucer.bmp	Old37	1	1	1.351	5	1016	235.702	3.0	238.71099999999998	3.5	Old11	Enc31
+44	OLD	animal_penguin.bmp	Old10	1	1	4.07	8	3993	242.205	3.0	245.21400000000003	8.0	Old75	Enc32
+45	New	musical_uculele_new.bmp	New39	1	2	2.4	8	3993	253.204	3.0	256.21299999999997	9.0	Old15	Enc33
+46	New	fruit_rasberry.bmp	New10	0	1	1.3359999999999999	9	850	265.207	3.0	268.216	0.5	Old25	Enc34
+47	OLD	kitchen_martini glass.bmp	Old32	1	1	1.9180000000000001	5	1889	268.717	3.0	271.726	2.5	False	CTL14
+48	OLD	vegie_garlic01a.bmp	Old74	1	1	1.6680000000000001	6	1217	274.217	3.0	277.226	8.5	Old67	Enc35
+49	New	kitchen_baking spatula.bmp	New01	1	2	2.5269999999999997	6	1217	285.718	3.0	288.72700000000003	0.5	Old10	Enc36
+50	OLD	animal_parrot.bmp	Old09	0	2	1.4409999999999998	6	1217	289.22900000000004	3.0	292.238	5.5	Old02	Enc37
+51	OLD	fruit_pineapple_old.bmp	Old70	1	1	3.557	6	1853	297.737	3.0	300.746	3.0	Old41	Enc38
+52	OLD	musical_violin_old.bmp	Old51	0	2	4.954	6	1853	303.73900000000003	3.0	306.748	4.0	False	CTL15
+53	OLD	food_baguette01.bmp	Old14	1	1	1.348	8	637	310.743	3.0	313.752	6.5	False	CTL16
+54	OLD	sporting_americanfootball.bmp	Old53	1	1	1.962	9	2859	320.254	3.0	323.263	0.5	Old55	Enc39
+55	New	musical_bagpipes.bmp	New35	1	2	1.319	9	2859	323.765	3.0	326.774	11.0	Old57	Enc40
+56	OLD	kitchen_ladle.bmp	Old31	1	1	1.632	6	1806	338.275	3.0	341.284	9.5	Old71	Enc41
+57	New	vegie_broccoli.bmp	New36	1	2	3.514	6	1806	350.779	3.0	353.788	1.0	False	CTL17
+58	OLD	musical_harp_new.bmp	Old43	1	1	1.702	9	1257	354.791	3.0	357.8	5.5	Old59	Enc42
+59	OLD	fruit_watermelon_old.bmp	Old71	1	1	1.557	9	1269	363.29900000000004	3.0	366.30800000000005	1.5	Old14	Enc43
+60	OLD	food_croissant01.bmp	Old19	1	1	3.432	8	1519	367.796	3.0	370.805	1.0	Old34	Enc44
+61	New	fruit_apricot_new.bmp	New04	1	2	1.465	8	1519	371.791	3.0	374.8	2.0	False	CTL18
+62	New	animal_giraffe.bmp	New03	1	2	1.197	8	1519	376.79	3.0	379.79900000000004	3.5	Old19	Enc45
+63	New	musical_zamponia windflute.bmp	New29	1	2	0.978	8	1519	383.292	3.0	386.301	1.5	Old36	Enc46
+64	OLD	musical_clarinet_new.bmp	Old44	0	2	1.273	8	1519	387.789	3.0	390.798	0.5	False	CTL19
+65	OLD	sporting_fishing rod.bmp	Old59	1	1	2.1	9	1568	391.3	3.0	394.309	2.5	False	CTL20
+66	OLD	sporting_hockey stick_old.bmp	Old58	1	1	4.879	8	1596	396.79900000000004	3.0	399.80800000000005	0.5	False	CTL21
+67	OLD	sporting_snow shoes_old.bmp	Old64	0	2	2.7460000000000004	8	1596	400.31	3.0	403.319	2.5	False	CTL22
+68	OLD	kitchen_coffee pot.bmp	Old29	1	1	1.834	5	2128	405.81	3.0	408.819	2.0	False	CTL23
+69	OLD	vegie_radish.bmp	Old77	1	1	1.275	6	1230	410.80800000000005	3.0	413.81699999999995	11.0	False	CTL24
+70	OLD	kitchen_pitcher.bmp	Old34	1	1	2.6189999999999998	9	2258	424.816	3.0	427.825	1.0	Old31	Enc47
+71	OLD	kitchen_wooden spoon_old.bmp	Old39	1	1	2.157	5	1349	428.81199999999995	3.0	431.82099999999997	1.5	Old05	Enc48
+72	OLD	sporting_footballhelmet.bmp	Old57	1	1	1.749	9	3215	433.30800000000005	3.0	436.31699999999995	0.5	Old44	Enc49
+73	OLD	animal_lion_new.bmp	Old07	1	1	3.725	5	2471	436.819	3.0	439.82800000000003	0.5	Old52	Enc50
+74	New	food_cookie01.bmp	New11	1	2	1.6119999999999999	5	2471	440.329	3.0	443.338	2.0	Old08	Enc51
+75	New	sporting_flippers.bmp	New02	1	2	0.9059999999999999	5	2471	445.327	3.0	448.336	1.0	False	CTL25
+76	OLD	Kitchen_apron.bmp	Old27	0	2	5.651	5	2471	449.32300000000004	3.0	452.332	2.0	False	CTL26
+77	OLD	musical_drums_old.bmp	Old46	0	2	1.2409999999999999	5	2471	454.32099999999997	3.0	457.33	4.0	Old47	Enc52
+78	OLD	animal_siamese cat.bmp	Old12	0	2	1.9669999999999999	5	2471	461.325	3.0	464.334	4.5	Old65	Enc53
+79	New	kitchen_garlic press.bmp	New07	1	2	1.703	5	2471	468.83099999999996	3.0	471.84	8.5	Old42	Enc54
+80	New	animal_dolphin_old.bmp	New09	1	2	1.0490000000000002	5	2471	480.332	3.0	483.341	1.0	Old58	Enc55
+81	OLD	animal_camel_new.bmp	Old01	0	2	6.51	5	2471	484.344	3.0	487.353	6.0	False	CTL27
+82	OLD	vegie_cauliflower.bmp	Old72	1	1	1.137	9	834	493.35400000000004	3.0	496.36300000000017	1.5	Old27	Enc56
+83	New	vegie_cucumber.bmp	New33	0	1	5.656000000000001	6	1942	497.851	3.0	500.86	13.0	False	CTL28
+84	OLD	vegie_green capsicum.bmp	Old75	1	1	1.4709999999999999	6	1019	513.8480000000002	3.0	516.857	1.5	Old64	Enc57
+85	New	animal_ostrich.bmp	New26	1	2	1.369	6	1019	518.345	3.0	521.354	1.5	Old66	Enc58
+86	OLD	sporting_boxing_gloves.bmp	Old56	1	1	1.913	5	3596	522.842	3.0	525.851	7.5	Old60	Enc59
+87	New	vegie_snowpea01.bmp	New27	1	2	1.85	5	3596	533.34	3.0	536.349	1.5	False	CTL29
+88	OLD	food_softcheese.bmp	Old24	1	1	1.3659999999999999	6	1295	537.837	3.0	540.846	3.5	Old62	Enc60
+89	OLD	sporting_Badminton Racquet.bmp	Old54	1	1	4.657	5	2431	544.339	3.0	547.3480000000002	1.0	False	CTL30
+90	OLD	animal_farm pig.bmp	Old05	0	2	2.133	5	2431	548.335	3.0	551.344	1.5	Old06	Enc61
+91	OLD	fruit_lemon_new.bmp	Old69	1	1	1.534	6	3359	552.831	3.0	555.84	3.5	False	CTL31
+92	New	kitchen_kettle_new.bmp	New24	1	2	1.5590000000000002	6	3359	559.3340000000002	3.0	562.3430000000002	4.5	Old39	Enc62
+93	New	food_drink.bmp	New05	1	2	1.238	6	3359	566.84	3.0	569.849	3.0	False	CTL32
+94	OLD	animal_zebra_old.bmp	Old13	0	2	1.3230000000000002	6	3359	572.841	3.0	575.85	0.5	Old68	Enc63
+95	OLD	food_candy.bmp	Old16	1	1	1.781	5	661	576.352	3.0	579.36	8.0	Old73	Enc64
+96	New	food_walnut01c.bmp	New34	1	2	1.376	5	661	587.351	3.0	590.36	5.0	False	CTL33
+97	OLD	sporting_karate clothing.bmp	Old60	0	2	1.319	5	661	595.3580000000002	3.0	598.367	0.5	False	CTL34
+98	OLD	food_chocolatemilk.bmp	Old17	1	1	1.92	6	2834	598.869	3.0	601.878	1.0	Old69	Enc65
+99	OLD	food_frenchfries.bmp	Old20	1	1	5.119	9	2834	602.881	3.0	605.89	11.0	Old76	Enc66
+100	OLD	fruit_blackberry_new.bmp	Old66	1	1	3.015	9	1277	617.391	3.0	620.4	2.5	False	CTL35
+101	OLD	kitchen_big cooking pot.bmp	Old28	0	2	2.272	9	1277	622.89	3.0	625.899	2.0	Old04	Enc67
+102	New	musical_bongo drum.bmp	New23	1	2	0.883	9	1277	627.889	3.0	630.898	0.5	Old13	Enc68
+103	New	sporting_basketball_new.bmp	New14	1	2	1.5430000000000001	9	1277	631.399	3.0	634.408	1.0	Old33	Enc69
+104	New	fruit_cherry.bmp	Old67	1	1	1.841	5	1110	635.411	3.0	638.42	1.0	Old45	Enc70
+105	New	kitchen_ramekin.bmp	New13	1	2	1.64	5	1110	639.423	3.0	642.432	0.5	Old35	Enc71
+106	OLD	animal_frog.bmp	Old06	0	2	0.981	5	1110	642.933	3.0	645.942	7.5	False	CTL36
+107	New	musical_tambourine_new.bmp	New06	1	2	1.581	5	1110	653.431	3.0	656.44	15.0	Old24	Enc72
+108	OLD	food_shellpasta.bmp	Old25	1	1	1.2770000000000001	6	1169	671.435	3.0	674.444	0.5	Old72	Enc73
+109	OLD	animal_chimpanzee.bmp	Old03	0	2	1.199	6	1169	674.946	3.0	677.955	1.0	False	CTL37
+110	OLD	musical_harmonica_new.bmp	Old47	1	1	1.806	5	2181	678.9580000000002	3.0	681.966	0.5	False	CTL38
+111	OLD	kitchen_plate.bmp	Old35	1	1	2.053	8	3562	682.4680000000002	3.0	685.477	9.0	Old49	Enc74
+112	OLD	food_cracker02.bmp	Old18	1	1	1.954	5	3571	694.47	3.0	697.4789999999998	6.0	Old50	Enc75
+113	OLD	kitchen_white strainer.bmp	Old38	0	2	2.283	5	3571	703.4810000000001	3.0	706.49	10.0	False	CTL39
+114	New	fruit_granny smith apple.bmp	New16	1	2	1.27	5	3571	716.988	3.0	719.997	5.0	Old16	Enc76
+115	OLD	kitchen_peppermill.bmp	Old33	0	2	1.1840000000000002	5	3571	724.995	3.0	728.0039999999998	1.0	Old37	Enc77
+116	OLD	kitchen_cookie cutter.bmp	Old30	1	1	1.607	9	1309	729.007	3.0	732.0160000000002	18.0	Old21	Enc78
