@@ -1,28 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# import glob
-# import nibabel as nib
-# import nilearn
 import numpy as np
 import os
 import pandas as pd
 import random
 import re
 import scipy
-# import sys
-# import zipfile
-
 from functools import reduce
-# from matplotlib import pyplot as plt
-# from nilearn.plotting import plot_design_matrix
-# from nilearn.glm.first_level import FirstLevelModel
-# from nilearn.glm.first_level import make_first_level_design_matrix
-# from nilearn import image
-# from nilearn import plotting
-# from nilearn.plotting import plot_stat_map, plot_anat, plot_img, show
-# from numpy import nan as NaN
-
 from os import listdir as ls
 from os.path import basename as bname
 from os.path import dirname as dname
@@ -31,7 +16,6 @@ from os.path import join
 from pandas import DataFrame as df
 from cimaq_utils import flatten
 from cimaq_utils import loadimages
-# from get_new_events import get_new_events
 
 def loadmeansheets(ndir):
     subbids = pd.read_csv(join(os.getcwd(), 'participants_cimaq_03-19.tsv'),
