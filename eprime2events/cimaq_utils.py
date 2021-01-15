@@ -81,12 +81,6 @@ def get_encoding(sheetpath):
         if detector.done: break
     detector.close()
     return (bname(sheetpath), detector.result)
-#     bsheet = open(sheetpath , "rb").read()
-#     rezz = chardet.detect(bsheet)
-#     results = pd.Series((item for item in list(rezz.values())[:-1]),
-#                              name=bname(sheetpath),
-#                              index=list(rezz.keys())[:-1])
-#     return results
 
 def get_encoding2(sheetlist):
     ''' 
