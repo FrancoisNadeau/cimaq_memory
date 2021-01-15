@@ -26,58 +26,43 @@ from cimaq_utils import flatten
 from cimaq_utils import loadimages
 from cimaq_utils import get_encoding
 
-from clean_events_lib import loadpaths
-from clean_events_lib import getid
-from clean_events_lib import makename
-from clean_events_lib import get_enc_onsets
-from clean_events_lib import get_enc_outputs
-from clean_events_lib import get_ret_outputs
+from fetch_cimaq_utils import loadpaths
+from fetch_cimaq_utils import getid
+from fetch_cimaq_utils import makename
+from fetch_cimaq_utils import get_enc_onsets
+from fetch_cimaq_utils import get_enc_outputs
+from fetch_cimaq_utils import get_ret_outputs
 
 def clean_all_events(cimaq_dir='~/../../media/francois/seagate_8tb/cimaq_03-19_data_simexp_DATA'):
     cimaq_dir = xpu(cimaq_dir)
-    frame, prefixes = loadpaths(cimaq_dir)
-
-    enconsets = get_enc_onsets(cimaq_dir)
-    encoutputs = get_enc_outputs(cimaq_dir)
-    retsheets = get_ret_outputs(cimaq_dir)
+    frame, prefixes = loadpaths()
+    enconsets = get_enc_onsets()
+    encoutputs = get_enc_outputs()
+    retsheets = get_ret_outputs()
     sheetspersub = tuple(zip(frame.index, enconsets, encoutputs, retsheets))
-
-    fullencsheets = [(frame.index[item[0]],
-                      pd.concat([item[1][0], item[1][1]], axis=1,
+    fullencsheets = [(join(cimaq_dir, 'cimaq_enc_ret2021',
+                           frame.index[item[0]]+"_task-Memory_events.tsv"),
+                      pd.concat([item[1][1][1], item[1][2][1]], axis=1,
                       sort=False).reset_index(\
-                          drop=True).drop("Unnamed: 0", axis=1))
+                          drop=True))
                      for item in enumerate(sheetspersub)]
-    
-    [item[1].to_csv(join(indir, item[0],
-                         item[0]+"_task-Memory_events.tsv"), sep='\t')
-     for item in fullencsheets]
-    frame['newdirs'] = [xpu(join("~/cimaq_events2021", row[0]))
-                                 for row in frame.iterrows()]
-    [os.makedirs(ndir, exist_ok=True) for ndir in frame.newdirs]
-    oldevnts = flatten([[sheet for sheet in loadimages(join(indir, row[0]))
-                         if "task-Memory_events.tsv" in sheet]
-                        for row in frame.iterrows()])
-    oldrets = flatten([[sheet for sheet in loadimages(join(indir, row[0]))
-                         if "_task-retrieval" in sheet]
-                        for row in frame.iterrows()])
-    newevnts = flatten([[join(row[1]['newdirs'], bname(sheet))
-                         for sheet in loadimages(join(indir, row[0]))
-                         if "task-Memory_events.tsv" in sheet]
-                         for row in frame.iterrows()])
-    newrets = flatten([[join(row[1]['newdirs'], bname(sheet))
-                         for sheet in loadimages(join(indir, row[0]))
-                         if  "_task-retrieval" in sheet]
-                         for row in frame.iterrows()])
-
-    evtmvr = tuple(zip(oldevnts, newevnts))
-    retmvr = tuple(zip(oldrets, newrets))
-    [shutil.move(item[0], item[1]) for item in evtmvr]
-    [shutil.move(item[0], item[1]) for item in retmvr]
-    savior = tuple(zip(test.sort_index().index,
-                       [item[1] for item in fullencsheets]))
-    [item[1].to_csv(join(xpu('~/cimaq_events2021'), item[0],
-                         item[0]+"_task-Memory_events.tsv"), sep='\t')
-     for item in savior]
+    frame['Encoding'] = [join(cimaq_dir, 'cimaq_enc_ret2021',
+                              row[0], row[0]+"_task-Memory_events.tsv")
+                        for row in frame.iterrows()]    
+    frame['Retrieval'] = [join(cimaq_dir, 'cimaq_enc_ret2021',
+                              row[0], row[0]+"_task-Retrieval_behavioural.tsv")
+                          for row in frame.iterrows()]
+    [os.makedirs(dname(ndir), exist_ok=True) for ndir in tqdm(frame.Encoding)]
+    retsvr = tuple(zip(frame.Retrieval, [itm[1] for itm in retsheets]))
+    encsvr = tuple(zip(frame.Encoding, [itm[1] for itm in fullencsheets]))
+    [itm[1].to_csv(itm[0], sep='\t') for itm in tqdm(retsvr)]
+    [itm[1].to_csv(itm[0], sep='\t') for itm in tqdm(encsvr)]
+    with open(join(cimaq_dir, 'cimaq_clean_unmerged.json'),
+              'w', encoding='utf-8') as f:
+        json.dump(np.array2string(np.array(sheetspersub, dtype='object')),
+                  f, ensure_ascii=False, indent=0)
+        f.close()
+    frame.to_csv(join(cimaq_dir, 'cimaq_paths.tsv'), sep='\t')
 
 def main():
     clean_all_events()
