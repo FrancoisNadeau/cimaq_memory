@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Thu Nov  5 22:55:43 2020
 
 @author: francois
 """
 import csv
+import collections
 from collections import Counter
 import json
 import nibabel as nib
@@ -13,14 +13,102 @@ import nilearn
 from nilearn import plotting
 import numpy as np
 import os
+import zipfile
+from chardet.universaldetector import UniversalDetector as udet
 from os import getcwd as cwd
 from os import listdir as ls
 from os.path import basename as bname
 from os.path import dirname as dname
+from os.path import expanduser as xpu
 from os.path import join
 import pandas as pd
 from pandas import DataFrame as df
+import shutil
+from tqdm import tqdm
 from typing import Sequence
+import chardet
+import os
+from chardet import detect
+from os.path import basename as bname
+
+def multi_zinfos(topdir="~/../../data/cisl/DATA/cimaq_03-19/derivatives/CIMAQ_fmri_memory/data/task_files/zipped_eprime"):
+    '''
+    Obtain list of files contained in archive and general information about these files
+    '''
+    topdir = xpu(topdir)
+    zipfolders = [join(topdir, item) for item in ls(topdir)]
+    zinfos = []
+    for zfd in tqdm(zipfolders):
+        with zipfile.ZipFile(xpu(zfd), "r") as archv:
+            zinfos.append(archv.namelist())
+    return zinfos
+
+def flattendict(d, parent_key='', sep='_'):
+    '''
+    Source:
+    https://stackoverflow.com/questions/6027558/flatten-nested-dictionaries-compressing-keys
+    '''
+    items = []
+    for k, v in d.items():
+        new_key = parent_key + sep + k if parent_key else k
+        if isinstance(v, collections.MutableMapping):
+            items.extend(flatten(v, new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
+
+def get_encoding(sheetpath):
+    ''' 
+    Detect character encoding for files not encoded
+    with default encoding type ('UTF-8').
+
+    Parameters
+    ----------
+    sheetpath: Path or os.path-like objects pointing
+               to a document file (various extensions supported,
+               see online documentation at
+               https://chardet.readthedocs.io/en/latest/
+
+    Returns
+    -------
+    results: Pandas 'Series' (index=["encoding", "confidence"], name="sheetname")
+    "language" is dropped because it is known a priori to be Python
+    '''
+    detector = udet()
+    bsheet = open(sheetpath , "rb")
+    for line in bsheet.readlines():
+        detector.feed(line)
+        if detector.done: break
+    detector.close()
+    return detector.result
+
+def get_encoding2(sheetlist):
+    ''' 
+    Detect character encoding for files not encoded
+    with current encoding type ('UTF-8').
+
+    Parameters
+    ----------
+    sheetlist: list of paths or os.path-like objects pointing
+                to a document file (various extensions supported,
+                see online documentation at
+                https://chardet.readthedocs.io/en/latest/
+
+    Returns
+    -------
+    encodings: list of (sheet basename, encoding dict) tuples
+                for each sheet in 'sheetlist'
+    '''
+
+    sheetlist = sorted(sheetlist)
+    results = []
+    for sheetpath in sheetlist:
+        bsheet = open(sheetpath, "rb").read()
+        rezz = chardet.detect(bsheet)
+        results.append(df.from_dict(rezz))
+    encodings = df((item for item in zip(sheetlist, results)))
+    
+    return encodings
 
 
 def flatten(nestedlst):
@@ -139,3 +227,21 @@ def loadimages(impath='../images'):
             if os.path.isfile(impath):
                 imlist.append(impath)
     return imlist
+
+def absoluteFilePaths(maindir):
+   for allthings in os.walk(maindir):
+       for folder in allthings[1]:
+           yield os.path.abspath(os.path.join(dirpath, f))
+
+def emptydir(folder = '/path/to/folder'):
+    for filename in os.listdir(folder):
+        file_path = os.path.join(folder, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
+
+
