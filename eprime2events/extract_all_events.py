@@ -23,13 +23,13 @@ def extract_all_events(cimaq_dir='~/../../media/francois/seagate_8tb/cimaq_03-19
     zipdir='cimaq_03-19_derivatives_CIMAQ_fmri_memory_scripts/data/task_files/zipped_eprime'
     outdir = join(xpu(cimaq_dir), "extracted_eprimes2021")
     zipdir = join(xpu(cimaq_dir), zipdir)
-    participants = df([("sub-"+bname(zfile).split("_")[0],
+    participants = df([("sub"+bname(zfile).split("_")[1],
                         bname(zfile).split("_")[0],
                         bname(zfile).split("_")[1],
                         bname(zfile),
                         zfile,
                         join(outdir,
-                             "sub-"+bname(zfile).split("_")[0],
+                             "sub"+bname(zfile).split("_")[1],
                              "archive"))
                        for zfile in loadimages(zipdir)
                        if zfile.endswith(".zip")],
@@ -56,18 +56,9 @@ def extract_all_events(cimaq_dir='~/../../media/francois/seagate_8tb/cimaq_03-19
           and not bname(item).startswith("._")
           and "CIMAQ" in item]
      for row in participants.iterrows()]
-    
-#     [[shutil.move(item, join(outdir, row[0], bname(item)))
-#       for item in loadimages(row[1]["extpaths"])
-#       if not item.endswith(".edat2") \
-#           and "PRATIQUE" not in item
-#           and not os.path.isdir(join(outdir, row[0], item)) \
-#           and not item.startswith("._")
-#           and "CIMAQ" in item]
-#      for row in participants.iterrows()]
-    # Save participants sheet to tsv
-    participants.to_csv(join(xpu(cimaq_dir), "participants.tsv"), sep='\t')
-    archvmvr = tuple(zip(participants.extpaths, [join(cimaq_dir, 'participants_archives',
+
+    participants.to_csv(join(xpu(cimaq_dir), 'meansheets', "taskpaths_participants.tsv"), sep='\t')
+    archvmvr = tuple(zip(participants.extpaths, [join(cimaq_dir, 'participants_archives_cimaq',
                                                      bname(dname(extpath)) + bname(extpath))
                                                 for extpath in participants.extpaths]))
     os.makedirs(dname(archvmvr[0][1]), exist_ok=True)

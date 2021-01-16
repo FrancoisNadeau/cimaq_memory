@@ -36,23 +36,34 @@ from fetch_cimaq_utils import get_ret_outputs
 def clean_all_events(cimaq_dir='~/../../media/francois/seagate_8tb/cimaq_03-19_data_simexp_DATA'):
     cimaq_dir = xpu(cimaq_dir)
     frame, prefixes = loadpaths()
+    frame = frame.astype('object')
     enconsets = get_enc_onsets()
     encoutputs = get_enc_outputs()
     retsheets = get_ret_outputs()
+    os.makedirs(join(cimaq_dir, 'CIMAQ_fmri_memory_data_neuromod_DATA',
+                           'data', 'events_memory'), exist_ok=True)
+    os.makedirs(join(cimaq_dir, 'CIMAQ_fmri_memory_data_neuromod_DATA',
+                           'data', 'retrieval_memory'), exist_ok=True)
     sheetspersub = tuple(zip(frame.index, enconsets, encoutputs, retsheets))
-    fullencsheets = [(join(cimaq_dir, 'cimaq_enc_ret2021',
+    fullencsheets = [(join(cimaq_dir, 'CIMAQ_fmri_memory_data_neuromod_DATA',
+                           'data', 'events_memory',
                            frame.index[item[0]]+"_task-Memory_events.tsv"),
                       pd.concat([item[1][1][1], item[1][2][1]], axis=1,
                       sort=False).reset_index(\
                           drop=True))
                      for item in enumerate(sheetspersub)]
-    frame['Encoding'] = [join(cimaq_dir, 'cimaq_enc_ret2021',
-                              row[0], row[0]+"_task-Memory_events.tsv")
-                        for row in frame.iterrows()]    
-    frame['Retrieval'] = [join(cimaq_dir, 'cimaq_enc_ret2021',
-                              row[0], row[0]+"_task-Retrieval_behavioural.tsv")
+    frame['Encoding'] = [join(cimaq_dir, 'CIMAQ_fmri_memory_data_neuromod_DATA',
+                              'data', 'events_memory',
+                              'events_'+row[0]+"_events.tsv")
+                         for row in frame.iterrows()]    
+    frame['Retrieval'] = [join(cimaq_dir, 'CIMAQ_fmri_memory_data_neuromod_DATA',
+                               'data', 'retrieval_memory',
+                               'behav_'+row[0]+"_behavioural.tsv")
                           for row in frame.iterrows()]
-    [os.makedirs(dname(ndir), exist_ok=True) for ndir in tqdm(frame.Encoding)]
+    os.makedirs(join(cimaq_dir, 'CIMAQ_fmri_memory_data_neuromod_DATA',
+                              'data', 'events_memory'), exist_ok=True)
+    os.makedirs(join(cimaq_dir, 'CIMAQ_fmri_memory_data_neuromod_DATA',
+                              'data', 'retrieval_memory'), exist_ok=True)
     retsvr = tuple(zip(frame.Retrieval, [itm[1] for itm in retsheets]))
     encsvr = tuple(zip(frame.Encoding, [itm[1] for itm in fullencsheets]))
     [itm[1].to_csv(itm[0], sep='\t') for itm in tqdm(retsvr)]
@@ -62,7 +73,7 @@ def clean_all_events(cimaq_dir='~/../../media/francois/seagate_8tb/cimaq_03-19_d
         json.dump(np.array2string(np.array(sheetspersub, dtype='object')),
                   f, ensure_ascii=False, indent=0)
         f.close()
-    frame.to_csv(join(cimaq_dir, 'cimaq_paths.tsv'), sep='\t')
+    frame.to_csv(join(cimaq_dir, 'meansheets', 'taskpaths_participants.tsv'), sep='\t')
 
 def main():
     clean_all_events()

@@ -26,21 +26,25 @@ from cimaq_utils import flatten
 from cimaq_utils import loadimages
 from cimaq_utils import get_encoding
 
-def loadpaths():
-    cimaq_dir='~/../../media/francois/seagate_8tb/cimaq_03-19_data_simexp_DATA'
+def loadpaths(cimaq_dir='~/../../media/francois/seagate_8tb/cimaq_03-19_data_simexp_DATA'):
+#     cimaq_dir='~/../../media/francois/seagate_8tb/cimaq_03-19_data_simexp_DATA'
     cimaq_dir = xpu(cimaq_dir)
     spaths = df(((sub, [itm for itm in sorted(loadimages(join(cimaq_dir,
                                               'extracted_eprimes2021', sub)))
                             if 'CIMAQ' in bname(itm) and '._' not in itm])
                   for sub in ls(join(cimaq_dir,
-                                     'extracted_eprimes2021')))).set_index(0)
+                                     'extracted_eprimes2021'))),
+                columns=['subdccid', 'allpaths']).set_index('subdccid')
     prefixes = list(dict.fromkeys([bname(str(itm)).split("CIMAQ", 1)[0]
                                    for itm in flatten(spaths.values.tolist())
                                    if 'CIMAQ' in bname(itm) \
                                    and '._' not in itm]))
-    prefixes = sorted(prefixes)    
+    prefixes = sorted(prefixes)
     spaths[prefixes] = [val[0] for val in spaths.values]
     spaths = spaths[prefixes]
+    spaths['dccid'] = [ind.split('sub')[1] for ind in spaths.index]
+    spaths['pscid'] = [bname(row[1][prefixes[0]]).split('_')[2]
+                       for row in spaths.iterrows()]
     return spaths, prefixes
     
 def getid(sheet):
