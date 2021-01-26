@@ -28,6 +28,7 @@ from pandas import DataFrame as df
 from cimaq_utils import flatten
 from cimaq_utils import get_encoding
 from cimaq_utils import loadimages
+from loading_utils import loadinfos2
 
 def make_outcomes():
     cimaq = loadinfos2()
@@ -35,7 +36,7 @@ def make_outcomes():
     for row in cimaq.iterrows():
         enc = pd.read_csv(row[1]['events'], sep='\t').drop('Unnamed: 0', axis=1)
         enc = enc.rename(columns={'stimOnsetSec':'onset',
-                                  'Condition': 'trial_type'})
+                                  'tNumXcond': 'trial_type'})
         ret = pd.read_csv(row[1]['behavioural'], sep='\t').drop('Unnamed: 0', axis=1)
         con = pd.read_csv(row[1]['confounds'], sep='\t')
         con = con.where(con.scrub == 1)
@@ -48,7 +49,7 @@ def make_outcomes():
         
      # Scoring
         memsheet = pd.merge(enc, ret, left_on='ImageID',
-                            right_on='OldNumber').set_index('tNumXcond',
+                            right_on='OldNumber').set_index('trial_type',
                                                             drop=False)
         toscrub = memsheet.where(memsheet.unscanned).dropna()
         memsheet = memsheet.drop(toscrub.index)
@@ -75,17 +76,19 @@ def make_outcomes():
         memsheet['recogMissSrcOk'] = [row[1]['recogAcc'] == False
                                       and row[1]['spaceAcc'] == True
                                       for row in memsheet.iterrows()]
-        ctl = enc.loc[['CTL' in row[1].tNumXcond
+        ctl = enc.loc[['CTL' in row[1].trial_type
                       for row in enc.iterrows()]]
         memsheet = memsheet[['recogAcc', 'hit', 'rejOk', 'recogOkSrcMiss',
                              'miss', 'recogMissSrcOk']]
-        [os.makedirs(join(dname(dname(dname(row[1]['events']))), 'taskfiles2', 'events2'), exist_ok=True)]
-        [os.makedirs(join(dname(dname(dname(row[1]['events']))), 'taskfiles2', 'ctlonly'), exist_ok=True)]
-        [os.makedirs(join(dname(dname(dname(row[1]['events']))), 'taskfiles2', 'scores'), exist_ok=True)]
-        enc.to_csv(join(dname(dname(dname(row[1]['events']))), 'taskfiles2', 'events2', row[0]+'events2.tsv'))
-        ctl.to_csv(join(dname(dname(dname(row[1]['events']))), 'taskfiles2', 'ctlonly', row[0]+'ctlonly.tsv'))
-        enc.to_csv(join(dname(dname(dname(row[1]['events']))), 'taskfiles2', 'scores', row[0]+'score.tsv'))
-
+        evtspath = join(dname(dname(row[1]['events'])),'events2')
+        ctlpath = join(dname(dname(row[1]['events'])), 'ctlonly')
+        scorespath = join(dname(dname(row[1]['events'])), 'scores')
+        os.makedirs(evtspath, exist_ok=True)
+        os.makedirs(ctlpath, exist_ok=True)
+        os.makedirs(scorespath, exist_ok=True)
+        enc.to_csv(join(evtspath, 'events2_sub'+str(row[0])+'_events2.tsv'), sep='\t')
+        ctl.to_csv(join(ctlpath, 'ctlonly_sub'+str(row[0])+'_ctlonly.tsv'), sep='\t')
+        enc.to_csv(join(scorespath, 'scores_sub'+str(row[0])+'_scores.tsv'), sep='\t')
         tmp.append((enc, ctl, memsheet))
     return tmp
 

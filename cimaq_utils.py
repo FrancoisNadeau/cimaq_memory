@@ -1,47 +1,207 @@
 #!/usr/bin/env python3
+
 """
 Created on Thu Nov  5 22:55:43 2020
 
 @author: francois
 """
-import csv
+
+import chardet
 import collections
-from collections import Counter
+import csv
+import glob
+import io
 import json
+import lzma
 import nibabel as nib
 import nilearn
-from nilearn import plotting
 import numpy as np
 import os
+import pandas as pd
+import pprint
+import random
+import re
+import reprlib
+import scipy
+import shutil
+import string
+import sys
+import tarfile
+import xml.parsers.expat as xmlprse
 import zipfile
+
+from chardet import detect
 from chardet.universaldetector import UniversalDetector as udet
+from collections import Counter
+from collections import OrderedDict
+from functools import reduce
+from io import StringIO
+from matplotlib import pyplot as plt
+from nilearn.plotting import plot_design_matrix
+from nilearn.glm.first_level import FirstLevelModel
+from nilearn.glm.first_level import make_first_level_design_matrix
+from nilearn import image
+from nilearn import plotting
+from nilearn.plotting import plot_stat_map, plot_anat, plot_img, show
+from numpy import nan as NaN
 from os import getcwd as cwd
 from os import listdir as ls
 from os.path import basename as bname
 from os.path import dirname as dname
 from os.path import expanduser as xpu
 from os.path import join
-import pandas as pd
+from os.path import splitext
 from pandas import DataFrame as df
-import shutil
+from tabulate import tabulate
 from tqdm import tqdm
 from typing import Sequence
-import chardet
-import os
-from chardet import detect
-from os.path import basename as bname
 
-def multi_zinfos(topdir="~/../../data/cisl/DATA/cimaq_03-19/derivatives/CIMAQ_fmri_memory/data/task_files/zipped_eprime"):
+from removeEmptyFolders import removeEmptyFolders
+
+uzeprimes = xpu('~/../../media/francois/seagate_1tb/CIMAQ_fmri_memory/data/task_files/uzeprimes')
+zeprimes = xpu('~/../../media/francois/seagate_1tb/CIMAQ_fmri_memory/data/task_files/zipped_eprime')
+
+def no_ascii(astring):
     '''
-    Obtain list of files contained in archive and general information about these files
+        Source: https://stackoverflow.com/questions/8689795/how-can-i-remove-non-ascii-characters-but-leave-periods-and-spaces-using-python
     '''
-    topdir = xpu(topdir)
-    zipfolders = [join(topdir, item) for item in ls(topdir)]
-    zinfos = []
-    for zfd in tqdm(zipfolders):
-        with zipfile.ZipFile(xpu(zfd), "r") as archv:
-            zinfos.append(archv.namelist())
-    return zinfos
+    
+    return ''.join(filter(lambda x: x
+                          in set(string.printable),
+                          astring))
+
+def letters(input):
+    '''
+        Source: https://stackoverflow.com/questions/12400272/how-do-you-filter-a-string-to-only-contain-letters
+    '''
+
+    valids = []
+    for character in input:
+        if character.isalpha():
+            valids.append(character)
+    return ''.join(valids)
+
+def getnamelist(filename): 
+    '''
+    Adjustment to ZipFile.namelist() function to prevent MAC-exclusive
+    '__MACOSX' and '.DS_Store' files from interfering.
+    Only necessary for files compressed with OS 10.3 or earlier.
+    Source: https://superuser.com/questions/104500/what-is-macosx-folder
+    Command line solution:
+        ``` zip -r dir.zip . -x ".*" -x "__MACOSX"
+    Source: https://apple.stackexchange.com/questions/239578/compress-without-ds-store-and-macosx
+    '''
+    return [itm for itm in
+            zipfile.ZipFile(filename).namelist()
+            if  bname(itm).startswith('.') == False \
+            and '__MACOSX' not in itm \
+            and 'textClipping' not in itm]
+
+def getinfolist(filename):
+    namelist = getnamelist(filename)
+    return [zipfile.ZipFile(filename).getinfo(mmbr)
+                for mmbr in namelist]
+def cleanarchv(indir=zeprimes, outdir='uzeprimes'):
+    os.makedirs(join(dname(indir), outdir), exist_ok=True)
+    [shutil.move(itm, join(outdir, bname(itm)))
+     for itm in loadimages(indir)
+     if os.path.isfile(itm) and not itm.endswith('.zip')]
+
+def uzipfiles(indir=zeprimes, outdir='uzeprimes'):
+    outdir = join(dname(indir), outdir)
+    for item in tqdm([itm for itm in loadimages(indir)
+                      if not itm.startswith('.')]):
+        with zipfile.ZipFile(item, 'r') as archv:
+            archv.extractall(path=join(outdir,
+                                       splitext(bname(item))[0]),
+                             members=getinfolist(item))
+        archv.close()
+    cleanarchv(indir, outdir)
+    [shutil.move(
+        itm,join(
+            outdir, bname(itm).lower().replace(' ', '_').replace('-', '_')))
+     for itm in
+             loadimages(outdir)]
+    removeEmptyFolders(indir)
+    removeEmptyFolders(outdir)
+    
+def get_all_encodings(indir=join(dname(zeprimes), 'uzeprimes')):  
+    allfiles = [itm for itm in
+                loadimages(indir)
+                if not itm.startswith('.')]
+    return df(tuple(zip([bname(itm) for itm in allfiles],
+                        allfiles, [get_encoding(fname)
+                                   for fname in allfiles])),
+              columns=['fname', 'fpath', 'encod'])
+
+def no_encod(encdf, indir=uzeprimes):
+    nodet = encdf.loc[[row[1]['encod'] == None
+                      for row in encdf.iterrows()]]
+    return flatten([[itm for itm in loadimages(indir)
+                     if splitext(fname)[0] in itm]
+                    for fname in nodet.fname])
+
+def clearnoencod(encdf):
+#     encdf = get_all_encodings(indir=uzeprimes)
+    noenc = no_encod(encdf, indir=uzeprimes)
+    [os.remove(fpath) for fpath in noenc]
+
+def get_clean_encodings(indir=join(dname(zeprimes), 'uzeprimes')):
+    encdf = get_all_encodings(indir)
+    clearnoencod(encdf)
+    encdf = get_all_encodings(indir)
+    return encdf                    
+
+def cimaqfilter(indir=join(dname(zeprimes), 'uzeprimes')):
+    ''' Removes all pratice files (and READMEs) 
+        since no data was recorder due
+        to response keyboard problems. Both READMEs indicate
+        this sole information.
+        Moves unused PDF files to "task_files/pdf_files"
+    '''
+    prfr = [file for file in loadimages(indir)
+            if 'pratique' in bname(file)]
+    pren = [file for file in loadimages(indir)
+            if 'practice' in bname(file)]
+    docxs = [file for file in loadimages(indir)
+             if 'read_' in bname(file)]
+    joinedlist = prfr + pren + docxs
+    [os.remove(file) for file in joinedlist]
+    os.makedirs(join(dname(indir), 'pdf_files'), exist_ok=True)
+    [shutil.move(file, join(dname(indir), 'pdf_files', bname(file)))
+     for file in loadimages(indir) if file.endswith('.pdf')]
+    os.makedirs(join(dname(indir), 'edat2_files'), exist_ok=True)
+    [shutil.move(file, join(dname(indir), 'edat2_files', bname(file)))
+     for file in loadimages(indir) if file.endswith('.edat2')]
+    os.makedirs(join(dname(indir), 'retrieval_log_files'), exist_ok=True)
+    [shutil.move(file, join(dname(indir), 'retrieval_log_files', bname(file)))
+     for file in loadimages(indir) if 'retrieval' in bname(file).split('_')[0]]
+    os.makedirs(join(dname(indir), 'encoding_log_files'), exist_ok=True)
+    [shutil.move(file, join(dname(indir), 'encoding_log_files', bname(file)))
+     for file in loadimages(indir) if 'encoding' in bname(file).split('_')[0]]
+    [os.remove(itm) for itm in loadimages(indir)
+     if 'fuse_hidden0002f0fa00000022' in bname(itm)]
+
+def prepsheet(filename, encod=None):
+    if encod:
+        encod = get_encoding(filename)
+    sheet = open(filename , "r", encoding=encod)
+    test = [no_ascii(line).replace('\t', '    ').split()
+            for line in sheet.readlines()]
+    ncols = np.array([len(itm) for itm in test]).max()
+    values = [line[:ncols] for line in test]
+    colnames = None    
+    hdr = bool(sheet.read(1) in '.-0123456789')
+    if hdr:
+        ncols = np.array([len(itm) for itm in test[1:]]).max()
+        values = [line[:ncols-1] for line in test[1:]]
+        colnames = test[0][:ncols-1]
+
+    test = df(pd.read_json(json.dumps(values)).values,
+              columns=colnames)
+    test = test.dropna(axis=1, how='all')
+    sheet.close()
+    return test
 
 def flattendict(d, parent_key='', sep='_'):
     '''
@@ -80,7 +240,7 @@ def get_encoding(sheetpath):
         detector.feed(line)
         if detector.done: break
     detector.close()
-    return detector.result
+    return detector.result['encoding']
 
 def get_encoding2(sheetlist):
     ''' 
@@ -99,17 +259,39 @@ def get_encoding2(sheetlist):
     encodings: list of (sheet basename, encoding dict) tuples
                 for each sheet in 'sheetlist'
     '''
-
     sheetlist = sorted(sheetlist)
     results = []
     for sheetpath in sheetlist:
         bsheet = open(sheetpath, "rb").read()
         rezz = chardet.detect(bsheet)
         results.append(df.from_dict(rezz))
-    encodings = df((item for item in zip(sheetlist, results)))
-    
-    return encodings
+    return results
 
+def get_encodingfull(sheetpath):
+    ''' 
+    Detect character encoding for files not encoded
+    with default encoding type ('UTF-8').
+
+    Parameters
+    ----------
+    sheetpath: Path or os.path-like objects pointing
+               to a document file (various extensions supported,
+               see online documentation at
+               https://chardet.readthedocs.io/en/latest/
+
+    Returns
+    -------
+    results: Pandas 'Series' (index=["encoding", "confidence"], name="sheetname")
+    "language" is dropped because it is known a priori to be Python
+    '''
+    detector = udet()
+    bsheet = open(sheetpath , "rb")
+    for line in bsheet.readlines(line.getvalues):
+        detector.feed(line)
+        if detector.done: break
+    detector.close()
+    bsheet.close()
+    return detector.result
 
 def flatten(nestedlst):
     """
@@ -229,9 +411,9 @@ def loadimages(impath='../images'):
     return imlist
 
 def absoluteFilePaths(maindir):
-   for allthings in os.walk(maindir):
-       for folder in allthings[1]:
-           yield os.path.abspath(os.path.join(dirpath, f))
+    for allthings in os.walk(maindir):
+        for folder in allthings[1]:
+            yield os.path.abspath(os.path.join(dirpath, f))
 
 def emptydir(folder = '/path/to/folder'):
     for filename in os.listdir(folder):
@@ -243,5 +425,24 @@ def emptydir(folder = '/path/to/folder'):
                 shutil.rmtree(file_path)
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
+
+            
+# To be tested            
+# # change your naming to fit with common naming standards for
+# # variables and functions, pep linked below
+# def get_duplicate_columns(df):
+#     '''
+#     You are looking for non-repeated combinations of columns, so use
+#     itertools.combinations to accomplish this, it's more efficient and
+#     easier to see what you are trying to do, rather than tracking an index
+#     '''
+#     duplicate_column_names = set()
+#     # Iterate over all pairs of columns in df
+#     for a, b in itertools.combinations(df.columns, 2):
+#         # will check if every entry in the series is True
+#         if (df[a] == df[b]).all():
+#             duplicate_column_names.add(b)
+
+#     return list(duplicate_column_names)
 
 
