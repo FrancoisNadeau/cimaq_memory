@@ -10,6 +10,7 @@ import chardet
 import collections
 import csv
 import glob
+import gzip
 import io
 import json
 import lzma
@@ -58,8 +59,43 @@ from typing import Sequence
 
 from removeEmptyFolders import removeEmptyFolders
 
-uzeprimes = xpu('~/../../media/francois/seagate_1tb/CIMAQ_fmri_memory/data/task_files/uzeprimes')
-zeprimes = xpu('~/../../media/francois/seagate_1tb/CIMAQ_fmri_memory/data/task_files/zipped_eprime')
+cimaq_dir = xpu('~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives')
+zeprimes = join(cimaq_dir, 'task_files/zipped_eprime')
+uzeprimes = join(dname(zeprimes), 'uzeprimes')
+
+
+def get_dialect(filename, encod):
+    '''
+        Prints out all relevant formatting parameters of a dialect
+    '''
+    with open(filename, encoding=encod) as src:
+        dialect = csv.Sniffer().sniff(src.readline())
+        hdr = src.read(1) not in '.-0123456789'
+        if hdr:
+            hdr = 0
+        else:
+            hdr = None
+#         hdr = csv.Sniffer().has_header(src.readline())          
+        nrows = len([line for line in src.readlines()])
+        valuez = [bname(filename), hdr, dialect.delimiter,
+                  nrows, dialect.doublequote, dialect.escapechar,
+                  dialect.lineterminator, dialect.quotechar,
+                  dialect.quoting, dialect.skipinitialspace]
+        cnames =['fname', 'has_header', 'sep', 'n_rows',
+                 'doublequote', 'escapechar',
+                 'lineterminator', 'quotechar',
+                 'quoting', 'skipinitialspace']
+        dialect_df = pd.Series(valuez, index=cnames)
+        src.close()
+        return dialect_df
+
+        
+
+def megamerge(dflist, howto, onto=None):
+    return reduce(lambda x, y: pd.merge(x, y,
+                                        on=onto,
+                                        how=howto).astype('object'),
+                  dflist)
 
 def no_ascii(astring):
     '''
@@ -70,17 +106,22 @@ def no_ascii(astring):
                           in set(string.printable),
                           astring))
 
-def letters(input):
+def letters(instring):
     '''
         Source: https://stackoverflow.com/questions/12400272/how-do-you-filter-a-string-to-only-contain-letters
     '''
 
     valids = []
-    for character in input:
+    for character in instring:
         if character.isalpha():
             valids.append(character)
     return ''.join(valids)
 
+def num_only(astring):
+    return ''.join(c for c in astring if c.isdigit())
+
+# ZipFile behaviour control
+############################
 def getnamelist(filename): 
     '''
     Adjustment to ZipFile.namelist() function to prevent MAC-exclusive
@@ -97,17 +138,32 @@ def getnamelist(filename):
             and '__MACOSX' not in itm \
             and 'textClipping' not in itm]
 
+# def getinfolist(filename):
+#     namelist = getnamelist(filename)
+#     temp = [zipfile.ZipFile(filename).getinfo(mmbr)
+#                 for mmbr in namelist]
+#     comlist = []
+#     for itm in temp:
+#         if itm.comment:
+#             comlist.append((itm.filename, itm.comment))
+#             itm.comment = ''
+#     comlistpath = xpu(join('~/',bname(itm.filename)+'.tsv'), sep='\t')
+#     comlist = df(comlist).to_csv(
+        
+#     return temp
+
 def getinfolist(filename):
     namelist = getnamelist(filename)
     return [zipfile.ZipFile(filename).getinfo(mmbr)
                 for mmbr in namelist]
-def cleanarchv(indir=zeprimes, outdir='uzeprimes'):
+    
+def cleanarchv(indir, outdir):
     os.makedirs(join(dname(indir), outdir), exist_ok=True)
     [shutil.move(itm, join(outdir, bname(itm)))
      for itm in loadimages(indir)
      if os.path.isfile(itm) and not itm.endswith('.zip')]
 
-def uzipfiles(indir=zeprimes, outdir='uzeprimes'):
+def uzipfiles(indir, outdir):
     outdir = join(dname(indir), outdir)
     for item in tqdm([itm for itm in loadimages(indir)
                       if not itm.startswith('.')]):
@@ -118,14 +174,34 @@ def uzipfiles(indir=zeprimes, outdir='uzeprimes'):
         archv.close()
     cleanarchv(indir, outdir)
     [shutil.move(
-        itm,join(
-            outdir, bname(itm).lower().replace(' ', '_').replace('-', '_')))
+        itm,join(outdir, bname(itm).lower().replace(' ', '_').replace('-', '_')))
      for itm in
              loadimages(outdir)]
     removeEmptyFolders(indir)
     removeEmptyFolders(outdir)
-    
-def get_all_encodings(indir=join(dname(zeprimes), 'uzeprimes')):  
+
+####################################    
+
+# def uzipfiles(indir, outdir):
+#     outdir = join(dname(indir), outdir)
+#     for item in tqdm([itm for itm in loadimages(indir)
+#                       if not itm.startswith('.')]):
+#         with zipfile.ZipFile(item, 'r') as archv:
+#             archv.extractall(path=join(outdir,
+#                                        splitext(bname(item))[0]),
+#                              members=getinfolist(item))
+#         archv.close()
+#     cleanarchv(indir, outdir)
+#     [shutil.move(
+#         itm,join(outdir, bname(itm).lower().replace(' ', '_').replace('-', '_')))
+#      for itm in
+#              loadimages(outdir)]
+#     removeEmptyFolders(indir)
+#     removeEmptyFolders(outdir)
+################################
+
+# Get file encodings and sort accordingly    
+def get_all_encodings(indir):  
     allfiles = [itm for itm in
                 loadimages(indir)
                 if not itm.startswith('.')]
@@ -134,25 +210,25 @@ def get_all_encodings(indir=join(dname(zeprimes), 'uzeprimes')):
                                    for fname in allfiles])),
               columns=['fname', 'fpath', 'encod'])
 
-def no_encod(encdf, indir=uzeprimes):
+def no_encod(encdf):
     nodet = encdf.loc[[row[1]['encod'] == None
                       for row in encdf.iterrows()]]
-    return flatten([[itm for itm in loadimages(indir)
+    return flatten([[itm for itm in list(encdf.fpath)
                      if splitext(fname)[0] in itm]
                     for fname in nodet.fname])
 
 def clearnoencod(encdf):
 #     encdf = get_all_encodings(indir=uzeprimes)
-    noenc = no_encod(encdf, indir=uzeprimes)
+    noenc = no_encod(encdf)
     [os.remove(fpath) for fpath in noenc]
 
-def get_clean_encodings(indir=join(dname(zeprimes), 'uzeprimes')):
+def get_clean_encodings(indir=uzeprimes):
     encdf = get_all_encodings(indir)
     clearnoencod(encdf)
     encdf = get_all_encodings(indir)
     return encdf                    
 
-def cimaqfilter(indir=join(dname(zeprimes), 'uzeprimes')):
+def cimaqfilter(indir=uzeprimes):
     ''' Removes all pratice files (and READMEs) 
         since no data was recorder due
         to response keyboard problems. Both READMEs indicate
@@ -182,24 +258,31 @@ def cimaqfilter(indir=join(dname(zeprimes), 'uzeprimes')):
     [os.remove(itm) for itm in loadimages(indir)
      if 'fuse_hidden0002f0fa00000022' in bname(itm)]
 
+
 def prepsheet(filename, encod=None):
     if encod:
         encod = get_encoding(filename)
+    else: encod = encod
     sheet = open(filename , "r", encoding=encod)
-    test = [no_ascii(line).replace('\t', '    ').split()
+    test = [no_ascii(line.rstrip().replace('\t', '    ')).split()
             for line in sheet.readlines()]
     ncols = np.array([len(itm) for itm in test]).max()
-    values = [line[:ncols] for line in test]
+    values = [line[:ncols] for line in test]        
     colnames = None    
     hdr = bool(sheet.read(1) in '.-0123456789')
     if hdr:
         ncols = np.array([len(itm) for itm in test[1:]]).max()
         values = [line[:ncols-1] for line in test[1:]]
         colnames = test[0][:ncols-1]
-
     test = df(pd.read_json(json.dumps(values)).values,
               columns=colnames)
-    test = test.dropna(axis=1, how='all')
+    test = test.sort_index()
+    test.columns = map(str.lower, test.columns)
+    test.columns = map(str.strip, test.columns)
+    if test.shape[1] > 2:
+        test = test.dropna(axis=1, how='all')
+    else:
+        test = test
     sheet.close()
     return test
 
@@ -368,15 +451,15 @@ def json_write(jsonfit, fpath='.', idt=None):
                          ``None`` is the most compact representation.
                               
             JSON to Python conversion list
-                JSON	PYTHON
-                object*	dict    includes pandas DataFrame objects
-                array	list
-                string	str
+                JSON: PYTHON
+                object*: dict    includes pandas DataFrame objects
+                array: list
+                string: str
                 number (int)	int
                 number (real)	float
-                true	True
-                false	False
-                null	None
+                true: True
+                false: False
+                null: None
             
         Return
         ------
@@ -410,6 +493,14 @@ def loadimages(impath='../images'):
                 imlist.append(impath)
     return imlist
 
+def file2gzip(filename):
+    with open(filename, 'rb') as tozip:
+        with gzip.open(join(dname(filename),
+                            bname(filename)+'.gz'), 'wb') as zfile:
+            shutil.copyfileobj(tozip, zfile)
+    zfile.close()
+    tozip.close()
+
 def absoluteFilePaths(maindir):
     for allthings in os.walk(maindir):
         for folder in allthings[1]:
@@ -426,6 +517,17 @@ def emptydir(folder = '/path/to/folder'):
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
 
+def loadsheets(snames, indir=join(cimaq_dir, 'participants')):
+    sheetnames = [join(indir, name)
+                  for name in snames]
+    sheetnames = df(((splitext(bname(sheet))[0],
+                      splitext(bname(sheet))[1],
+                      sheet) for sheet
+                       in sheetnames),
+                    columns=['sheetnames', 'ext', 'sheetpaths'])
+    sheetnames['sheetvalues'] = [prepsheet(spath).dropna(axis=0)
+                                 for spath in sheetnames.sheetpaths]  
+    return sheetnames            
             
 # To be tested            
 # # change your naming to fit with common naming standards for
@@ -445,4 +547,69 @@ def emptydir(folder = '/path/to/folder'):
 
 #     return list(duplicate_column_names)
 
+###############################################################################  
+###################################
+##### CIMA-Q SPECIDICS ############
 
+
+
+def prepms(sheetnames):
+    for sheet in sheetnames['sheetvalues']:
+        if 'participant_id' in list(sheet.columns):
+            sheet = sheet.rename(columns={'participant_id': 'dccid'})
+        if 'id' in list(sheet.columns):
+            sheet = sheet.rename(columns={'id': 'dccid'})        
+        if 'dccid' in list(sheet.columns):
+            sheet['dccid'] = sheet['dccid']
+        if 'sub_ids' in list(sheet.columns):
+            sheet = sheet.rename(columns={'sub_ids': 'dccid'})        
+        sheet.columns = map(str.lower, sheet.columns)
+        sheet.columns = map(str.strip, sheet.columns)        
+#         sheet = sheet.set_index(list(sheet.columns)[0]).sort_index()
+        sheet = sheet.reindex(sorted(sheet.columns), axis=1).dropna()
+    return sheetnames
+
+def mkvsheet(sheetnames):
+    meansheets = [sheet for sheet in
+                  sheetnames['sheetvalues']]
+    l1 = [sheet.dropna() for sheet in meansheets
+          if 'dccid' in list(sheet.columns)]
+    l2 = [sheet.dropna() for sheet in meansheets
+          if 'pscid' in list(sheet.columns)]
+    l1df = megamerge(l1, 'outer', onto='dccid')
+    l2df = megamerge(l2, 'outer', onto='dccid') 
+    l3df = pd.merge(l1df, l2df, how='outer',
+                    left_on='pscid_y', right_on='pscid_y')
+    colsorder = pd.Series(l3df.columns)
+    l3df = l3df.T.drop_duplicates(keep='first').T
+    ncols = [col.replace('_x', '')
+             for col in l3df.columns
+              if '_x' or '_y' in col]
+    l3df.columns = ncols
+    l3df = l3df.dropna()
+    l3df['dccid'] = [int(str(itm).split('.')[0]) for itm in l3df.dccid]
+    l3df['pscid'] = [int(str(itm).split('.')[0]) for itm in l3df.pscid]
+    l3df.to_csv(join(cimaq_dir, 'task_files',
+                     'mean_vectors.tsv'), sep='\t')
+    return l3df
+
+def mkmeansheet(indir= '~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives/participants',
+                 snames = ['Neuropsych/ALL_Neuropsych_scores.tsv',
+                             'MotionResults/fMRI_meanMotion.tsv',
+                             'TaskResults/fMRI_behavMemoScores.tsv',
+                             'MemoTaskParticipantFile.tsv',
+                             'Participants_bids.tsv',
+                             'Splitting_list.tsv']):
+
+    meansheet = mkvsheet(prepms(loadsheets(snames,
+                                           xpu(indir)).dropna()))
+    meansheet['pscid'] = [str(itm).split('.')[0]
+                          for itm in meansheet.pscid]
+    meansheet['dccid'] = [str(itm).split('.')[0]
+                          for itm in meansheet.dccid]
+    qcok = pd.read_csv(join(indir, 'sub_list_TaskQC.tsv'),
+                       sep='\t').values.tolist()
+    qcok = [ind for ind in qcok if ind in list(meansheet.dccid)]
+    meansheet = meansheet.loc[meansheet.dccid in qcok]
+    return meansheet.drop(columns=['pscid_y'])
+    
