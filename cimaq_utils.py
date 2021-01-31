@@ -45,6 +45,7 @@ from nilearn import image
 from nilearn import plotting
 from nilearn.plotting import plot_stat_map, plot_anat, plot_img, show
 from numpy import nan as NaN
+from operator import itemgetter 
 from os import getcwd as cwd
 from os import listdir as ls
 from os.path import basename as bname
@@ -56,17 +57,44 @@ from pandas import DataFrame as df
 from tabulate import tabulate
 from tqdm import tqdm
 from typing import Sequence
-
+# get_infodf listat oddeven
 from removeEmptyFolders import removeEmptyFolders
 
 cimaq_dir = xpu('~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives')
 zeprimes = join(cimaq_dir, 'task_files/zipped_eprime')
 uzeprimes = join(dname(zeprimes), 'uzeprimes')
 
+def get_infodf(indir):
+    encdf = get_clean_encodings(indir)
+    diadf = df([get_dialect(row[1]['fpath'], encod=row[1]['encod'])
+                for row in encdf.iterrows()])
+    return pd.merge(left=encdf, right=diadf, on='fname', how='outer')
+
+def listat(inds, inpt):
+    '''
+    Source: https://stackoverflow.com/questions/18272160/access-multiple-elements-of-list-knowing-their-index
+    '''
+    evlst, odlst = oddeven([itm[0] for itm in inpt])
+    evvals = itemgetter(*[itm[0] for itm in
+                          enumerate(inds)])(inpt)
+    odvals = itemgetter(*[itm[0] for itm in
+                          enumerate(inds)])(inpt)
+    return evvals, odvals
+
+def oddeven(inpt): 
+    ''' 
+    Source: https://www.geeksforgeeks.org/python-split-even-odd-elements-two-different-lists
+    '''
+    evelist = [ele[1] for ele in enumerate(inpt) if ele[0]%2 ==0] 
+    oddlist = [ele[1] for ele in enumerate(inpt) if ele[0]%2 !=0]
+    return evelist, oddlist    
 
 def get_dialect(filename, encod):
     '''
-        Prints out all relevant formatting parameters of a dialect
+    Source: https://wellsr.com/python/introduction-to-csv-dialects-with-the-python-csv-module/#DialectDetection
+        - hdr variable replaces csv.Sniffer().has_header, which wouldn't work everytime
+        Source: https://stackoverflow.com/questions/15670760/built-in-function-in-python-to-check-header-in-a-text-file
+    Description: Prints out all relevant formatting parameters of a dialect
     '''
     with open(filename, encoding=encod) as src:
         dialect = csv.Sniffer().sniff(src.readline())
@@ -74,7 +102,7 @@ def get_dialect(filename, encod):
         if hdr:
             hdr = 0
         else:
-            hdr = None
+            hdr = False
 #         hdr = csv.Sniffer().has_header(src.readline())          
         nrows = len([line for line in src.readlines()])
         valuez = [bname(filename), hdr, dialect.delimiter,
@@ -88,9 +116,7 @@ def get_dialect(filename, encod):
         dialect_df = pd.Series(valuez, index=cnames)
         src.close()
         return dialect_df
-
         
-
 def megamerge(dflist, howto, onto=None):
     return reduce(lambda x, y: pd.merge(x, y,
                                         on=onto,
@@ -101,7 +127,6 @@ def no_ascii(astring):
     '''
         Source: https://stackoverflow.com/questions/8689795/how-can-i-remove-non-ascii-characters-but-leave-periods-and-spaces-using-python
     '''
-    
     return ''.join(filter(lambda x: x
                           in set(string.printable),
                           astring))
@@ -110,7 +135,6 @@ def letters(instring):
     '''
         Source: https://stackoverflow.com/questions/12400272/how-do-you-filter-a-string-to-only-contain-letters
     '''
-
     valids = []
     for character in instring:
         if character.isalpha():
@@ -226,6 +250,9 @@ def get_clean_encodings(indir=uzeprimes):
     encdf = get_all_encodings(indir)
     clearnoencod(encdf)
     encdf = get_all_encodings(indir)
+    extlst = encdf.insert(loc=1, column='ext',
+                          value=[splitext(fname)[1]
+                                 for fname in encdf.fname])
     return encdf                    
 
 def cimaqfilter(indir=uzeprimes):
@@ -257,7 +284,10 @@ def cimaqfilter(indir=uzeprimes):
      for file in loadimages(indir) if 'encoding' in bname(file).split('_')[0]]
     [os.remove(itm) for itm in loadimages(indir)
      if 'fuse_hidden0002f0fa00000022' in bname(itm)]
-
+    [os.remove(itm) for itm in loadimages(indir)
+     if bname(itm) == 'onset_event_encoding_cimaq_1234567_session1a.txt']
+    [os.remove(itm) for itm in loadimages(indir)
+     if bname(itm) == 'output_retrieval_cimaq_3589314_1.text.txt']
 
 def prepsheet(filename, encod=None):
     if encod:
@@ -610,6 +640,6 @@ def mkmeansheet(indir= '~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_der
     qcok = pd.read_csv(join(indir, 'sub_list_TaskQC.tsv'),
                        sep='\t').values.tolist()
     qcok = [ind for ind in qcok if ind in list(meansheet.dccid)]
-    meansheet = meansheet.loc[meansheet.dccid in qcok]
+    meansheet = meansheet.loc[[meansheet.dccid in qcok]]
     return meansheet.drop(columns=['pscid_y'])
     
