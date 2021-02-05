@@ -4,22 +4,25 @@
     Source: https://codereview.stackexchange.com/questions/215360/python-code-to-identify-structure-of-a-text-file
 '''    
 
-def identify_fixed_width(filepath):
-    # Re-use the same file-handle with fh.seek(0)
-    with open(filepath) as fh:
-        number_lines, avg_chars, max_length = get_avg_chars(fh)
-        fh.seek(0)
-        counter = find_header(fh, avg_chars)
-        fh.seek(0)
-        col_pos = get_row_counter(fh, counter)
-    common = list(set.intersection(*map(set, col_pos)))
-    new_common = [x for x in common if (x-1) not in common]
-    new_common.append(max_len)
-    _range = len(new_common)
-    width = []
-    for i, _ in enumerate(new_common[0:_range-1]):
-        width.append(new_common[i+1] - new_common[i])
-    return counter, width  
+import re
+import os
+
+# def identify_fixed_width(filepath):
+#     # Re-use the same file-handle with fh.seek(0)
+#     with open(filepath) as fh:
+#         number_lines, avg_chars, max_length = get_avg_chars(fh)
+#         fh.seek(0)
+#         counter = find_header(fh, avg_chars)
+#         fh.seek(0)
+#         col_pos = get_row_counter(fh, counter)
+#     common = list(set.intersection(*map(set, col_pos)))
+#     new_common = [x for x in common if (x-1) not in common]
+#     new_common.append(max_len)
+#     _range = len(new_common)
+#     width = []
+#     for i, _ in enumerate(new_common[0:_range-1]):
+#         width.append(new_common[i+1] - new_common[i])
+#     return counter, width  
 
 def get_avg_chars(fh):
     """
@@ -36,10 +39,10 @@ def get_avg_chars(fh):
         max_len = len(line) if len(line) > max_len else max_len
     # at the end of the for loop, idx is the length of the file
     num_lines = idx - decrement
-    avg_chars = total_chars / num_lines
+    avg_chars = total_chars % num_lines
     return num_lines, avg_chars, max_len
 
-def find_header(fh):
+def find_header(fh, avg_chars):
     counter = 0
     avg_chars = get_avg_chars(fh)
     for line in fh:

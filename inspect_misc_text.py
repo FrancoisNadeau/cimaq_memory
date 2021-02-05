@@ -61,8 +61,8 @@ from tqdm import tqdm
 from typing import Sequence
 # get_infodf listat oddeven
 from removeEmptyFolders import removeEmptyFolders
-from parsetxtfile import get_avg_chars
-from parsetxtfile import find_header
+from parsetxtfile import identify_fixed_width
+
 from cimaq_utils import loadimages
 from cimaq_utils import flatten
 
@@ -79,6 +79,7 @@ def get_infodf(indir):
                 for row in encdf.iterrows()])
     return pd.merge(left=encdf, right=diadf,
                     on='fname', how='outer')
+
 
 def clearnoencod(encdf):
 #     encdf = get_all_encodings(indir=uzeprimes)
@@ -180,36 +181,17 @@ def get_dialect(filename, encoding):
         dialect = csv.Sniffer().sniff(src.readline())
         src.seek(0)
         lines4test = list(src.readlines())
-        hdr = src.read(1) not in '.-0123456789'
-#         hdr_check = tuple(enumerate(lines4test))
-#         try:
-            
-#         except not hdr:
-#             hdr = pd.Series([itm[1][0] in itm[0] for itm in hdf_check])
-#         try:
-#             hdr1 = csv.Sniffer().has_header([line.split() for line in src.readline()])
-#         except Error:
-#             hdr1 = None
-#         try:
-#             hdr = not csv.Sniffer().has_header(src.read(512))
-#         except:
-#             #Error("Could not determine delimiter"):
-#             hdr = src.read(1024) not in '.-0123456789'
-#         except hdr:
-#             hdr = evenodd_col2(src)[0].read(1) not in '.-0123456789'
-            
-#         hdr2 = csv.Sniffer().has_header(src.read(1))          
-#         hdr = bool(hdr1 or hdr2)
-        if hdr:
-            hdr = 0
-        else:
-            hdr = False
-        nrows = len(lines4test)
-        valuez = [bname(filename), hdr, dialect.delimiter,
-                  nrows, dialect.doublequote, dialect.escapechar,
-                  dialect.lineterminator, dialect.quotechar,
+        src.seek(0)
+#         hdr = src.read(1) not in '.-0123456789'
+#         if hdr:
+#             hdr = 0
+#         else:
+#             hdr = False
+#         nrows = len(lines4test)
+        valuez = [bname(filename), dialect.delimiter, dialect.doublequote,
+                  dialect.escapechar, dialect.lineterminator, dialect.quotechar,
                   dialect.quoting, dialect.skipinitialspace]
-        cnames =['fname', 'has_header', 'sep', 'n_rows',
+        cnames =['fname', 'has_header', 'sep',
                  'doublequote', 'escapechar',
                  'lineterminator', 'quotechar',
                  'quoting', 'skipinitialspace']
@@ -237,3 +219,184 @@ def letters(instring):
 
 def num_only(astring):
     return ''.join(c for c in astring if c.isdigit())
+
+def cleanup(test2, hdr):
+    checkup = dupvalues(test2)
+    while hdr:
+        if checkup:
+            test2 = fixbrokensheet(test2[1:]).inset(0, 'header', colnames)
+        else:
+            test2 = test2.inset(0, 'header', colnames)
+        
+    else:
+        test2 = test2
+    return test2
+
+def listat(inds, inpt):
+    '''
+    Source: https://stackoverflow.com/questions/18272160/access-multiple-elements-of-list-knowing-their-index
+    '''
+    return itemgetter(*inds)(inpt)
+
+def evenodd(inpt): 
+    ''' 
+    Source: https://www.geeksforgeeks.org/python-split-even-odd-elements-two-different-lists
+    '''
+    evelist = [ele[1] for ele in enumerate(inpt) if ele[0]%2 ==0] 
+    oddlist = [ele[1] for ele in enumerate(inpt) if ele[0]%2 !=0]
+    return evelist, oddlist  
+
+def evenodd_col(inpt):
+#     inpt = [line[0] for line in inpt]
+    evlst, odlst = evenodd([itm[0] for itm in enumerate(inpt)])
+    evvals, odvals = listat(evlst, inpt), listat(odlst, inpt)
+    return df(itemgetter(*evlst)(inpt)), df(itemgetter(*odlst)(inpt))
+
+def evenodd_col2(inpt):
+#     inpt = [line[0] for line in inpt]
+    evlst, odlst = evenodd([itm[0] for itm in enumerate(inpt)])
+    evvals, odvals = listat(evlst, inpt), listat(odlst, inpt)    
+    return df(evvals), df(odvals)
+#     return itemgetter(*evlst)(inpt), itemgetter(*odlst)(inpt)
+
+def splitrows(inpt):
+#     inpt = [line[0] for line in inpt]
+    evlst, odlst = evenodd([itm[0] for itm in enumerate(inpt)])
+    evvals = itemgetter(*evlst)(inpt)
+    odvals = itemgetter(*odlst)(inpt)
+    return evvals == odvals
+
+def dupcols(inpt):
+    '''
+    Adapted from
+    Source: https://stackoverflow.com/questions/18272160/access-multiple-elements-of-list-knowing-their-index
+    '''
+    doublevals = dupvalues(inpt)
+    msk = df(doublevals, dtype='object')
+    boolcols = [all(itm[1])
+               for itm in msk.iteritems()]
+    return msk.loc[:, boolcols]
+
+def fixbrokensheet(inpt):
+    inpt = df(inpt)
+    eve, odd = evenodd_col(inpt)
+    cnames = dupcols(df(inpt)).columns
+    # Both doubles_even & doubles_odd are the same
+    doubles_even = df(eve, dtype='object')[[itm[1] for itm in cnames if itm[0]]]
+    doubles_odd = df(odd, dtype='object')[[itm[1] for itm in cnames if itm[0]]]
+    singles_even = df(eve, dtype='object')[[itm[1] for itm in cnames if not itm[0]]]
+    singles_odd = df(odd, dtype='object')[[itm[1] for itm in cnames if not itm[0]]]
+    rescued = pd.concat([singles_even.dropna(axis=0),
+                         singles_odd.dropna(axis=0)],
+                        axis=1).T.drop_duplicates()
+    final = pd.concat([doubles_even, rescued], axis=1)
+
+# Works well
+def dupvalues(inpt):
+    '''
+    Adapted from
+    Source: https://stackoverflow.com/questions/18272160/access-multiple-elements-of-list-knowing-their-index
+    '''
+#     try:
+#         not dupindex(inpt)
+#     except dupindex(inpt):
+    evlst, odlst = evenodd_col2([itm[0] for itm
+                                 in enumerate(inpt)])
+    evvals = itemgetter(*[itm[1] for itm in
+                          enumerate(evlst)])(inpt)
+    odvals = itemgetter(*[itm[1] for itm in
+                          enumerate(odlst)])(inpt)
+#     check = tuple(zip(evvals, odvals))
+    return df(evvals, dtype='object').values == df(odvals, dtype='object').values
+
+# Works well
+def get_doublerows(inpt):
+    inpt = df(inpt)
+    rowbreaks = [item[0] for item
+                 in enumerate(inpt.iteritems())
+                 if splitrows(item[1][1])]
+    return rowbreaks
+#     return inpt[list(itemgetter(*rowbreaks)(list(inpt.columns)))]
+
+# def get_doublerows2(inpt):
+#     rowbreaks = [item[0] for item
+#                  in enumerate(inpt.iteritems())
+#                  if splitrows2(item[1][1])]
+#     return inpt[list(itemgetter(*rowbreaks)(list(inpt.columns)))]
+
+def get_singlerows(inpt):
+    rowbreaks = [item[0] for item
+                 in enumerate(inpt.iteritems())
+                 if not splitrows(item[1][1])]
+    return inpt[list(itemgetter(*rowbreaks)(list(inpt.columns)))]
+
+def get_singlerows2(inpt):
+    rowbreaks = [item[0] for item
+                 in enumerate(inpt.iteritems())
+                 if not splitrows2(item[1][1])]
+    return inpt[list(itemgetter(*rowbreaks)(list(inpt.columns)))]
+    #     odvals = itemgetter(*odlst)(inpt)
+
+#     return evlst, odlstdef splitrows2(inpt):
+#     inpt = [line[0] for line in inpt]
+    evlst, odlst = oddeven([itm[0] for itm in enumerate(inpt)])
+    evvals = itemgetter(*evlst)(inpt)
+    odvals = itemgetter(*odlst)(inpt)
+    return bool(pd.Series(evvals).values == pd.Series(odvals).values)
+def splitrows2vals(inpt):
+#     inpt = [line[0] for line in inpt]
+    evlst, odlst = evenodd([itm[0] for itm in enumerate(inpt)])
+    evvals = itemgetter(*evlst)(inpt)
+    odvals = itemgetter(*odlst)(inpt)
+    return evvals == odvals
+
+def prepbytes(filename):
+    rawsheet = open(filename , "rb")
+    hdr = rawsheet.read(1) not in b'.-0123456789'
+    rawsheet.seek(0)
+    test = tuple(line for line in rawsheet.readlines())
+    rawsheet.seek(0)
+    test2 = df((pd.Series(line.split())
+                for line in rawsheet.readlines()))
+    dupindex = splitrows(test2[test2.columns[0]].values.tolist())
+    nlines = len(test)
+    rowbreaks = get_doublerows(test2)
+    widths = pd.Series(len(line) for line in test)
+    if hdr:
+        colnames = test2.loc[0][:test2[1:].shape[1]]
+        test, test2= test[1:], test2[1:]
+        if dupindex:            
+            colnames = test2[1:].loc[0][:test2[1:].shape[1]]
+            test, test2 = test[1:], test2[1:]
+    else:
+        colnames = None
+    width = widths.max()
+    nfields = test2.shape[1]
+    rawsheet.seek(0)
+    detector = udet()
+    for line in rawsheet.readlines():
+        detector.feed(line)
+        if detector.done: break
+    detector.close()
+    encoding = detector.result['encoding']
+    rawsheet.seek(0)
+    txttest = rawsheet.read().decode(encoding)
+    dialect = csv.Sniffer().sniff(txttest)
+    valuez = [bname(filename), hdr, dupindex, rowbreaks, width, nlines,
+              nfields, colnames, encoding,
+              dialect.delimiter, dialect.doublequote,
+              dialect.escapechar, dialect.lineterminator, dialect.quotechar,
+              dialect.quoting, dialect.skipinitialspace]
+    cnames =['fname', 'has_header', 'dup_index', 'row_breaks', 'width',
+             'n_lines', 'n_fields', 'colnames', 'encoding',
+             'delimiter', 'doublequote', 'escapechar',
+             'lineterminator', 'quotechar',
+             'quoting', 'skipinitialspace']
+    dialect_df = pd.Series(valuez, index=cnames)
+    rawsheet.close()
+    return dialect_df
+bytesheets = [prepbytes(row[1]['fpath'])
+              for row in infodf.iterrows()]
+
+display(df(bytesheets))
+# display(fixbrokensheet(infodf['prepsheets'][0]))
