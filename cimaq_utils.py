@@ -12,6 +12,7 @@ import csv
 import glob
 import gzip
 import io
+import itertools
 import json
 import lzma
 import nibabel as nib
@@ -59,16 +60,72 @@ from tqdm import tqdm
 from typing import Sequence
 # get_infodf listat oddeven
 from removeEmptyFolders import removeEmptyFolders
+from parsetxtfile import get_avg_chars
+from parsetxtfile import find_header
 
 cimaq_dir = xpu('~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives')
 zeprimes = join(cimaq_dir, 'task_files/zipped_eprime')
 uzeprimes = join(dname(zeprimes), 'uzeprimes')
+taskdir= xpu('~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives/participants')
 
-def get_infodf(indir):
-    encdf = get_clean_encodings(indir)
-    diadf = df([get_dialect(row[1]['fpath'], encod=row[1]['encod'])
-                for row in encdf.iterrows()])
-    return pd.merge(left=encdf, right=diadf, on='fname', how='outer')
+def loadimages(impath='../images'):
+    '''
+    Description
+    -----------
+    Lists the full relative path of all '.jpeg' files in a directory.
+    Only lists files, not directories.
+
+    Parameters
+    ----------
+    imdir: type = str
+        Name of the directory containing the images.
+
+    Return
+    ------
+    imlist: type = list
+        1D list containing all '.jpeg' files' full relative paths
+    '''
+    imlist = []
+    for allimages in os.walk(impath):
+        for image in allimages[2]:
+            impath = join(allimages[0], image)
+            if os.path.isfile(impath):
+                imlist.append(impath)
+    return imlist
+
+def flatten(nestedlst):
+    """
+    Description
+    -----------
+    Returns unidimensional list from nested list using list comprehension.
+
+    Parameters
+    ----------
+        nestedlst: list containing other lists etc.
+
+    Variables
+    ---------
+        bottomElem: type = str
+        sublist: type = list
+
+    Return
+    ------
+        flatlst: unidimensional list
+    """
+    flatlst = [bottomElem for sublist in nestedlst
+               for bottomElem in (flatten(sublist)\
+               if (isinstance(sublist, Sequence)\
+               and not isinstance(sublist, str)) else [sublist])]
+    return flatlst
+
+def megamerge(dflist, howto, onto=None):
+    return reduce(lambda x, y: pd.merge(x, y,
+                                        on=onto,
+                                        how=howto).astype('object'),
+                  dflist)
+
+###################################################################
+######################### Sequence Inspection #####################
 
 def listat(inds, inpt):
     '''
@@ -81,7 +138,7 @@ def listat(inds, inpt):
                           enumerate(inds)])(inpt)
     return evvals, odvals
 
-def oddeven(inpt): 
+def evenodd(inpt): 
     ''' 
     Source: https://www.geeksforgeeks.org/python-split-even-odd-elements-two-different-lists
     '''
@@ -89,205 +146,21 @@ def oddeven(inpt):
     oddlist = [ele[1] for ele in enumerate(inpt) if ele[0]%2 !=0]
     return evelist, oddlist    
 
-def get_dialect(filename, encod):
+def dupindex(inpt):
     '''
-    Source: https://wellsr.com/python/introduction-to-csv-dialects-with-the-python-csv-module/#DialectDetection
-        - hdr variable replaces csv.Sniffer().has_header, which wouldn't work everytime
-        Source: https://stackoverflow.com/questions/15670760/built-in-function-in-python-to-check-header-in-a-text-file
-    Description: Prints out all relevant formatting parameters of a dialect
+    Source: https://stackoverflow.com/questions/18272160/access-multiple-elements-of-list-knowing-their-index
     '''
-    with open(filename, encoding=encod) as src:
-        dialect = csv.Sniffer().sniff(src.readline())
-        hdr = src.read(1) not in '.-0123456789'
-        if hdr:
-            hdr = 0
-        else:
-            hdr = False
-#         hdr = csv.Sniffer().has_header(src.readline())          
-        nrows = len([line for line in src.readlines()])
-        valuez = [bname(filename), hdr, dialect.delimiter,
-                  nrows, dialect.doublequote, dialect.escapechar,
-                  dialect.lineterminator, dialect.quotechar,
-                  dialect.quoting, dialect.skipinitialspace]
-        cnames =['fname', 'has_header', 'sep', 'n_rows',
-                 'doublequote', 'escapechar',
-                 'lineterminator', 'quotechar',
-                 'quoting', 'skipinitialspace']
-        dialect_df = pd.Series(valuez, index=cnames)
-        src.close()
-        return dialect_df
-        
-def megamerge(dflist, howto, onto=None):
-    return reduce(lambda x, y: pd.merge(x, y,
-                                        on=onto,
-                                        how=howto).astype('object'),
-                  dflist)
+    evlst, odlst = evenodd([itm[0] for itm in inpt])
+    evvals = itemgetter(*[itm[0] for itm in
+                          enumerate(evlst)])(inpt)
+    odvals = itemgetter(*[itm[0] for itm in
+                          enumerate(odlst)])(inpt)
+    return evvals[0] == odvals[0]
 
-def no_ascii(astring):
-    '''
-        Source: https://stackoverflow.com/questions/8689795/how-can-i-remove-non-ascii-characters-but-leave-periods-and-spaces-using-python
-    '''
-    return ''.join(filter(lambda x: x
-                          in set(string.printable),
-                          astring))
-
-def letters(instring):
-    '''
-        Source: https://stackoverflow.com/questions/12400272/how-do-you-filter-a-string-to-only-contain-letters
-    '''
-    valids = []
-    for character in instring:
-        if character.isalpha():
-            valids.append(character)
-    return ''.join(valids)
-
-def num_only(astring):
-    return ''.join(c for c in astring if c.isdigit())
-
-# ZipFile behaviour control
-############################
-def getnamelist(filename): 
-    '''
-    Adjustment to ZipFile.namelist() function to prevent MAC-exclusive
-    '__MACOSX' and '.DS_Store' files from interfering.
-    Only necessary for files compressed with OS 10.3 or earlier.
-    Source: https://superuser.com/questions/104500/what-is-macosx-folder
-    Command line solution:
-        ``` zip -r dir.zip . -x ".*" -x "__MACOSX"
-    Source: https://apple.stackexchange.com/questions/239578/compress-without-ds-store-and-macosx
-    '''
-    return [itm for itm in
-            zipfile.ZipFile(filename).namelist()
-            if  bname(itm).startswith('.') == False \
-            and '__MACOSX' not in itm \
-            and 'textClipping' not in itm]
-
-# def getinfolist(filename):
-#     namelist = getnamelist(filename)
-#     temp = [zipfile.ZipFile(filename).getinfo(mmbr)
-#                 for mmbr in namelist]
-#     comlist = []
-#     for itm in temp:
-#         if itm.comment:
-#             comlist.append((itm.filename, itm.comment))
-#             itm.comment = ''
-#     comlistpath = xpu(join('~/',bname(itm.filename)+'.tsv'), sep='\t')
-#     comlist = df(comlist).to_csv(
-        
-#     return temp
-
-def getinfolist(filename):
-    namelist = getnamelist(filename)
-    return [zipfile.ZipFile(filename).getinfo(mmbr)
-                for mmbr in namelist]
-    
-def cleanarchv(indir, outdir):
-    os.makedirs(join(dname(indir), outdir), exist_ok=True)
-    [shutil.move(itm, join(outdir, bname(itm)))
-     for itm in loadimages(indir)
-     if os.path.isfile(itm) and not itm.endswith('.zip')]
-
-def uzipfiles(indir, outdir):
-    outdir = join(dname(indir), outdir)
-    for item in tqdm([itm for itm in loadimages(indir)
-                      if not itm.startswith('.')]):
-        with zipfile.ZipFile(item, 'r') as archv:
-            archv.extractall(path=join(outdir,
-                                       splitext(bname(item))[0]),
-                             members=getinfolist(item))
-        archv.close()
-    cleanarchv(indir, outdir)
-    [shutil.move(
-        itm,join(outdir, bname(itm).lower().replace(' ', '_').replace('-', '_')))
-     for itm in
-             loadimages(outdir)]
-    removeEmptyFolders(indir)
-    removeEmptyFolders(outdir)
-
-####################################    
-
-# def uzipfiles(indir, outdir):
-#     outdir = join(dname(indir), outdir)
-#     for item in tqdm([itm for itm in loadimages(indir)
-#                       if not itm.startswith('.')]):
-#         with zipfile.ZipFile(item, 'r') as archv:
-#             archv.extractall(path=join(outdir,
-#                                        splitext(bname(item))[0]),
-#                              members=getinfolist(item))
-#         archv.close()
-#     cleanarchv(indir, outdir)
-#     [shutil.move(
-#         itm,join(outdir, bname(itm).lower().replace(' ', '_').replace('-', '_')))
-#      for itm in
-#              loadimages(outdir)]
-#     removeEmptyFolders(indir)
-#     removeEmptyFolders(outdir)
-################################
-
-# Get file encodings and sort accordingly    
-def get_all_encodings(indir):  
-    allfiles = [itm for itm in
-                loadimages(indir)
-                if not itm.startswith('.')]
-    return df(tuple(zip([bname(itm) for itm in allfiles],
-                        allfiles, [get_encoding(fname)
-                                   for fname in allfiles])),
-              columns=['fname', 'fpath', 'encod'])
-
-def no_encod(encdf):
-    nodet = encdf.loc[[row[1]['encod'] == None
-                      for row in encdf.iterrows()]]
-    return flatten([[itm for itm in list(encdf.fpath)
-                     if splitext(fname)[0] in itm]
-                    for fname in nodet.fname])
-
-def clearnoencod(encdf):
-#     encdf = get_all_encodings(indir=uzeprimes)
-    noenc = no_encod(encdf)
-    [os.remove(fpath) for fpath in noenc]
-
-def get_clean_encodings(indir=uzeprimes):
-    encdf = get_all_encodings(indir)
-    clearnoencod(encdf)
-    encdf = get_all_encodings(indir)
-    extlst = encdf.insert(loc=1, column='ext',
-                          value=[splitext(fname)[1]
-                                 for fname in encdf.fname])
-    return encdf                    
-
-def cimaqfilter(indir=uzeprimes):
-    ''' Removes all pratice files (and READMEs) 
-        since no data was recorder due
-        to response keyboard problems. Both READMEs indicate
-        this sole information.
-        Moves unused PDF files to "task_files/pdf_files"
-    '''
-    prfr = [file for file in loadimages(indir)
-            if 'pratique' in bname(file)]
-    pren = [file for file in loadimages(indir)
-            if 'practice' in bname(file)]
-    docxs = [file for file in loadimages(indir)
-             if 'read_' in bname(file)]
-    joinedlist = prfr + pren + docxs
-    [os.remove(file) for file in joinedlist]
-    os.makedirs(join(dname(indir), 'pdf_files'), exist_ok=True)
-    [shutil.move(file, join(dname(indir), 'pdf_files', bname(file)))
-     for file in loadimages(indir) if file.endswith('.pdf')]
-    os.makedirs(join(dname(indir), 'edat2_files'), exist_ok=True)
-    [shutil.move(file, join(dname(indir), 'edat2_files', bname(file)))
-     for file in loadimages(indir) if file.endswith('.edat2')]
-    os.makedirs(join(dname(indir), 'retrieval_log_files'), exist_ok=True)
-    [shutil.move(file, join(dname(indir), 'retrieval_log_files', bname(file)))
-     for file in loadimages(indir) if 'retrieval' in bname(file).split('_')[0]]
-    os.makedirs(join(dname(indir), 'encoding_log_files'), exist_ok=True)
-    [shutil.move(file, join(dname(indir), 'encoding_log_files', bname(file)))
-     for file in loadimages(indir) if 'encoding' in bname(file).split('_')[0]]
-    [os.remove(itm) for itm in loadimages(indir)
-     if 'fuse_hidden0002f0fa00000022' in bname(itm)]
-    [os.remove(itm) for itm in loadimages(indir)
-     if bname(itm) == 'onset_event_encoding_cimaq_1234567_session1a.txt']
-    [os.remove(itm) for itm in loadimages(indir)
-     if bname(itm) == 'output_retrieval_cimaq_3589314_1.text.txt']
+def make_labels(datas, var_name):
+    ''' Returns dict of (key, val) pairs using 'enumerate' on possible values 
+        filtered by 'Counter' - can be used to map DataFrame objects - '''
+    return dict(enumerate(Counter(datas[var_name]).keys(), start=1))
 
 def prepsheet(filename, encod=None):
     if encod:
@@ -315,126 +188,6 @@ def prepsheet(filename, encod=None):
         test = test
     sheet.close()
     return test
-
-def flattendict(d, parent_key='', sep='_'):
-    '''
-    Source:
-    https://stackoverflow.com/questions/6027558/flatten-nested-dictionaries-compressing-keys
-    '''
-    items = []
-    for k, v in d.items():
-        new_key = parent_key + sep + k if parent_key else k
-        if isinstance(v, collections.MutableMapping):
-            items.extend(flatten(v, new_key, sep=sep).items())
-        else:
-            items.append((new_key, v))
-    return dict(items)
-
-def get_encoding(sheetpath):
-    ''' 
-    Detect character encoding for files not encoded
-    with default encoding type ('UTF-8').
-
-    Parameters
-    ----------
-    sheetpath: Path or os.path-like objects pointing
-               to a document file (various extensions supported,
-               see online documentation at
-               https://chardet.readthedocs.io/en/latest/
-
-    Returns
-    -------
-    results: Pandas 'Series' (index=["encoding", "confidence"], name="sheetname")
-    "language" is dropped because it is known a priori to be Python
-    '''
-    detector = udet()
-    bsheet = open(sheetpath , "rb")
-    for line in bsheet.readlines():
-        detector.feed(line)
-        if detector.done: break
-    detector.close()
-    return detector.result['encoding']
-
-def get_encoding2(sheetlist):
-    ''' 
-    Detect character encoding for files not encoded
-    with current encoding type ('UTF-8').
-
-    Parameters
-    ----------
-    sheetlist: list of paths or os.path-like objects pointing
-                to a document file (various extensions supported,
-                see online documentation at
-                https://chardet.readthedocs.io/en/latest/
-
-    Returns
-    -------
-    encodings: list of (sheet basename, encoding dict) tuples
-                for each sheet in 'sheetlist'
-    '''
-    sheetlist = sorted(sheetlist)
-    results = []
-    for sheetpath in sheetlist:
-        bsheet = open(sheetpath, "rb").read()
-        rezz = chardet.detect(bsheet)
-        results.append(df.from_dict(rezz))
-    return results
-
-def get_encodingfull(sheetpath):
-    ''' 
-    Detect character encoding for files not encoded
-    with default encoding type ('UTF-8').
-
-    Parameters
-    ----------
-    sheetpath: Path or os.path-like objects pointing
-               to a document file (various extensions supported,
-               see online documentation at
-               https://chardet.readthedocs.io/en/latest/
-
-    Returns
-    -------
-    results: Pandas 'Series' (index=["encoding", "confidence"], name="sheetname")
-    "language" is dropped because it is known a priori to be Python
-    '''
-    detector = udet()
-    bsheet = open(sheetpath , "rb")
-    for line in bsheet.readlines(line.getvalues):
-        detector.feed(line)
-        if detector.done: break
-    detector.close()
-    bsheet.close()
-    return detector.result
-
-def flatten(nestedlst):
-    """
-    Description
-    -----------
-    Returns unidimensional list from nested list using list comprehension.
-
-    Parameters
-    ----------
-        nestedlst: list containing other lists etc.
-
-    Variables
-    ---------
-        bottomElem: type = str
-        sublist: type = list
-
-    Return
-    ------
-        flatlst: unidimensional list
-    """
-    flatlst = [bottomElem for sublist in nestedlst
-               for bottomElem in (flatten(sublist)\
-               if (isinstance(sublist, Sequence)\
-               and not isinstance(sublist, str)) else [sublist])]
-    return flatlst
-
-def make_labels(datas, var_name):
-    ''' Returns dict of (key, val) pairs using 'enumerate' on possible values 
-        filtered by 'Counter' - can be used to map DataFrame objects - '''
-    return dict(enumerate(Counter(datas[var_name]).keys(), start=1))
 
 def json_read(fpath):
     ''' Read JSON file to Python object.
@@ -497,39 +250,7 @@ def json_write(jsonfit, fpath='.', idt=None):
     '''
     with open(join(dname(fpath), bname(fpath)), 'w') as outfile:
         json.dump(json.dumps(jsonfit, indent=idt), outfile)
-        
-def loadimages(impath='../images'):
-    '''
-    Description
-    -----------
-    Lists the full relative path of all '.jpeg' files in a directory.
-    Only lists files, not directories.
-
-    Parameters
-    ----------
-    imdir: type = str
-        Name of the directory containing the images.
-
-    Return
-    ------
-    imlist: type = list
-        1D list containing all '.jpeg' files' full relative paths
-    '''
-    imlist = []
-    for allimages in os.walk(impath):
-        for image in allimages[2]:
-            impath = join(allimages[0], image)
-            if os.path.isfile(impath):
-                imlist.append(impath)
-    return imlist
-
-def file2gzip(filename):
-    with open(filename, 'rb') as tozip:
-        with gzip.open(join(dname(filename),
-                            bname(filename)+'.gz'), 'wb') as zfile:
-            shutil.copyfileobj(tozip, zfile)
-    zfile.close()
-    tozip.close()
+        outfile.close()        
 
 def absoluteFilePaths(maindir):
     for allthings in os.walk(maindir):
@@ -579,9 +300,75 @@ def loadsheets(snames, indir=join(cimaq_dir, 'participants')):
 
 ###############################################################################  
 ###################################
-##### CIMA-Q SPECIDICS ############
+##### CIMA-Q SPECIDIC ############
 
+def sortmap(cimaqdf):
+    prefixes = pd.Series(('_'.join(val.split('_')[:2])
+                          for val in cimaqdf.fname)).unique()
+    cimaqdf[prefixes] = [[pref in row[1]['fname']
+                          for pref in prefixes]
+                         for row in cimaqdf.iterrows()]
+    pscid_ = re.compile('\d{7}')
+#     cimaqdf = get_prefixes(infodf)
+    cimaqdf['pscid'] = [pscid_.search(fname).group()
+                        for fname in cimaqdf.fname]
+    return cimaqdf
 
+def loadscans(folderlist=[join(dname(taskdir), 'anat'),
+                          join(dname(taskdir), 'confounds'),
+                          join(dname(taskdir), 'fmri')]):
+    cmplr = re.compile('\d{6}')
+    scans = df((loadimages(folder)
+              for folder in folderlist),
+             index = [bname(folder)
+                      for folder in folderlist])
+#     scans = scans.rename(dict(enumerate(columns=lambda x: re.sub(cmplr))))
+    
+    scans = scans.rename(
+               columns=dict(((scan[0], cmplr.search(bname(scan[1])).group())
+                                 for scan in enumerate(scans.iloc[0])))).T
+    scans.index.names = ['dccid']
+    scans = scans.reset_index(drop=False)
+    return scans
+
+def cimaqfilter(indir=uzeprimes):
+    ''' Removes all pratice files (and READMEs) 
+        since no data was recorder due
+        to response keyboard problems. Both READMEs indicate
+        this sole information.
+        Moves unused PDF files to "task_files/pdf_files"
+    '''
+    prfr = [file for file in loadimages(indir)
+            if 'pratique' in bname(file)]
+    pren = [file for file in loadimages(indir)
+            if 'practice' in bname(file)]
+    docxs = [file for file in loadimages(indir)
+             if 'read_' in bname(file)]
+    joinedlist = prfr + pren + docxs
+    [os.remove(file) for file in joinedlist]
+    os.makedirs(join(dname(indir), 'pdf_files'), exist_ok=True)
+    [shutil.move(file, join(dname(indir), 'pdf_files', bname(file)))
+     for file in loadimages(indir) if file.endswith('.pdf')]
+    os.makedirs(join(dname(indir), 'edat2_files'), exist_ok=True)
+    [shutil.move(file, join(dname(indir), 'edat2_files', bname(file)))
+     for file in loadimages(indir) if file.endswith('.edat2')]
+    os.makedirs(join(dname(indir), 'retrieval_log_files'), exist_ok=True)
+    [shutil.move(file, join(dname(indir), 'retrieval_log_files', bname(file)))
+     for file in loadimages(indir) if 'retrieval' in bname(file).split('_')[0]]
+    os.makedirs(join(dname(indir), 'encoding_log_files'), exist_ok=True)
+    [shutil.move(file, join(dname(indir), 'encoding_log_files', bname(file)))
+     for file in loadimages(indir) if 'encoding' in bname(file).split('_')[0]]
+    [os.remove(itm) for itm in loadimages(indir)
+     if 'fuse_hidden0002f0fa00000022' in bname(itm)]
+    [os.remove(itm) for itm in loadimages(indir)
+     if bname(itm) == 'onset_event_encoding_cimaq_1234567_session1a.txt']
+    [os.remove(itm) for itm in loadimages(indir)
+     if bname(itm) == 'output_retrieval_cimaq_3589314_1.text.txt']
+    [os.rename(itm, join(dname(itm), bname(itm).split('.')[0]+splitext(bname(itm))[1]))
+     for itm in loadimages(indir) if splitext(bname(itm))[0].endswith(splitext(bname(itm))[0])]
+
+####################################
+####### Less Important Below #######
 
 def prepms(sheetnames):
     for sheet in sheetnames['sheetvalues']:
@@ -624,7 +411,7 @@ def mkvsheet(sheetnames):
     return l3df
 
 def mkmeansheet(indir= '~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives/participants',
-                 snames = ['Neuropsych/ALL_Neuropsych_scores.tsv',
+                snames = ['Neuropsych/ALL_Neuropsych_scores.tsv',
                              'MotionResults/fMRI_meanMotion.tsv',
                              'TaskResults/fMRI_behavMemoScores.tsv',
                              'MemoTaskParticipantFile.tsv',
