@@ -118,76 +118,32 @@ def flatten(nestedlst):
                and not isinstance(sublist, str)) else [sublist])]
     return flatlst
 
+def make_labels(datas, var_name):
+    ''' Returns dict of (key, val) pairs using 'enumerate' on possible values 
+        filtered by 'Counter' - can be used to map DataFrame objects - '''
+    return dict(enumerate(Counter(datas[var_name]).keys(), start=1))
+
+
+def loadfiles(indir):
+    return df(((os.path.splitext(bname(sheet))[0],
+                os.path.splitext(bname(sheet))[1],
+                sheet) for sheet
+               in loadimages(indir)),
+              columns=['fnames', 'ext', 'fpaths'])
+
+def regist_dialects(parsing_infos):
+        [csv.register_dialect(row[1]['fpaths'],
+                             dialect = row[1][['delimiter', 'doublequote', 'escapechar',
+                                               'lineterminator', 'quotechar', 'quoting',
+                                               'skipinitialspace']])
+         for row in parsing_infos.iterrows()]
+
 def megamerge(dflist, howto, onto=None):
     return reduce(lambda x, y: pd.merge(x, y,
                                         on=onto,
                                         how=howto).astype('object'),
                   dflist)
 
-###################################################################
-######################### Sequence Inspection #####################
-
-def listat(inds, inpt):
-    '''
-    Source: https://stackoverflow.com/questions/18272160/access-multiple-elements-of-list-knowing-their-index
-    '''
-    evlst, odlst = oddeven([itm[0] for itm in inpt])
-    evvals = itemgetter(*[itm[0] for itm in
-                          enumerate(inds)])(inpt)
-    odvals = itemgetter(*[itm[0] for itm in
-                          enumerate(inds)])(inpt)
-    return evvals, odvals
-
-def evenodd(inpt): 
-    ''' 
-    Source: https://www.geeksforgeeks.org/python-split-even-odd-elements-two-different-lists
-    '''
-    evelist = [ele[1] for ele in enumerate(inpt) if ele[0]%2 ==0] 
-    oddlist = [ele[1] for ele in enumerate(inpt) if ele[0]%2 !=0]
-    return evelist, oddlist    
-
-def dupindex(inpt):
-    '''
-    Source: https://stackoverflow.com/questions/18272160/access-multiple-elements-of-list-knowing-their-index
-    '''
-    evlst, odlst = evenodd([itm[0] for itm in inpt])
-    evvals = itemgetter(*[itm[0] for itm in
-                          enumerate(evlst)])(inpt)
-    odvals = itemgetter(*[itm[0] for itm in
-                          enumerate(odlst)])(inpt)
-    return evvals[0] == odvals[0]
-
-def make_labels(datas, var_name):
-    ''' Returns dict of (key, val) pairs using 'enumerate' on possible values 
-        filtered by 'Counter' - can be used to map DataFrame objects - '''
-    return dict(enumerate(Counter(datas[var_name]).keys(), start=1))
-
-def prepsheet(filename, encod=None):
-    if encod:
-        encod = get_encoding(filename)
-    else: encod = encod
-    sheet = open(filename , "r", encoding=encod)
-    test = [no_ascii(line.rstrip().replace('\t', '    ')).split()
-            for line in sheet.readlines()]
-    ncols = np.array([len(itm) for itm in test]).max()
-    values = [line[:ncols] for line in test]        
-    colnames = None    
-    hdr = bool(sheet.read(1) in '.-0123456789')
-    if hdr:
-        ncols = np.array([len(itm) for itm in test[1:]]).max()
-        values = [line[:ncols-1] for line in test[1:]]
-        colnames = test[0][:ncols-1]
-    test = df(pd.read_json(json.dumps(values)).values,
-              columns=colnames)
-    test = test.sort_index()
-    test.columns = map(str.lower, test.columns)
-    test.columns = map(str.strip, test.columns)
-    if test.shape[1] > 2:
-        test = test.dropna(axis=1, how='all')
-    else:
-        test = test
-    sheet.close()
-    return test
 
 def json_read(fpath):
     ''' Read JSON file to Python object.
@@ -268,35 +224,6 @@ def emptydir(folder = '/path/to/folder'):
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
 
-def loadsheets(snames, indir=join(cimaq_dir, 'participants')):
-    sheetnames = [join(indir, name)
-                  for name in snames]
-    sheetnames = df(((splitext(bname(sheet))[0],
-                      splitext(bname(sheet))[1],
-                      sheet) for sheet
-                       in sheetnames),
-                    columns=['sheetnames', 'ext', 'sheetpaths'])
-    sheetnames['sheetvalues'] = [prepsheet(spath).dropna(axis=0)
-                                 for spath in sheetnames.sheetpaths]  
-    return sheetnames            
-            
-# To be tested            
-# # change your naming to fit with common naming standards for
-# # variables and functions, pep linked below
-# def get_duplicate_columns(df):
-#     '''
-#     You are looking for non-repeated combinations of columns, so use
-#     itertools.combinations to accomplish this, it's more efficient and
-#     easier to see what you are trying to do, rather than tracking an index
-#     '''
-#     duplicate_column_names = set()
-#     # Iterate over all pairs of columns in df
-#     for a, b in itertools.combinations(df.columns, 2):
-#         # will check if every entry in the series is True
-#         if (df[a] == df[b]).all():
-#             duplicate_column_names.add(b)
-
-#     return list(duplicate_column_names)
 
 ###############################################################################  
 ###################################
@@ -321,14 +248,14 @@ def loadscans(folderlist=[join(dname(taskdir), 'anat'),
     scans = df((loadimages(folder)
               for folder in folderlist),
              index = [bname(folder)
-                      for folder in folderlist])
-#     scans = scans.rename(dict(enumerate(columns=lambda x: re.sub(cmplr))))
-    
+                      for folder in folderlist])    
     scans = scans.rename(
                columns=dict(((scan[0], cmplr.search(bname(scan[1])).group())
                                  for scan in enumerate(scans.iloc[0])))).T
     scans.index.names = ['dccid']
+    scans.index = pd.to_numeric(scans.index)
     scans = scans.reset_index(drop=False)
+    scans = scans.convert_dtypes()
     return scans
 
 def cimaqfilter(indir=uzeprimes):
@@ -430,3 +357,173 @@ def mkmeansheet(indir= '~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_der
     meansheet = meansheet.loc[[meansheet.dccid in qcok]]
     return meansheet.drop(columns=['pscid_y'])
     
+############################
+###### Broken ##############
+
+# def get_meansheet(sdir='/media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives/participants'):
+#     snames = ['Participants_bids.tsv',
+#               'MemoTaskParticipantFile.tsv',
+#               'TaskResults/fMRI_behavMemoScores.tsv',
+#               'Neuropsych/ALL_Neuropsych_scores.tsv',
+#               'MotionResults/fMRI_meanMotion.tsv',
+#               'sub_list_TaskQC.tsv']
+#     constant_dir = xpu('~/../..')
+#     spaths = [join(constant_dir, sdir, sname)
+#               for sname in snames]
+#     encs = [get_encoding(spath) for spath in spaths]
+#     infos = df(tuple(zip(spaths, encs)))
+#     sheets = [pd.read_csv(row[1][0], encoding=row[1][1], sep='\t')
+#               for row in infos.iterrows()]
+#     allvals = [list(enumerate([itm[1].sort_values() for itm in sheet.iteritems()]))
+#                for sheet in sheets]
+#     test = tuple(enumerate(tuple(itertools.chain.from_iterable(allvals))))
+#     allcols = pd.Series([itm[1][1][0] for itm in test])
+#     valsonly = [(itm[0], itm[1][1][1][1]) for itm in enumerate(test)]
+#     uvals = df([itm for itm in enumerate(valsonly)]).drop_duplicates().T
+#     colnames = allcols.loc[uvals.columns].to_dict()
+#     uvals = uvals.rename(columns=colnames)
+#     uvals = uvals.loc[sheets[-1].index]
+#     uvals.columns = map(str.lower, uvals.columns)
+#     return uvals
+
+# uvals = get_meansheet().convert_dtypes().drop_duplicates().T
+
+# def splitmerge(inpt):
+#     evlst, odlst = evenodd([itm[0] for itm in inpt])
+#     evvals = itemgetter(*[itm[0] for itm in
+#                           enumerate(evlst)])(inpt)
+#     odvals = itemgetter(*[itm[0] for itm in
+#                           enumerate(odlst)])(inpt)
+# #     evelst, oddlst = Split([line[0] for line in inpt])
+#     hdr = bytearray(str(inpt[0]), 'utf8').decode() not in '.-0123456789'
+#     cnames=None
+#     if hdr == True:
+# #         hdr = 0
+# #         evlst, odlst = evlst[1:], odlst[1:]
+#         evvals, odvals = evvals[1:], odvals[1:]
+# #         cnames = pd.Series(evvals[0] + odvals[0]).unique().tolist()
+#         cnames = evvals[0]
+#     else: evvals, odvals, cnames = evvals, odvals, cnames 
+#     if evlst == odlst:
+#         try:
+#             evdfl = df(enumerate(evvals), columns=cnames).drop_duplicates(keep='last')
+#             evdfn = df(enumerate(evvals), columns=cnames).drop_duplicates(keep=False)
+# #             oddff = df(odvals, columns=cnames).drop_duplicates(keep='first')
+#             oddfl = df(enumerate(odvals), columns=cnames).drop_duplicates(keep='last')
+#             oddfn = df(enumerate(odvals), columns=cnames).drop_duplicates(keep=False)
+#             outpt = megamerge([evdfl, evdfn, oddfl, oddfn], howto='outer', onto=cnames)
+#         except ValueError:
+            
+#             outpt = df(inpt).pad()
+# #             outpt =  df(enumerate([[''.join([itm for itm in line
+# #                                     if ' ' not in itm]).strip('\n').replace('nnn', ',').replace('nn', ',')]
+# #                          for line in inpt]))
+# #         return evdf, oddf
+# #         return megamerge([evdff, oddfl, evdfl, oddff], howto='outer', onto=cnames)
+# #         df1 = pd.merge(evdf, oddf)
+# #         return df1
+# #         df2 = pd.merge(evdf, oddf).drop_duplicates(keep='last')
+# #         return pd.merge(df1, df2, on=0, sort=True)
+#     else:
+# #         outpt = pd.read_fwf(np.array(inpt), header=None)
+#         outpt = df(inpt)
+# #         outpt = df(pd.Series(enumerate(inpt)).unique()).dropna(axis=1, how='all')
+#     return outpt
+
+# def prepstr(filename, encoding, hdr, sep):
+#     sheet = open(filename , "r", encoding=encoding)
+# #     if sep != '\t':
+# #         nsep = '\t'
+#     sep = csv.Sniffer().sniff(sheet.readline()).delimiter    
+#     test = []
+#     test2 = []
+#     test3 = []
+# #     widths = []
+#     widths = []
+# #     hdr = bytearray(str(sheet[0]), 'utf8').decode() not in '.-0123456789'
+
+#     nitems = []
+#     for line in sheet.readlines():
+#         line = no_ascii(line)
+# #         line = line.replace('    ', ' ')
+# #         line = line.replace(' . ', ' n\a ')
+# #         line = line.lstrip()
+# #         line = line.rstrip()
+# #         line = line.strip('    ')
+# #         line = line.replace('    ', ' ')
+#         line = line.strip().replace(sep, '\t').replace(' ', '_')
+# #         line = no_ascii(line)
+#         widths.append(len(line.encode(encoding)))
+#         line = line.ljust(len(line)).strip()
+#         line = line.rjust(len(line)).strip()
+# #         line = line.strip('n')
+#         line = line.split()
+#         line2 = sep.join(itm for itm in line).strip().lstrip().rstrip()
+# #         line2 = line.ljust(len(line)).strip()
+# #         line2 = line.rjust(len(line)).strip()        
+#         test.append(line)
+#         line2 = line2.strip().split()
+#         test2.append(line2)
+#         line3 = line2.strip()
+#         nitems.append(len(line2))
+#     nitems = pd.Series(nitems).max()
+#     nrows = len(test2)
+#     maxwidth = pd.Series(widths).max
+#     if hdr:
+#         width = pd.Series(widths[1:]).max()
+#         nitems = pd.Series(nitems[1:]).max()
+#         test = [line[:width] for line in test[1:]]
+#         colnames = test2[0][:nitems]
+#         nrows = len(test2[1:])
+    
+
+# #         test = [line[:width] for line in test]
+# #         ncol.append(line.count(sep))
+#     test2 = [line[:nitems] for line in test2]
+
+#     sheet.close()
+#     return test3
+
+# def prepbytes(filename, encoding, hdr, sep):
+#     sheet = open(filename , "r", encoding=encoding)
+# #     if sep != '\t':
+# #         nsep = '\t'
+# #     sep = csv.Sniffer().sniff(sheet.readline()).delimiter    
+#     test = []
+#     test2 = []
+# #     widths = []
+#     widths = []
+# #     hdr = bytearray(str(sheet[0]), 'utf8').decode() not in '.-0123456789'
+#     nitems = []
+#     for line in sheet.readlines():
+#         line = no_ascii(line)
+# #         line = line.replace('    ', ' ')
+# #         line = line.replace(' . ', ' n\a ')
+# #         line = line.lstrip()
+# #         line = line.rstrip()
+# #         line = line.strip('    ')
+# #         line = line.replace('    ', ' ')
+#         line = line.strip().replace(sep, '\t').replace(' ', '_')
+# #         line = no_ascii(line)
+#         widths.append(len(line.encode(encoding)))
+#         line = line.ljust(len(line)).strip()
+#         line = line.rjust(len(line)).strip()
+# #         line = line.strip('n')
+#         line = line.split()
+#         line2 = sep.join(itm for itm in line).strip().lstrip().rstrip()
+# #         line2 = line.ljust(len(line)).strip()
+# #         line2 = line.rjust(len(line)).strip()        
+#         test.append(line)
+#         line2 = line2.strip().split()
+#         test2.append(line2)
+#         nitems.append(len(line2))
+#     nitems = pd.Series(nitems).max()
+#     nrows = len(test2)
+#     maxwidth = pd.Series(widths).max
+#     if hdr:
+#         width = pd.Series(widths[1:]).max()
+#         nitems = pd.Series(nitems[1:]).max()
+#         test = [line[:width] for line in test[1:]]
+#         colnames = test2[0][:nitems]
+#         nrows = len(test2[1:])
+

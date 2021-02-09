@@ -36,13 +36,6 @@ from collections import Counter
 from collections import OrderedDict
 from functools import reduce
 from io import StringIO
-from matplotlib import pyplot as plt
-from nilearn.plotting import plot_design_matrix
-from nilearn.glm.first_level import FirstLevelModel
-from nilearn.glm.first_level import make_first_level_design_matrix
-from nilearn import image
-from nilearn import plotting
-from nilearn.plotting import plot_stat_map, plot_anat, plot_img, show
 from numpy import nan as NaN
 from operator import itemgetter 
 from os import getcwd as cwd

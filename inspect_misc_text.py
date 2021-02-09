@@ -39,13 +39,6 @@ from collections import Counter
 from collections import OrderedDict
 from functools import reduce
 from io import StringIO
-from matplotlib import pyplot as plt
-from nilearn.plotting import plot_design_matrix
-from nilearn.glm.first_level import FirstLevelModel
-from nilearn.glm.first_level import make_first_level_design_matrix
-from nilearn import image
-from nilearn import plotting
-from nilearn.plotting import plot_stat_map, plot_anat, plot_img, show
 from numpy import nan as NaN
 from operator import itemgetter 
 from os import getcwd as cwd
@@ -59,61 +52,16 @@ from pandas import DataFrame as df
 from tabulate import tabulate
 from tqdm import tqdm
 from typing import Sequence
-# get_infodf listat oddeven
 from removeEmptyFolders import removeEmptyFolders
-from parsetxtfile import identify_fixed_width
 
 from cimaq_utils import loadimages
 from cimaq_utils import flatten
 
-########### ZipFile Behaviour Control Toolbox #################################
+########### Miscellaneous '.txt' Files Parser ############################### #
 
 cimaq_dir = xpu('~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives')
 zeprimes = join(cimaq_dir, 'task_files/zipped_eprime')
-uzeprimes = join(dname(zeprimes), 'uzeprimes')
-
-def get_infodf(indir):
-    encdf = get_clean_encodings(indir)
-    diadf = df([get_dialect(row[1]['fpath'],
-                            encoding=row[1]['encoding'])
-                for row in encdf.iterrows()])
-    return pd.merge(left=encdf, right=diadf,
-                    on='fname', how='outer')
-
-
-def clearnoencod(encdf):
-#     encdf = get_all_encodings(indir=uzeprimes)
-    nodet = encdf.loc[[row[1]['encoding'] == None
-                      for row in encdf.iterrows()]]
-    noenc = flatten([[itm for itm in list(encdf.fpath)
-                      if splitext(fname)[0] in itm]
-                     for fname in nodet.fname])
-    [os.remove(fpath) for fpath in noenc]
-
-def get_all_encodings(indir):  
-    allfiles = [itm for itm in
-                loadimages(indir)
-                if not itm.startswith('.')]
-    return df(tuple(zip([bname(itm) for itm in allfiles],
-                        allfiles, [get_encoding(fname)
-                                   for fname in allfiles])),
-              columns=['fname', 'fpath', 'encoding'])
-
-# def no_encod(encdf):
-#     nodet = encdf.loc[[row[1]['encoding'] == None
-#                       for row in encdf.iterrows()]]
-#     return flatten([[itm for itm in list(encdf.fpath)
-#                      if splitext(fname)[0] in itm]
-#                     for fname in nodet.fname])
-
-def get_clean_encodings(indir):
-    encdf = get_all_encodings(indir)
-    clearnoencod(encdf)
-    encdf = get_all_encodings(indir)
-    extlst = encdf.insert(loc=1, column='ext',
-                          value=[splitext(fname)[1]
-                                 for fname in encdf.fname])
-    return encdf                    
+uzeprimes = join(dname(zeprimes), 'uzeprimes')                   
 
 def get_encoding(sheetpath):
     ''' 
@@ -246,11 +194,11 @@ def evenodd(inpt):
     oddlist = [ele[1] for ele in enumerate(inpt) if ele[0]%2 !=0]
     return evelist, oddlist  
 
-def evenodd_col(inpt):
-#     inpt = [line[0] for line in inpt]
-    evlst, odlst = evenodd([itm[0] for itm in enumerate(inpt)])
-    evvals, odvals = listat(evlst, inpt), listat(odlst, inpt)
-    return df(itemgetter(*evlst)(inpt)), df(itemgetter(*odlst)(inpt))
+# def evenodd_col(inpt):
+# #     inpt = [line[0] for line in inpt]
+#     evlst, odlst = evenodd([itm[0] for itm in enumerate(inpt)])
+#     evvals, odvals = listat(evlst, inpt), listat(odlst, inpt)
+#     return df(itemgetter(*evlst)(inpt)), df(itemgetter(*odlst)(inpt))
 
 def evenodd_col2(inpt):
 #     inpt = [line[0] for line in inpt]
@@ -265,31 +213,6 @@ def splitrows(inpt):
     evvals = itemgetter(*evlst)(inpt)
     odvals = itemgetter(*odlst)(inpt)
     return evvals == odvals
-
-def dupcols(inpt):
-    '''
-    Adapted from
-    Source: https://stackoverflow.com/questions/18272160/access-multiple-elements-of-list-knowing-their-index
-    '''
-    doublevals = dupvalues(inpt)
-    msk = df(doublevals, dtype='object')
-    boolcols = [all(itm[1])
-               for itm in msk.iteritems()]
-    return msk.loc[:, boolcols]
-
-def fixbrokensheet(inpt):
-    inpt = df(inpt)
-    eve, odd = evenodd_col(inpt)
-    cnames = dupcols(df(inpt)).columns
-    # Both doubles_even & doubles_odd are the same
-    doubles_even = df(eve, dtype='object')[[itm[1] for itm in cnames if itm[0]]]
-    doubles_odd = df(odd, dtype='object')[[itm[1] for itm in cnames if itm[0]]]
-    singles_even = df(eve, dtype='object')[[itm[1] for itm in cnames if not itm[0]]]
-    singles_odd = df(odd, dtype='object')[[itm[1] for itm in cnames if not itm[0]]]
-    rescued = pd.concat([singles_even.dropna(axis=0),
-                         singles_odd.dropna(axis=0)],
-                        axis=1).T.drop_duplicates()
-    final = pd.concat([doubles_even, rescued], axis=1)
 
 # Works well
 def dupvalues(inpt):
@@ -316,6 +239,33 @@ def get_doublerows(inpt):
                  in enumerate(inpt.iteritems())
                  if splitrows(item[1][1])]
     return rowbreaks
+
+def dupcols(inpt):
+    '''
+    Adapted from
+    Source: https://stackoverflow.com/questions/18272160/access-multiple-elements-of-list-knowing-their-index
+    '''
+    doublevals = dupvalues(inpt)
+    msk = df(doublevals, dtype='object')
+    boolcols = [all(itm[1])
+               for itm in msk.iteritems()]
+    return msk.loc[:, boolcols]
+
+def fixbrokensheet(inpt):
+    inpt = df(inpt)
+    eve, odd = evenodd_col(inpt)
+    cnames = dupcols(df(inpt)).columns
+    # Both doubles_even & doubles_odd are the same
+    doubles_even = df(eve, dtype='object')[[itm[1] for itm in cnames if itm[0]]]
+    doubles_odd = df(odd, dtype='object')[[itm[1] for itm in cnames if itm[0]]]
+    singles_even = df(eve, dtype='object')[[itm[1] for itm in cnames if not itm[0]]]
+    singles_odd = df(odd, dtype='object')[[itm[1] for itm in cnames if not itm[0]]]
+    rescued = pd.concat([singles_even.dropna(axis=0),
+                         singles_odd.dropna(axis=0)],
+                        axis=1).T.drop_duplicates()
+    final = pd.concat([doubles_even, rescued], axis=1)
+
+
 #     return inpt[list(itemgetter(*rowbreaks)(list(inpt.columns)))]
 
 # def get_doublerows2(inpt):
@@ -343,6 +293,7 @@ def get_singlerows2(inpt):
     evvals = itemgetter(*evlst)(inpt)
     odvals = itemgetter(*odlst)(inpt)
     return bool(pd.Series(evvals).values == pd.Series(odvals).values)
+
 def splitrows2vals(inpt):
 #     inpt = [line[0] for line in inpt]
     evlst, odlst = evenodd([itm[0] for itm in enumerate(inpt)])
@@ -350,7 +301,7 @@ def splitrows2vals(inpt):
     odvals = itemgetter(*odlst)(inpt)
     return evvals == odvals
 
-def prepbytes(filename):
+def get_infos(filename):
     rawsheet = open(filename , "rb")
     hdr = rawsheet.read(1) not in b'.-0123456789'
     rawsheet.seek(0)
@@ -360,18 +311,32 @@ def prepbytes(filename):
                 for line in rawsheet.readlines()))
     dupindex = splitrows(test2[test2.columns[0]].values.tolist())
     nlines = len(test)
-    rowbreaks = get_doublerows(test2)
+    rowbreaks = tuple(get_doublerows(test2))
+    r_rowbreaks = tuple(get_doublerows(test2.iloc[:, ::-1]))
+    colbreaks = tuple(get_doublerows(test2.T))
+    if not rowbreaks:
+        rowbreaks = False
+    if not colbreaks:
+        colbreaks = False
     widths = pd.Series(len(line) for line in test)
+    colnames = False   
     if hdr:
         colnames = test2.loc[0][:test2[1:].shape[1]]
-        test, test2= test[1:], test2[1:]
+        test, test2 = test[1:], test2[1:]
+        hdr = 0
+        width = widths[1:].max()
+        nfields = test2.shape[1]-1
+        colnames = colnames[:nfields]
         if dupindex:            
             colnames = test2[1:].loc[0][:test2[1:].shape[1]]
             test, test2 = test[1:], test2[1:]
+            width = widths[1:].max()
+            nfields = test2.shape[1]-1
+            colnames = colnames[:nfields]            
     else:
-        colnames = None
-    width = widths.max()
-    nfields = test2.shape[1]
+        hdr = False
+        width = widths.max()
+        nfields = test2.shape[1]-1
     rawsheet.seek(0)
     detector = udet()
     for line in rawsheet.readlines():
@@ -380,23 +345,61 @@ def prepbytes(filename):
     detector.close()
     encoding = detector.result['encoding']
     rawsheet.seek(0)
-    txttest = rawsheet.read().decode(encoding)
-    dialect = csv.Sniffer().sniff(txttest)
-    valuez = [bname(filename), hdr, dupindex, rowbreaks, width, nlines,
-              nfields, colnames, encoding,
-              dialect.delimiter, dialect.doublequote,
+    txttest = [line[:-1].decode(encoding) for line in rawsheet.readlines()]
+    dialect = csv.Sniffer().sniff(''.join(line for line in txttest))
+#     if dialect.delimitor == '\r':
+#         txttest = [
+    valuez = [bname(filename), filename, hdr, dupindex, rowbreaks,
+              r_rowbreaks, colbreaks, width, nlines, nfields, colnames,
+              encoding, dialect.delimiter, dialect.doublequote,
               dialect.escapechar, dialect.lineterminator, dialect.quotechar,
-              dialect.quoting, dialect.skipinitialspace]
-    cnames =['fname', 'has_header', 'dup_index', 'row_breaks', 'width',
+              int(dialect.quoting), dialect.skipinitialspace]
+    cnames =['fname', 'fpaths', 'has_header', 'dup_index', 'row_breaks', 'r_rowbreaks', 'col_breaks', 'width',
              'n_lines', 'n_fields', 'colnames', 'encoding',
              'delimiter', 'doublequote', 'escapechar',
              'lineterminator', 'quotechar',
              'quoting', 'skipinitialspace']
-    dialect_df = pd.Series(valuez, index=cnames)
+    dialect_dict = dict(zip(cnames, valuez))
     rawsheet.close()
-    return dialect_df
-bytesheets = [prepbytes(row[1]['fpath'])
-              for row in infodf.iterrows()]
+    return dialect_dict
 
-display(df(bytesheets))
-# display(fixbrokensheet(infodf['prepsheets'][0]))
+def prep_sheet(filename, encoding, hdr, delimiter, width, lineterminator,
+               dupindex, row_breaks, n_fields, n_lines, new_delim='\t'):
+    rawsheet = open(filename , "rb", buffering=0)
+    nsheet = []
+    if dupindex:
+        good = evenodd(tuple(tuple(no_ascii(line.decode(encoding)).lower(
+                   ).split()[:row_breaks[-1]+1])
+                             for line in rawsheet.readlines()))[0]
+        good = tuple('\t'.join(itm.replace(' ', '_') for itm in line)
+                     for line in good)
+        rawsheet.seek(0)
+        evelst, oddlst = evenodd(tuple(no_ascii(line.decode(encoding)).lower(
+                                       ).split()[row_breaks[-1]+1:]
+                                  for line in rawsheet.readlines()))
+        toclean = tuple(tuple(dict.fromkeys((flatten(itm))))
+                        for itm in tuple(zip(evelst, oddlst)))
+        for line in toclean:
+            if len(line) < n_fields+1:
+                nline = 'n\a'+'\t'  + '\t'.join(itm.replace(' ', '_') for itm in line)
+            else:
+                nline = '\t'.join(itm.replace(' ', '_') for itm in line)
+            nsheet.append(nline)
+        toclean = tuple(zip(tuple(line.split('\t')
+                                  for line in good),
+                            tuple(line.split('\t')
+                                  for line in nsheet)))
+        toclean = tuple('\t'.join(itm for itm in flatten(line))
+                        for line in toclean)
+    else:
+        toclean = tuple(no_ascii(line.decode(encoding)).lower().split()
+                        for line in rawsheet.readlines())
+        for line in toclean:
+            nline = tuple(itm.replace(' ', '_') for itm in line)
+            nsheet.append(nline)
+        toclean = tuple('\t'.join(itm for itm in flatten(line))
+                        for line in toclean)
+    rawsheet.close()
+    return toclean
+
+# def replace_bad_delim(filename, encoding, delimiter, ):
