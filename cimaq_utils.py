@@ -123,13 +123,29 @@ def make_labels(datas, var_name):
         filtered by 'Counter' - can be used to map DataFrame objects - '''
     return dict(enumerate(Counter(datas[var_name]).keys(), start=1))
 
-
-def loadfiles(indir):
+def loadfiles(indir=None, pathlist=None):
+    if indir:
+        spaths = loadimages(indir)
+    else:
+        spaths = pathlist         
     return df(((os.path.splitext(bname(sheet))[0],
                 os.path.splitext(bname(sheet))[1],
-                sheet) for sheet
-               in loadimages(indir)),
-              columns=['fnames', 'ext', 'fpaths'])
+                sheet) for sheet in spaths),
+              columns=['fname', 'ext', 'fpaths'])
+
+def sortmap(info_df, patterns):
+    patterns = df(patterns, columns=['ids', 'patterns'])
+    for row in patterns.iterrows():
+        cmplr = re.compile(row[1]['patterns'])
+        info_df[row[1]['ids']] = [cmplr.search(row[1]['patterns']).group()
+                                  in fname for fname in info_df.fname]
+    return info_df
+
+# prefixes = pd.Series(('_'.join(val.split('_')[:2])
+#                       for val in cimaqdf.fname)).unique()
+# prefixes = pd.Series(bname(folderpath)
+#                      for folderpath in folderlist).unique()
+
 
 def regist_dialects(parsing_infos):
         [csv.register_dialect(row[1]['fpaths'],
@@ -227,36 +243,36 @@ def emptydir(folder = '/path/to/folder'):
 
 ###############################################################################  
 ###################################
-##### CIMA-Q SPECIDIC ############
+# ##### CIMA-Q SPECIDIC ############
 
-def sortmap(cimaqdf):
-    prefixes = pd.Series(('_'.join(val.split('_')[:2])
-                          for val in cimaqdf.fname)).unique()
-    cimaqdf[prefixes] = [[pref in row[1]['fname']
-                          for pref in prefixes]
-                         for row in cimaqdf.iterrows()]
-    pscid_ = re.compile('\d{7}')
-#     cimaqdf = get_prefixes(infodf)
-    cimaqdf['pscid'] = [pscid_.search(fname).group()
-                        for fname in cimaqdf.fname]
-    return cimaqdf
+# def sortmap(cimaqdf):
+#     prefixes = pd.Series(('_'.join(val.split('_')[:2])
+#                           for val in cimaqdf.fname)).unique()
+#     cimaqdf[prefixes] = [[pref in row[1]['fname']
+#                           for pref in prefixes]
+#                          for row in cimaqdf.iterrows()]
+#     pscid_ = re.compile('\d{7}')
+# #     cimaqdf = get_prefixes(infodf)
+#     cimaqdf['pscid'] = [pscid_.search(fname).group()
+#                         for fname in cimaqdf.fname]
+#     return cimaqdf
 
-def loadscans(folderlist=[join(dname(taskdir), 'anat'),
-                          join(dname(taskdir), 'confounds'),
-                          join(dname(taskdir), 'fmri')]):
-    cmplr = re.compile('\d{6}')
-    scans = df((loadimages(folder)
-              for folder in folderlist),
-             index = [bname(folder)
-                      for folder in folderlist])    
-    scans = scans.rename(
-               columns=dict(((scan[0], cmplr.search(bname(scan[1])).group())
-                                 for scan in enumerate(scans.iloc[0])))).T
-    scans.index.names = ['dccid']
-    scans.index = pd.to_numeric(scans.index)
-    scans = scans.reset_index(drop=False)
-    scans = scans.convert_dtypes()
-    return scans
+# def loadscans(folderlist=[join(dname(taskdir), 'anat'),
+#                           join(dname(taskdir), 'confounds'),
+#                           join(dname(taskdir), 'fmri')]):
+#     cmplr = re.compile('\d{6}')
+#     scans = df((loadimages(folder)
+#               for folder in folderlist),
+#              index = [bname(folder)
+#                       for folder in folderlist])    
+#     scans = scans.rename(
+#                columns=dict(((scan[0], cmplr.search(bname(scan[1])).group())
+#                                  for scan in enumerate(scans.iloc[0])))).T
+#     scans.index.names = ['dccid']
+#     scans.index = pd.to_numeric(scans.index)
+#     scans = scans.reset_index(drop=False)
+#     scans = scans.convert_dtypes()
+#     return scans
 
 def cimaqfilter(indir=uzeprimes):
     ''' Removes all pratice files (and READMEs) 

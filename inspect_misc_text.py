@@ -180,6 +180,14 @@ def cleanup(test2, hdr):
         test2 = test2
     return test2
 
+
+
+# def evenodd_col(inpt):
+# #     inpt = [line[0] for line in inpt]
+#     evlst, odlst = evenodd([itm[0] for itm in enumerate(inpt)])
+#     evvals, odvals = listat(evlst, inpt), listat(odlst, inpt)
+#     return df(itemgetter(*evlst)(inpt)), df(itemgetter(*odlst)(inpt))
+
 def listat(inds, inpt):
     '''
     Source: https://stackoverflow.com/questions/18272160/access-multiple-elements-of-list-knowing-their-index
@@ -193,12 +201,6 @@ def evenodd(inpt):
     evelist = [ele[1] for ele in enumerate(inpt) if ele[0]%2 ==0] 
     oddlist = [ele[1] for ele in enumerate(inpt) if ele[0]%2 !=0]
     return evelist, oddlist  
-
-# def evenodd_col(inpt):
-# #     inpt = [line[0] for line in inpt]
-#     evlst, odlst = evenodd([itm[0] for itm in enumerate(inpt)])
-#     evvals, odvals = listat(evlst, inpt), listat(odlst, inpt)
-#     return df(itemgetter(*evlst)(inpt)), df(itemgetter(*odlst)(inpt))
 
 def evenodd_col2(inpt):
 #     inpt = [line[0] for line in inpt]
@@ -220,20 +222,15 @@ def dupvalues(inpt):
     Adapted from
     Source: https://stackoverflow.com/questions/18272160/access-multiple-elements-of-list-knowing-their-index
     '''
-#     try:
-#         not dupindex(inpt)
-#     except dupindex(inpt):
     evlst, odlst = evenodd_col2([itm[0] for itm
                                  in enumerate(inpt)])
     evvals = itemgetter(*[itm[1] for itm in
                           enumerate(evlst)])(inpt)
     odvals = itemgetter(*[itm[1] for itm in
                           enumerate(odlst)])(inpt)
-#     check = tuple(zip(evvals, odvals))
     return df(evvals, dtype='object').values == df(odvals, dtype='object').values
 
-# Works well
-def get_doublerows(inpt):
+def get_doublerows(inpt): # Works well
     inpt = df(inpt)
     rowbreaks = [item[0] for item
                  in enumerate(inpt.iteritems())
@@ -251,40 +248,17 @@ def dupcols(inpt):
                for itm in msk.iteritems()]
     return msk.loc[:, boolcols]
 
-def fixbrokensheet(inpt):
-    inpt = df(inpt)
-    eve, odd = evenodd_col(inpt)
-    cnames = dupcols(df(inpt)).columns
-    # Both doubles_even & doubles_odd are the same
-    doubles_even = df(eve, dtype='object')[[itm[1] for itm in cnames if itm[0]]]
-    doubles_odd = df(odd, dtype='object')[[itm[1] for itm in cnames if itm[0]]]
-    singles_even = df(eve, dtype='object')[[itm[1] for itm in cnames if not itm[0]]]
-    singles_odd = df(odd, dtype='object')[[itm[1] for itm in cnames if not itm[0]]]
-    rescued = pd.concat([singles_even.dropna(axis=0),
-                         singles_odd.dropna(axis=0)],
-                        axis=1).T.drop_duplicates()
-    final = pd.concat([doubles_even, rescued], axis=1)
-
-
-#     return inpt[list(itemgetter(*rowbreaks)(list(inpt.columns)))]
-
-# def get_doublerows2(inpt):
-#     rowbreaks = [item[0] for item
-#                  in enumerate(inpt.iteritems())
-#                  if splitrows2(item[1][1])]
-#     return inpt[list(itemgetter(*rowbreaks)(list(inpt.columns)))]
-
 def get_singlerows(inpt):
     rowbreaks = [item[0] for item
                  in enumerate(inpt.iteritems())
                  if not splitrows(item[1][1])]
-    return inpt[list(itemgetter(*rowbreaks)(list(inpt.columns)))]
+    return inpt[tuple(itemgetter(*rowbreaks)(tuple(inpt.columns)))]
 
 def get_singlerows2(inpt):
     rowbreaks = [item[0] for item
                  in enumerate(inpt.iteritems())
                  if not splitrows2(item[1][1])]
-    return inpt[list(itemgetter(*rowbreaks)(list(inpt.columns)))]
+    return inpt[tuple(itemgetter(*rowbreaks)(tuple(inpt.columns)))]
     #     odvals = itemgetter(*odlst)(inpt)
 
 #     return evlst, odlstdef splitrows2(inpt):
@@ -313,30 +287,6 @@ def get_infos(filename):
     nlines = len(test)
     rowbreaks = tuple(get_doublerows(test2))
     r_rowbreaks = tuple(get_doublerows(test2.iloc[:, ::-1]))
-    colbreaks = tuple(get_doublerows(test2.T))
-    if not rowbreaks:
-        rowbreaks = False
-    if not colbreaks:
-        colbreaks = False
-    widths = pd.Series(len(line) for line in test)
-    colnames = False   
-    if hdr:
-        colnames = test2.loc[0][:test2[1:].shape[1]]
-        test, test2 = test[1:], test2[1:]
-        hdr = 0
-        width = widths[1:].max()
-        nfields = test2.shape[1]-1
-        colnames = colnames[:nfields]
-        if dupindex:            
-            colnames = test2[1:].loc[0][:test2[1:].shape[1]]
-            test, test2 = test[1:], test2[1:]
-            width = widths[1:].max()
-            nfields = test2.shape[1]-1
-            colnames = colnames[:nfields]            
-    else:
-        hdr = False
-        width = widths.max()
-        nfields = test2.shape[1]-1
     rawsheet.seek(0)
     detector = udet()
     for line in rawsheet.readlines():
@@ -345,21 +295,47 @@ def get_infos(filename):
     detector.close()
     encoding = detector.result['encoding']
     rawsheet.seek(0)
+    if not rowbreaks:
+        rowbreaks = False
+    widths = pd.Series(len(line) for line in test)
+    colnames = False   
+    if hdr:
+        colnames = test2.loc[0][:test2[1:].shape[1]]
+        test, test2 = test[1:], test2[1:]
+        hdr = 0
+        width = widths[1:].max()
+#         nfields = test2.shape[1]-1
+        nfields = len(colnames)
+        colnames = flatten(tuple(bytes(itm).decode(encoding).split()
+                                 for itm in tuple(map(tuple, colnames[:nfields].values))))
+        if dupindex:
+            colnames = test2[1:].loc[0][:test2[1:].shape[1]]
+            test, test2 = test[1:], test2[1:]
+            width = widths[1:].max()
+#             nfields = test2.shape[1]-1
+            nfields = len(colnames)
+            colnames = flatten(tuple(bytes(itm).decode(encoding).split()
+                                     for itm in tuple(map(tuple, colnames[:nfields].values))))    
+    else:
+        hdr = False
+        width = widths.max()
+        nfields = test2.shape[1]-1
+    rawsheet.seek(0)
     txttest = [line[:-1].decode(encoding) for line in rawsheet.readlines()]
     dialect = csv.Sniffer().sniff(''.join(line for line in txttest))
-#     if dialect.delimitor == '\r':
-#         txttest = [
     valuez = [bname(filename), filename, hdr, dupindex, rowbreaks,
-              r_rowbreaks, colbreaks, width, nlines, nfields, colnames,
+              r_rowbreaks, width, nlines, nfields, colnames,
               encoding, dialect.delimiter, dialect.doublequote,
               dialect.escapechar, dialect.lineterminator, dialect.quotechar,
               int(dialect.quoting), dialect.skipinitialspace]
-    cnames =['fname', 'fpaths', 'has_header', 'dup_index', 'row_breaks', 'r_rowbreaks', 'col_breaks', 'width',
+    cnames =['fname', 'fpaths', 'has_header', 'dup_index', 'row_breaks', 'r_rowbreaks', 'width',
              'n_lines', 'n_fields', 'colnames', 'encoding',
              'delimiter', 'doublequote', 'escapechar',
              'lineterminator', 'quotechar',
              'quoting', 'skipinitialspace']
     dialect_dict = dict(zip(cnames, valuez))
+#     if dialect_dict['delimiter'] == '9':
+#             dialect_dict['delimiter'] = None
     rawsheet.close()
     return dialect_dict
 
@@ -397,9 +373,22 @@ def prep_sheet(filename, encoding, hdr, delimiter, width, lineterminator,
         for line in toclean:
             nline = tuple(itm.replace(' ', '_') for itm in line)
             nsheet.append(nline)
-        toclean = tuple('\t'.join(itm for itm in flatten(line))
-                        for line in toclean)
+        toclean = tuple('\t'.join(itm for itm in flatten(line))+'\n'
+                            for line in toclean)
     rawsheet.close()
     return toclean
 
-# def replace_bad_delim(filename, encoding, delimiter, ):
+# def fixbrokensheet(inpt):
+#     inpt = df(inpt)
+#     eve, odd = evenodd_col(inpt)
+#     cnames = dupcols(df(inpt)).columns
+#     # Both doubles_even & doubles_odd are the same
+#     doubles_even = df(eve, dtype='object')[[itm[1] for itm in cnames if itm[0]]]
+#     doubles_odd = df(odd, dtype='object')[[itm[1] for itm in cnames if itm[0]]]
+#     singles_even = df(eve, dtype='object')[[itm[1] for itm in cnames if not itm[0]]]
+#     singles_odd = df(odd, dtype='object')[[itm[1] for itm in cnames if not itm[0]]]
+#     rescued = pd.concat([singles_even.dropna(axis=0),
+#                          singles_odd.dropna(axis=0)],
+#                         axis=1).T.drop_duplicates()
+#     final = pd.concat([doubles_even, rescued], axis=1)
+
