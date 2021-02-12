@@ -1,12 +1,5 @@
 #!/usr/bin/env python3
 
-###############################################################
-########## Miscellaneous '.txt' file ##########################
-########## Inspection Toolbox #################################
-
-###############################################################
-############ Get file encodings and sort accordingly ##########
-
 import chardet
 import collections
 import csv
@@ -53,7 +46,6 @@ from tabulate import tabulate
 from tqdm import tqdm
 from typing import Sequence
 from removeEmptyFolders import removeEmptyFolders
-
 from cimaq_utils import loadimages
 from cimaq_utils import flatten
 
@@ -148,7 +140,7 @@ def no_ascii(astring):
 
 def letters(instring):
     '''
-        Source: https://stackoverflow.com/questions/12400272/how-do-you-filter-a-string-to-only-contain-letters
+    Source: https://stackoverflow.com/questions/12400272/how-do-you-filter-a-string-to-only-contain-letters
     '''
     valids = []
     for character in instring:
@@ -171,14 +163,6 @@ def cleanup(test2, hdr):
         test2 = test2
     return test2
 
-
-
-# def evenodd_col(inpt):
-# #     inpt = [line[0] for line in inpt]
-#     evlst, odlst = evenodd([itm[0] for itm in enumerate(inpt)])
-#     evvals, odvals = listat(evlst, inpt), listat(odlst, inpt)
-#     return df(itemgetter(*evlst)(inpt)), df(itemgetter(*odlst)(inpt))
-
 def listat(inds, inpt):
     '''
     Source: https://stackoverflow.com/questions/18272160/access-multiple-elements-of-list-knowing-their-index
@@ -194,21 +178,17 @@ def evenodd(inpt):
     return evelist, oddlist  
 
 def evenodd_col2(inpt):
-#     inpt = [line[0] for line in inpt]
     evlst, odlst = evenodd([itm[0] for itm in enumerate(inpt)])
     evvals, odvals = listat(evlst, inpt), listat(odlst, inpt)    
     return df(evvals), df(odvals)
-#     return itemgetter(*evlst)(inpt), itemgetter(*odlst)(inpt)
 
 def splitrows(inpt):
-#     inpt = [line[0] for line in inpt]
     evlst, odlst = evenodd([itm[0] for itm in enumerate(inpt)])
     evvals = itemgetter(*evlst)(inpt)
     odvals = itemgetter(*odlst)(inpt)
     return evvals == odvals
 
-# Works well
-def dupvalues(inpt):
+def dupvalues(inpt): # Works well
     '''
     Adapted from
     Source: https://stackoverflow.com/questions/18272160/access-multiple-elements-of-list-knowing-their-index
@@ -245,20 +225,6 @@ def get_singlerows(inpt):
                  if not splitrows(item[1][1])]
     return inpt[tuple(itemgetter(*rowbreaks)(tuple(inpt.columns)))]
 
-def get_singlerows2(inpt):
-    rowbreaks = [item[0] for item
-                 in enumerate(inpt.iteritems())
-                 if not splitrows2(item[1][1])]
-    return inpt[tuple(itemgetter(*rowbreaks)(tuple(inpt.columns)))]
-    #     odvals = itemgetter(*odlst)(inpt)
-
-#     return evlst, odlstdef splitrows2(inpt):
-#     inpt = [line[0] for line in inpt]
-    evlst, odlst = oddeven([itm[0] for itm in enumerate(inpt)])
-    evvals = itemgetter(*evlst)(inpt)
-    odvals = itemgetter(*odlst)(inpt)
-    return bool(pd.Series(evvals).values == pd.Series(odvals).values)
-
 def splitrows2vals(inpt):
 #     inpt = [line[0] for line in inpt]
     evlst, odlst = evenodd([itm[0] for itm in enumerate(inpt)])
@@ -274,7 +240,7 @@ def get_infos(filename):
     rawsheet.seek(0)
     test2 = df((pd.Series(line.split())
                 for line in rawsheet.readlines()))
-    row_fields = pd.Series(int(len(row[1].values))
+    row_fields = pd.Series(int(len(row[1]))
                            for row in test2.iterrows())
     dupindex = splitrows(test2[test2.columns[0]].values.tolist())
     nlines = len(test)
@@ -296,7 +262,6 @@ def get_infos(filename):
         nfields = int(row_fields[1:-1].max())
         colnames = test2.loc[0][:nfields]
         test, test2 = test[1:], test2[1:]
-#         hdr = 0
         width = widths[1:].max()
         colnames = flatten(tuple(bytes(itm).decode(encoding).lower().replace(' ', '_').split()
                                  for itm in tuple(map(tuple, colnames[:nfields].values))))[:nfields]
@@ -308,7 +273,6 @@ def get_infos(filename):
             colnames = flatten(tuple(bytes(itm).decode(encoding).lower().replace(' ', '_').split()
                                      for itm in tuple(map(tuple, colnames[:nfields].values))))[:nfields]
     else:
-#         hdr = False
         width = widths.max()
         nfields = int(row_fields[:-1].max())
     rawsheet.seek(0)
@@ -358,18 +322,22 @@ def prep_sheet(filename, encoding, hdr, delimiter, width, lineterminator,
         for line in toclean:
             nline = tuple(itm for itm in line)
             nsheet.append(nline)
-        toclean = tuple('\t'.join(no_ascii(itm) for itm in flatten(line))
+        toclean = tuple('\t'.join(no_ascii(itm).replace(' ', 'NON')
+                                  for itm in flatten(line))
                         for line in nsheet)
         toclean = df((line.split('\t') for line in toclean)).convert_dtypes('int')
-        ndf = []
-        for row in toclean.iterrows():
-#             testna = tuple(itm[0] for itm in enumerate(toclean.iteritems())
-#                            if all(itm[1][1].notnull()))
-            if row[1].notna().all():
-                ndf.append(row[1].values.tolist())
-            elif row[1].isnull().any():
-                ndf.append(row[1].values.tolist()[:3] + ['NON'] + row[1].values.tolist()[3:])
-        toclean = df(ndf).dropna(axis=1, how='all').drop_duplicates()
+
+#         ndf = []
+#         for row in toclean.iterrows():
+# #             testna = tuple(itm[0] for itm in enumerate(toclean.iteritems())
+# #                            if all(itm[1][1].notnull()))
+#             if row[1].notna().all():
+#                 ndf.append(row[1].values.tolist())
+#             elif row[1].isnull().any():
+#                 ndf.append(row[1].values.tolist()[:3] + ['NON'] + row[1].values.tolist()[3:])
+
+        toclean = df((row[1].values.tolist()
+                      for row in toclean.iterrows())).dropna(axis=1, how='all').drop_duplicates()
         
     rawsheet.close()
     if hdr:
@@ -377,7 +345,6 @@ def prep_sheet(filename, encoding, hdr, delimiter, width, lineterminator,
     else:
         toclean = toclean.T.reset_index(drop=True).T
     return (filename, toclean.fillna('NON').replace('NON', np.nan).convert_dtypes(float))
-
 
 #########################################################################
 ############################## TO TEST ##################################
@@ -423,57 +390,3 @@ def parsebroken(inpt):
     uvals = uvals.rename(columns=colnames)
     uvals = uvals.loc[sheets[-1].index]
     return uvals
-
-# def prep_sheet(filename, encoding, hdr, delimiter, width, lineterminator,
-#                dupindex, row_breaks, n_fields, n_lines, new_delim='\t'):
-#     rawsheet = open(filename , "rb", buffering=0)
-#     nsheet = []
-#     if dupindex:
-#         good = evenodd(tuple(tuple(no_ascii(line.decode(encoding)).lower(
-#                    ).split()[:row_breaks[-1]+1])
-#                              for line in rawsheet.readlines()))[0]
-#         good = tuple('\t'.join(itm.replace(' ', '_') for itm in line)
-#                      for line in good)
-#         rawsheet.seek(0)
-#         evelst, oddlst = evenodd(tuple(no_ascii(line.decode(encoding)).lower(
-#                                        ).split()[row_breaks[-1]+1:]
-#                                   for line in rawsheet.readlines()))
-#         toclean = tuple(tuple(dict.fromkeys((flatten(itm))))
-#                         for itm in tuple(zip(evelst, oddlst)))
-#         for line in toclean:
-#             if len(line) < n_fields+1:
-#                 nline = 'n\a'+'\t'  + '\t'.join(itm.replace(' ', '_') for itm in line)
-#             else:
-#                 nline = '\t'.join(itm.replace(' ', '_') for itm in line)
-#             nsheet.append(nline)
-#         toclean = tuple(zip(tuple(line.split('\t')
-#                                   for line in good),
-#                             tuple(line.split('\t')
-#                                   for line in nsheet)))
-#         toclean = tuple('\t'.join(itm for itm in flatten(line))
-#                         for line in toclean)
-#     else:
-#         toclean = tuple(no_ascii(line.decode(encoding)).lower().split()
-#                         for line in rawsheet.readlines())
-#         for line in toclean:
-#             nline = tuple(itm.replace(' ', '_') for itm in line)
-#             nsheet.append(nline)
-#         toclean = tuple('\t'.join(itm for itm in flatten(line))+'\n'
-#                             for line in toclean)
-#     rawsheet.close()
-#     return toclean
-
-# def fixbrokensheet(inpt):
-#     inpt = df(inpt)
-#     eve, odd = evenodd_col(inpt)
-#     cnames = dupcols(df(inpt)).columns
-#     # Both doubles_even & doubles_odd are the same
-#     doubles_even = df(eve, dtype='object')[[itm[1] for itm in cnames if itm[0]]]
-#     doubles_odd = df(odd, dtype='object')[[itm[1] for itm in cnames if itm[0]]]
-#     singles_even = df(eve, dtype='object')[[itm[1] for itm in cnames if not itm[0]]]
-#     singles_odd = df(odd, dtype='object')[[itm[1] for itm in cnames if not itm[0]]]
-#     rescued = pd.concat([singles_even.dropna(axis=0),
-#                          singles_odd.dropna(axis=0)],
-#                         axis=1).T.drop_duplicates()
-#     final = pd.concat([doubles_even, rescued], axis=1)
-

@@ -2,62 +2,19 @@
 
 ###############################################################################
 ### Use to look at a set of sheets with identical values named differently. ###
-###############################################################################
 
-import chardet
-import collections
-import csv
-import glob
-import gzip
-import io
-import itertools
-import json
-import lzma
-import nibabel as nib
-import nilearn
-import numpy as np
-import os
 import pandas as pd
-import pprint
-import random
 import re
-import reprlib
-import scipy
-import shutil
-import string
-import sys
-import tarfile
-import xml.parsers.expat as xmlprse
-import zipfile
-
-from chardet import detect
-from chardet.universaldetector import UniversalDetector as udet
-from collections import Counter
-from collections import OrderedDict
-from functools import reduce
-from io import StringIO
-from numpy import nan as NaN
-from operator import itemgetter 
-from os import getcwd as cwd
-from os import listdir as ls
-from os.path import basename as bname
-from os.path import dirname as dname
-from os.path import expanduser as xpu
-from os.path import join
-from os.path import splitext
 from pandas import DataFrame as df
-from tabulate import tabulate
 from tqdm import tqdm
-from typing import Sequence
-# get_infodf listat oddeven
-from removeEmptyFolders import removeEmptyFolders
-from parsetxtfile import get_avg_chars
-from parsetxtfile import find_header
-from cimaq_utils import *
 
 def lowercols(sheets):
     '''
     Converts all columns's names to lowercase
+    
+    Parameters
+    ----------
+    sheets: Sequence of dataframes
     '''
     nsheets = []
     for sheet in sheets:
@@ -68,9 +25,8 @@ def lowercols(sheets):
 
 def findblind_cols(sheets, pattern):
     ''' 
-    Returns boolean dataframe mask where values
-    match a pattern despite differently named
-    columns or items
+    Returns boolean dataframe mask where values match a
+    pattern despite differently named columns or items
     '''
     sheets = lowercols(sheets)
     sheets2 = [df(item[1].str.fullmatch(pattern)
@@ -83,16 +39,18 @@ def findblind_cols(sheets, pattern):
     return matched_cols
 
 def check_ids(sheets, patterns):
-    ''' 
+    '''
+    Inspect if a column is present sequence of DataFrames despite different names
+    
     Parameters
     ----------
     sheets: Sequence of dataframes
 
     patterns: takes a tuple of 2 items
               tuples ('name', 'regex')
-    Example: 
-            patterns = (('dccid', '(?<!\d)\d{6}(?!\d)'),
+    Example: patterns = (('dccid', '(?<!\d)\d{6}(?!\d)'),
                         ('pscid', '(?<!\d)\d{7}(?!\d)'))
+    Returns boolean DataFrame
     '''
     patterns = df(patterns, columns=['ids', 'patterns'])        
     return df((pd.Series((row[1]['ids'] in sheet.columns
@@ -101,23 +59,23 @@ def check_ids(sheets, patterns):
 
 def get_shortest_ind(sheets):
     ''' 
-    Returns the shortest index values of a sequence
-    of dataframes
+    Returns shortest index in dataframes sequence
     '''
     return next(sheet for sheet in sheets
                 if sheet.shape[0] == \
                 (pd.Series([sheet.shape[0]
                             for sheet in sheets]).min()))
 
-# Very cool
-def rename_imposter_cols(sheets, patterns):
+def rename_imposter_cols(sheets, patterns): # Very cool
     ''' 
-    Renames duplicated columns with a common name
-    by matching a regex pattern. Useful for data files
-    from longitudinal studies wich could have been
-    indexed or labeled differently.
-        
-    Renames common values with a common name
+    Renames duplicated columns with a common name by matching a regex pattern.
+    Useful for longitudinal studies wich could have different naming conventions        
+    
+    Parameters
+    ----------
+    sheets: Sequence of dataframes
+
+    patterns: tuple 2 items eg.: ('name', 'regex')
     '''
     patterns = df(patterns, columns=['ids', 'patterns'])    
     patterns['imposters'] = [findblind_cols(sheets, row[1]['patterns'])
