@@ -63,11 +63,6 @@ from removeEmptyFolders import removeEmptyFolders
 from parsetxtfile import get_avg_chars
 from parsetxtfile import find_header
 
-cimaq_dir = xpu('~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives')
-zeprimes = join(cimaq_dir, 'task_files/zipped_eprime')
-uzeprimes = join(dname(zeprimes), 'uzeprimes')
-taskdir= xpu('~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives/participants')
-
 def loadimages(impath='../images'):
     '''
     Description
@@ -274,7 +269,7 @@ def emptydir(folder = '/path/to/folder'):
 #     scans = scans.convert_dtypes()
 #     return scans
 
-def cimaqfilter(indir=uzeprimes):
+def cimaqfilter(indir=join(xpu('~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives/task_files/uzeprimes'))):
     ''' Removes all pratice files (and READMEs) 
         since no data was recorder due
         to response keyboard problems. Both READMEs indicate

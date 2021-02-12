@@ -57,11 +57,8 @@ from removeEmptyFolders import removeEmptyFolders
 from cimaq_utils import loadimages
 from cimaq_utils import flatten
 
-########### Miscellaneous '.txt' Files Parser ############################### #
-
-cimaq_dir = xpu('~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives')
-zeprimes = join(cimaq_dir, 'task_files/zipped_eprime')
-uzeprimes = join(dname(zeprimes), 'uzeprimes')                   
+###############################################################################
+########### Miscellaneous '.txt' Files Parser #################################         
 
 def get_encoding(sheetpath):
     ''' 
@@ -130,16 +127,10 @@ def get_dialect(filename, encoding):
         src.seek(0)
         lines4test = list(src.readlines())
         src.seek(0)
-#         hdr = src.read(1) not in '.-0123456789'
-#         if hdr:
-#             hdr = 0
-#         else:
-#             hdr = False
-#         nrows = len(lines4test)
         valuez = [bname(filename), dialect.delimiter, dialect.doublequote,
                   dialect.escapechar, dialect.lineterminator, dialect.quotechar,
                   dialect.quoting, dialect.skipinitialspace]
-        cnames =['fname', 'has_header', 'sep',
+        cnames =['fname', 'delimiter',
                  'doublequote', 'escapechar',
                  'lineterminator', 'quotechar',
                  'quoting', 'skipinitialspace']
@@ -274,15 +265,17 @@ def splitrows2vals(inpt):
     evvals = itemgetter(*evlst)(inpt)
     odvals = itemgetter(*odlst)(inpt)
     return evvals == odvals
-
+    
 def get_infos(filename):
-    rawsheet = open(filename , "rb")
+    rawsheet = open(filename , "rb", buffering=0)
     hdr = rawsheet.read(1) not in b'.-0123456789'
     rawsheet.seek(0)
     test = tuple(line for line in rawsheet.readlines())
     rawsheet.seek(0)
     test2 = df((pd.Series(line.split())
                 for line in rawsheet.readlines()))
+    row_fields = pd.Series(int(len(row[1].values))
+                           for row in test2.iterrows())
     dupindex = splitrows(test2[test2.columns[0]].values.tolist())
     nlines = len(test)
     rowbreaks = tuple(get_doublerows(test2))
@@ -300,83 +293,175 @@ def get_infos(filename):
     widths = pd.Series(len(line) for line in test)
     colnames = False   
     if hdr:
-        colnames = test2.loc[0][:test2[1:].shape[1]]
+        nfields = int(row_fields[1:-1].max())
+        colnames = test2.loc[0][:nfields]
         test, test2 = test[1:], test2[1:]
-        hdr = 0
+#         hdr = 0
         width = widths[1:].max()
-#         nfields = test2.shape[1]-1
-        nfields = len(colnames)
-        colnames = flatten(tuple(bytes(itm).decode(encoding).split()
-                                 for itm in tuple(map(tuple, colnames[:nfields].values))))
+        colnames = flatten(tuple(bytes(itm).decode(encoding).lower().replace(' ', '_').split()
+                                 for itm in tuple(map(tuple, colnames[:nfields].values))))[:nfields]
         if dupindex:
-            colnames = test2[1:].loc[0][:test2[1:].shape[1]]
+            nfields = int(row_fields[2:-1].max())
+            colnames = test2[1:].loc[0][:nfields]
             test, test2 = test[1:], test2[1:]
             width = widths[1:].max()
-#             nfields = test2.shape[1]-1
-            nfields = len(colnames)
-            colnames = flatten(tuple(bytes(itm).decode(encoding).split()
-                                     for itm in tuple(map(tuple, colnames[:nfields].values))))    
+            colnames = flatten(tuple(bytes(itm).decode(encoding).lower().replace(' ', '_').split()
+                                     for itm in tuple(map(tuple, colnames[:nfields].values))))[:nfields]
     else:
-        hdr = False
+#         hdr = False
         width = widths.max()
-        nfields = test2.shape[1]-1
+        nfields = int(row_fields[:-1].max())
     rawsheet.seek(0)
     txttest = [line[:-1].decode(encoding) for line in rawsheet.readlines()]
     dialect = csv.Sniffer().sniff(''.join(line for line in txttest))
     valuez = [bname(filename), filename, hdr, dupindex, rowbreaks,
-              r_rowbreaks, width, nlines, nfields, colnames,
+              r_rowbreaks, width, nlines, nfields, (colnames),
               encoding, dialect.delimiter, dialect.doublequote,
               dialect.escapechar, dialect.lineterminator, dialect.quotechar,
               int(dialect.quoting), dialect.skipinitialspace]
-    cnames =['fname', 'fpaths', 'has_header', 'dup_index', 'row_breaks', 'r_rowbreaks', 'width',
-             'n_lines', 'n_fields', 'colnames', 'encoding',
-             'delimiter', 'doublequote', 'escapechar',
-             'lineterminator', 'quotechar',
-             'quoting', 'skipinitialspace']
+    cnames =['fname', 'fpaths', 'has_header', 'dup_index', 'row_breaks',
+             'r_rowbreaks', 'width', 'n_lines', 'n_fields', 'colnames',
+             'encoding', 'delimiter', 'doublequote', 'escapechar',
+             'lineterminator', 'quotechar', 'quoting', 'skipinitialspace']
     dialect_dict = dict(zip(cnames, valuez))
-#     if dialect_dict['delimiter'] == '9':
-#             dialect_dict['delimiter'] = None
     rawsheet.close()
     return dialect_dict
 
 def prep_sheet(filename, encoding, hdr, delimiter, width, lineterminator,
-               dupindex, row_breaks, n_fields, n_lines, new_delim='\t'):
+               dupindex, row_breaks, r_rowbreaks, n_fields, n_lines, colnames, new_delim='\t'):
     rawsheet = open(filename , "rb", buffering=0)
     nsheet = []
     if dupindex:
         good = evenodd(tuple(tuple(no_ascii(line.decode(encoding)).lower(
-                   ).split()[:row_breaks[-1]+1])
+                   ).encode('utf8').decode('utf8').split()[:row_breaks[-1]+1])
                              for line in rawsheet.readlines()))[0]
-        good = tuple('\t'.join(itm.replace(' ', '_') for itm in line)
-                     for line in good)
+        good = df('\t'.join(itm.replace(' ', '_') for itm in line).split('\t')
+                     for line in good).fillna(str(np.nan))
         rawsheet.seek(0)
         evelst, oddlst = evenodd(tuple(no_ascii(line.decode(encoding)).lower(
-                                       ).split()[row_breaks[-1]+1:]
+                                       ).encode('utf8').decode('utf8').split()[row_breaks[-1]+1:]
                                   for line in rawsheet.readlines()))
         toclean = tuple(tuple(dict.fromkeys((flatten(itm))))
                         for itm in tuple(zip(evelst, oddlst)))
-        for line in toclean:
-            if len(line) < n_fields+1:
-                nline = 'n\a'+'\t'  + '\t'.join(itm.replace(' ', '_') for itm in line)
+        toclean = df(tuple(flatten(item)) for item in toclean)
+        ndf = []
+        for row in toclean.iterrows():
+            if row[1].isnull().any():
+                ndf.append(['NON'] + row[1].values.tolist())
             else:
-                nline = '\t'.join(itm.replace(' ', '_') for itm in line)
-            nsheet.append(nline)
-        toclean = tuple(zip(tuple(line.split('\t')
-                                  for line in good),
-                            tuple(line.split('\t')
-                                  for line in nsheet)))
-        toclean = tuple('\t'.join(itm for itm in flatten(line))
-                        for line in toclean)
+                ndf.append(row[1].values)
+        toclean = pd.concat([good, df(ndf)], axis=1).dropna(axis=1, how='all').drop_duplicates()
     else:
-        toclean = tuple(no_ascii(line.decode(encoding)).lower().split()
-                        for line in rawsheet.readlines())
+        toclean = tuple(tuple(no_ascii(line.decode(encoding)).lower(
+                      ).encode('utf8').decode('utf8').strip().replace(' ', '_').split())
+                          for line in rawsheet.readlines())
         for line in toclean:
-            nline = tuple(itm.replace(' ', '_') for itm in line)
+            nline = tuple(itm for itm in line)
             nsheet.append(nline)
-        toclean = tuple('\t'.join(itm for itm in flatten(line))+'\n'
-                            for line in toclean)
+        toclean = tuple('\t'.join(no_ascii(itm) for itm in flatten(line))
+                        for line in nsheet)
+        toclean = df((line.split('\t') for line in toclean)).convert_dtypes('int')
+        ndf = []
+        for row in toclean.iterrows():
+#             testna = tuple(itm[0] for itm in enumerate(toclean.iteritems())
+#                            if all(itm[1][1].notnull()))
+            if row[1].notna().all():
+                ndf.append(row[1].values.tolist())
+            elif row[1].isnull().any():
+                ndf.append(row[1].values.tolist()[:3] + ['NON'] + row[1].values.tolist()[3:])
+        toclean = df(ndf).dropna(axis=1, how='all').drop_duplicates()
+        
     rawsheet.close()
-    return toclean
+    if hdr:
+        toclean = toclean.T.set_index(0).T.reset_index(drop=True)
+    else:
+        toclean = toclean.T.reset_index(drop=True).T
+    return (filename, toclean.fillna('NON').replace('NON', np.nan).convert_dtypes(float))
+
+
+#########################################################################
+############################## TO TEST ##################################
+def get_compiler(inpt):
+    mrows = tuple(tuple(row[1].values.tolist())
+                  for row in inpt.dropna(axis=0, how='any').iterrows())
+
+    patterns = tuple(tuple(tuple('\W' if char.isalpha() else '\D'
+                if char.isnumeric() else '\S'
+                for char in str(item))
+                for item in mrow)
+                for mrow in mrows)
+    len_patterns = tuple(tuple(len(pattern) for pattern in
+                     flatten([[''.join(symbol for symbol in item)]
+                              for item in patrow]))
+                     for patrow in patterns)
+    patterns = tuple(tuple(pattern for pattern in
+                     flatten([[''.join(symbol for symbol in item)]
+                              for item in patrow]))
+                     for patrow in patterns)
+    patterns = df(patterns)
+    check_maxrow = pd.Series((tuple(len(str(val)) for val in row[1].values))
+                             for row in patterns.iterrows()).max()
+    maxrow = pd.Series(tuple(patterns.loc[[row[0] for row in patterns.iterrows()
+                                 if tuple(len(str(val)) for val in row[1].values) == \
+                                           check_maxrow]].values.tolist())[0])
+    maxrow = pd.Series(tuple(letters(str(val)).split() for val in maxrow.values))
+    len_patterns = tuple(str({itm[1].min(), itm[1].max()})
+                         for itm in df(len_patterns).loc[maxrow.index].iteritems())
+#     assert patterns.shape == inpt.dropna(axis=0, how='any').shape
+    reg_row = tuple(zip(tuple('\\' + pd.Series(ch for ch in itm).unique().tolist()[0]
+                           for itm in maxrow), len_patterns))
+    reg_row = tuple(''.join(val for val in itm) for itm in reg_row)
+    return reg_row
+
+def parsebroken(inpt):
+    allvals = list(enumerate(inpt.iteritems()))
+    test = tuple(enumerate(tuple(itertools.chain.from_iterable(allvals))))
+    allcols = pd.Series([itm[1][1][0] for itm in test])
+    valsonly = [(itm[0], itm[1][1][1][1].values) for itm in enumerate(test)]
+    uvals = df([itm[1] for itm in valsonly]).drop_duplicates().T
+    colnames = allcols.loc[uvals.columns].to_dict()
+    uvals = uvals.rename(columns=colnames)
+    uvals = uvals.loc[sheets[-1].index]
+    return uvals
+
+# def prep_sheet(filename, encoding, hdr, delimiter, width, lineterminator,
+#                dupindex, row_breaks, n_fields, n_lines, new_delim='\t'):
+#     rawsheet = open(filename , "rb", buffering=0)
+#     nsheet = []
+#     if dupindex:
+#         good = evenodd(tuple(tuple(no_ascii(line.decode(encoding)).lower(
+#                    ).split()[:row_breaks[-1]+1])
+#                              for line in rawsheet.readlines()))[0]
+#         good = tuple('\t'.join(itm.replace(' ', '_') for itm in line)
+#                      for line in good)
+#         rawsheet.seek(0)
+#         evelst, oddlst = evenodd(tuple(no_ascii(line.decode(encoding)).lower(
+#                                        ).split()[row_breaks[-1]+1:]
+#                                   for line in rawsheet.readlines()))
+#         toclean = tuple(tuple(dict.fromkeys((flatten(itm))))
+#                         for itm in tuple(zip(evelst, oddlst)))
+#         for line in toclean:
+#             if len(line) < n_fields+1:
+#                 nline = 'n\a'+'\t'  + '\t'.join(itm.replace(' ', '_') for itm in line)
+#             else:
+#                 nline = '\t'.join(itm.replace(' ', '_') for itm in line)
+#             nsheet.append(nline)
+#         toclean = tuple(zip(tuple(line.split('\t')
+#                                   for line in good),
+#                             tuple(line.split('\t')
+#                                   for line in nsheet)))
+#         toclean = tuple('\t'.join(itm for itm in flatten(line))
+#                         for line in toclean)
+#     else:
+#         toclean = tuple(no_ascii(line.decode(encoding)).lower().split()
+#                         for line in rawsheet.readlines())
+#         for line in toclean:
+#             nline = tuple(itm.replace(' ', '_') for itm in line)
+#             nsheet.append(nline)
+#         toclean = tuple('\t'.join(itm for itm in flatten(line))+'\n'
+#                             for line in toclean)
+#     rawsheet.close()
+#     return toclean
 
 # def fixbrokensheet(inpt):
 #     inpt = df(inpt)
