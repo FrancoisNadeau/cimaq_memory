@@ -16,6 +16,14 @@ mean_sheets_pathlist = \
  '~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives/participants/sub_list_TaskQC.tsv',
  '~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives/participants/TaskResults/fMRI_behavMemoScores.tsv']
 
+mean_paths = [xpu(spath) for spath in mean_sheets_pathlist]   
+
+new_mean_dir = join(cimaq_dir, 'mean_sheets')
+new_conf_dir = join(cimaq_dir, 'new_confounds')
+new_events_dir = join(cimaq_dir, 'all_events')
+confdir = join(cimaq_dir, 'confounds')   
+
+uzeprimes = join(cimaq_dir, 'task_files', 'uzeprimes')
 mean_sheets_patterns = (('dccid', '(?<!\d)\d{6}(?!\d)'),
                         ('pscid', '(?<!\d)\d{7}(?!\d)'))
 
@@ -34,14 +42,7 @@ def save_new_sheets(new_mean_dir, new_conf_dir, new_events_dir):
      for sheet in indiv_sheets]
 
 def repair_sheets(cimaq_dir, mean_sheets_pathlist, mean_sheets_patterns):
-    mean_paths = [xpu(spath) for spath in mean_sheets_pathlist]   
-    new_mean_dir = join(cimaq_dir, 'mean_sheets')
-    new_conf_dir = join(cimaq_dir, 'new_confounds')
-    new_events_dir = join(cimaq_dir, 'all_events')
-    scan_paths=[join(cimaq_dir, 'anat'),
-                join(cimaq_dir, 'fmri', 'resample')]
-    confdir = join(cimaq_dir, 'confounds')    
-    uzeprimes = join(cimaq_dir, 'task_files', 'uzeprimes')
+
     
     scans_patterns = 2*tuple(item for item in dict(
                          [pd.Series(bname(folderpath) for folderpath
@@ -56,12 +57,7 @@ def repair_sheets(cimaq_dir, mean_sheets_pathlist, mean_sheets_patterns):
                            in dict(zip(prefixes, prefixes)).items())
     scans_infodf = pd.concat([loadfiles(spath)
                        for spath in scan_paths])
-    scans_infodf['anat'] = ['anat' in fname for fname in scans_infodf.fname]
-    scans_infodf['fmri'] = ['fmri' in fname for fname in scans_infodf.fname]
-    anat_scans_infos = scans_infodf.where(scans_infodf['anat'].astype(
-                           bool)).dropna(axis=0, how='all')
-    fmri_scans_infos = scans_infodf.where(scans_infodf['fmri'].astype(
-                           bool)).dropna(axis=0, how='all')
+
     indiv_parsing_infos = sortmap(df((get_infos(fpath)
                                       for fpath in loadfiles(indir=uzeprimes).fpaths)),
                                   indiv_patterns).convert_dtypes()

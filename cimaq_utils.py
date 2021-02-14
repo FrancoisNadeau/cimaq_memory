@@ -110,6 +110,8 @@ def loadfiles(indir=None, pathlist=None):
               columns=['fname', 'ext', 'fpaths'])
 
 def sortmap(info_df, patterns):
+    ''' Identifies files in info_df with boolean values
+        True: Pattern is in filename; False: It is not'''
     patterns = df(patterns, columns=['ids', 'patterns'])
     for row in patterns.iterrows():
         cmplr = re.compile(row[1]['patterns'])
@@ -117,6 +119,10 @@ def sortmap(info_df, patterns):
             [cmplr.search(row[1]['patterns']).group()
              in fname for fname in info_df.fname]
     return info_df
+
+def find_key(input_dict, value):
+    ''' Source: https://stackoverflow.com/questions/16588328/return-key-by-value-in-dictionary '''
+    return next((k for k, v in input_dict.items() if v == value), None)
 
 def regist_dialects(parsing_infos):
         [csv.register_dialect(
@@ -131,6 +137,10 @@ def megamerge(dflist, howto, onto=None):
                                         on=onto,
                                         how=howto).astype('object'),
                   dflist)
+
+# def shortest_commin_index(idxlst):
+#     return reduce(lambda x, y: np.intersect1d(x, y),dflist)
+# # np.intersect1d(df1.index, df2.index)
 
 
 def json_read(fpath):
@@ -198,6 +208,14 @@ def json_write(jsonfit, fpath='.', idt=None):
 
 ###############################################################################  
 ################## CIMA-Q SPECIDIC ############################################
+
+def get_cimaq_dir_paths(cimaq_dir):
+    with open(join(xpu(cimaq_dir), 'cimaq_dir_list.json'), 'r') as jsonfile:
+        valuz = dict(((itm[0], [join(cimaq_dir, subitm)
+                                for subitm in itm[1].__iter__()])
+                      for itm in json.load(jsonfile).items()))
+        jsonfile.close()
+    return valuz
 
 def cimaqfilter(indir=join(xpu('~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives/task_files/uzeprimes'))):
     ''' Removes all pratice files (and READMEs) 

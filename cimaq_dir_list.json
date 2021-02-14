@@ -1,0 +1,19 @@
+{
+  "confdir": [
+    "confounds"
+  ],
+  "mean_paths": [
+    "participants/MotionResults/fMRI_meanMotion.tsv",
+    "participants/MemoTaskParticipantFile.tsv",
+    "participants/Neuropsych/ALL_Neuropsych_scores.tsv",
+    "participants/Participants_bids.tsv",
+    "participants/sub_list_TaskQC.tsv",
+    "participants/TaskResults/fMRI_behavMemoScores.tsv"
+  ],
+  "new_mean_dir": [
+    "mean_sheets"
+  ],
+  "uzeprimes": [
+    "task_files/uzeprimes"
+  ]
+}

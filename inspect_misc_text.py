@@ -49,13 +49,11 @@ from removeEmptyFolders import removeEmptyFolders
 from cimaq_utils import loadimages
 from cimaq_utils import flatten
 
-###############################################################################
 ########### Miscellaneous '.txt' Files Parser #################################         
 
 def get_encoding(sheetpath):
-    ''' 
-    Detect character encoding for files not encoded
-    with default encoding type ('UTF-8').
+    ''' Detect character encoding for files not encoded
+        with default encoding type ('UTF-8').
 
     Parameters
     ----------
@@ -64,56 +62,20 @@ def get_encoding(sheetpath):
                see online documentation at
                https://chardet.readthedocs.io/en/latest/
 
-    Returns
-    -------
-    results: Pandas 'Series'
+    Returns Pandas Series
         Ex: (index=["encoding", "confidence"], name="sheetname")
-    "language" is dropped because it is known a priori to be Python
+        "language" is dropped because it is known a priori to be Python
     '''
-    detector = udet()
-    bsheet = open(sheetpath , "rb")
+    detector, bsheet = udet(), open(sheetpath , "rb")
     for line in bsheet.readlines():
         detector.feed(line)
         if detector.done: break
-    detector.close()
-    bsheet.close()
+    detector.close(), bsheet.close()
     return detector.result['encoding']
 
-def get_encoding2(sheetlist):
-    ''' 
-    Short version of get_encoding using 'chardet.detect()'
-    instead of UniversalDectector
-    
-    Detect character encoding for files not encoded
-    with current encoding type ('UTF-8').
-
-    Parameters
-    ----------
-    sheetlist: list of paths or os.path-like objects pointing
-                to a document file (various extensions supported,
-                see online documentation at
-                https://chardet.readthedocs.io/en/latest/
-
-    Returns
-    -------
-    encodings: list of (sheet basename, encoding dict) tuples
-                for each sheet in 'sheetlist'
-    '''
-    sheetlist = sorted(sheetlist)
-    results = []
-    for sheetpath in sheetlist:
-        bsheet = open(sheetpath, "rb").read()
-        rezz = chardet.detect(bsheet)
-        results.append(df.from_dict(rezz))
-    return results
-
 def get_dialect(filename, encoding):
-    '''
-    Source: https://wellsr.com/python/introduction-to-csv-dialects-with-the-python-csv-module/#DialectDetection
-        - hdr variable replaces csv.Sniffer().has_header, which wouldn't work everytime
-        Source: https://stackoverflow.com/questions/15670760/built-in-function-in-python-to-check-header-in-a-text-file
-    Description: Prints out all relevant formatting parameters of a dialect
-    '''
+    ''' Source: https://wellsr.com/python/introduction-to-csv-dialects-with-the-python-csv-module/#DialectDetection
+        Description: Prints out all relevant formatting parameters of a dialect '''
     with open(filename, encoding=encoding) as src:
         dialect = csv.Sniffer().sniff(src.readline())
         src.seek(0)
@@ -122,10 +84,8 @@ def get_dialect(filename, encoding):
         valuez = [bname(filename), dialect.delimiter, dialect.doublequote,
                   dialect.escapechar, dialect.lineterminator, dialect.quotechar,
                   dialect.quoting, dialect.skipinitialspace]
-        cnames =['fname', 'delimiter',
-                 'doublequote', 'escapechar',
-                 'lineterminator', 'quotechar',
-                 'quoting', 'skipinitialspace']
+        cnames =['fname', 'delimiter', 'doublequote', 'escapechar',
+                 'lineterminator', 'quotechar', 'quoting', 'skipinitialspace']
         dialect_df = pd.Series(valuez, index=cnames)
         src.close()
         return dialect_df
@@ -134,9 +94,7 @@ def no_ascii(astring):
     '''
     Source: https://stackoverflow.com/questions/8689795/how-can-i-remove-non-ascii-characters-but-leave-periods-and-spaces-using-python
     '''
-    return ''.join(filter(lambda x: x
-                          in set(string.printable),
-                          astring))
+    return ''.join(filter(lambda x: x in set(string.printable), astring))
 
 def letters(instring):
     '''
@@ -150,18 +108,6 @@ def letters(instring):
 
 def num_only(astring):
     return ''.join(c for c in astring if c.isdigit())
-
-def cleanup(test2, hdr):
-    checkup = dupvalues(test2)
-    while hdr:
-        if checkup:
-            test2 = fixbrokensheet(test2[1:]).inset(0, 'header', colnames)
-        else:
-            test2 = test2.inset(0, 'header', colnames)
-        
-    else:
-        test2 = test2
-    return test2
 
 def listat(inds, inpt):
     '''
@@ -184,8 +130,7 @@ def evenodd_col2(inpt):
 
 def splitrows(inpt):
     evlst, odlst = evenodd([itm[0] for itm in enumerate(inpt)])
-    evvals = itemgetter(*evlst)(inpt)
-    odvals = itemgetter(*odlst)(inpt)
+    evvals, odvals = itemgetter(*evlst)(inpt), itemgetter(*odlst)(inpt)
     return evvals == odvals
 
 def dupvalues(inpt): # Works well
@@ -193,200 +138,111 @@ def dupvalues(inpt): # Works well
     Adapted from
     Source: https://stackoverflow.com/questions/18272160/access-multiple-elements-of-list-knowing-their-index
     '''
-    evlst, odlst = evenodd_col2([itm[0] for itm
-                                 in enumerate(inpt)])
-    evvals = itemgetter(*[itm[1] for itm in
-                          enumerate(evlst)])(inpt)
-    odvals = itemgetter(*[itm[1] for itm in
-                          enumerate(odlst)])(inpt)
+    evlst, odlst = evenodd_col2([itm[0] for itm in enumerate(inpt)])
+    evvals = itemgetter(*[itm[1] for itm in enumerate(evlst)])(inpt)
+    odvals = itemgetter(*[itm[1] for itm in enumerate(odlst)])(inpt)
     return df(evvals, dtype='object').values == df(odvals, dtype='object').values
 
 def get_doublerows(inpt): # Works well
-    inpt = df(inpt)
-    rowbreaks = [item[0] for item
-                 in enumerate(inpt.iteritems())
-                 if splitrows(item[1][1])]
-    return rowbreaks
+    return [item[0] for item in enumerate(df(inpt).iteritems())
+            if splitrows(item[1][1])]
 
 def dupcols(inpt):
     '''
     Adapted from
     Source: https://stackoverflow.com/questions/18272160/access-multiple-elements-of-list-knowing-their-index
     '''
-    doublevals = dupvalues(inpt)
-    msk = df(doublevals, dtype='object')
-    boolcols = [all(itm[1])
-               for itm in msk.iteritems()]
+    msk = df(dupvalues(inpt), dtype='object')
+    boolcols = [all(itm[1]) for itm in msk.iteritems()]
     return msk.loc[:, boolcols]
 
 def get_singlerows(inpt):
-    rowbreaks = [item[0] for item
-                 in enumerate(inpt.iteritems())
+    rowbreaks = [item[0] for item in enumerate(inpt.iteritems())
                  if not splitrows(item[1][1])]
     return inpt[tuple(itemgetter(*rowbreaks)(tuple(inpt.columns)))]
 
 def splitrows2vals(inpt):
 #     inpt = [line[0] for line in inpt]
     evlst, odlst = evenodd([itm[0] for itm in enumerate(inpt)])
-    evvals = itemgetter(*evlst)(inpt)
-    odvals = itemgetter(*odlst)(inpt)
+    evvals, odvals = itemgetter(*evlst)(inpt), itemgetter(*odlst)(inpt)
     return evvals == odvals
-    
-def get_infos(filename):
-    rawsheet = open(filename , "rb", buffering=0)
-    hdr = rawsheet.read(1) not in b'.-0123456789'
-    rawsheet.seek(0)
-    test = tuple(line for line in rawsheet.readlines())
-    rawsheet.seek(0)
-    test2 = df((pd.Series(line.split())
-                for line in rawsheet.readlines()))
-    row_fields = pd.Series(int(len(row[1]))
-                           for row in test2.iterrows())
-    dupindex = splitrows(test2[test2.columns[0]].values.tolist())
-    nlines = len(test)
-    rowbreaks = tuple(get_doublerows(test2))
-    r_rowbreaks = tuple(get_doublerows(test2.iloc[:, ::-1]))
-    rawsheet.seek(0)
-    detector = udet()
-    for line in rawsheet.readlines():
-        detector.feed(line)
-        if detector.done: break
-    detector.close()
-    encoding = detector.result['encoding']
-    rawsheet.seek(0)
-    if not rowbreaks:
-        rowbreaks = False
-    widths = pd.Series(len(line) for line in test)
-    colnames = False   
-    if hdr:
-        nfields = int(row_fields[1:-1].max())
-        colnames = test2.loc[0][:nfields]
-        test, test2 = test[1:], test2[1:]
-        width = widths[1:].max()
-        colnames = flatten(tuple(bytes(itm).decode(encoding).lower().replace(' ', '_').split()
-                                 for itm in tuple(map(tuple, colnames[:nfields].values))))[:nfields]
-        if dupindex:
-            nfields = int(row_fields[2:-1].max())
-            colnames = test2[1:].loc[0][:nfields]
-            test, test2 = test[1:], test2[1:]
-            width = widths[1:].max()
-            colnames = flatten(tuple(bytes(itm).decode(encoding).lower().replace(' ', '_').split()
-                                     for itm in tuple(map(tuple, colnames[:nfields].values))))[:nfields]
-    else:
-        width = widths.max()
-        nfields = int(row_fields[:-1].max())
-    rawsheet.seek(0)
-    txttest = [line[:-1].decode(encoding) for line in rawsheet.readlines()]
-    dialect = csv.Sniffer().sniff(''.join(line for line in txttest))
-    valuez = [bname(filename), filename, hdr, dupindex, rowbreaks,
-              r_rowbreaks, width, nlines, nfields, (colnames),
-              encoding, dialect.delimiter, dialect.doublequote,
-              dialect.escapechar, dialect.lineterminator, dialect.quotechar,
-              int(dialect.quoting), dialect.skipinitialspace]
-    cnames =['fname', 'fpaths', 'has_header', 'dup_index', 'row_breaks',
-             'r_rowbreaks', 'width', 'n_lines', 'n_fields', 'colnames',
-             'encoding', 'delimiter', 'doublequote', 'escapechar',
-             'lineterminator', 'quotechar', 'quoting', 'skipinitialspace']
-    dialect_dict = dict(zip(cnames, valuez))
-    rawsheet.close()
-    return dialect_dict
 
-def prep_sheet(filename, encoding, hdr, delimiter, width, lineterminator,
-               dupindex, row_breaks, r_rowbreaks, n_fields, n_lines, colnames, new_delim='\t'):
-    rawsheet = open(filename , "rb", buffering=0)
-    nsheet = []
-    if dupindex:
-        good = evenodd(tuple(tuple(no_ascii(line.decode(encoding)).lower(
-                   ).encode('utf8').decode('utf8').split()[:row_breaks[-1]+1])
-                             for line in rawsheet.readlines()))[0]
-        good = df('\t'.join(itm.replace(' ', '_') for itm in line).split('\t')
-                     for line in good).fillna(str(np.nan))
-        rawsheet.seek(0)
-        evelst, oddlst = evenodd(tuple(no_ascii(line.decode(encoding)).lower(
-                                       ).encode('utf8').decode('utf8').split()[row_breaks[-1]+1:]
-                                  for line in rawsheet.readlines()))
-        toclean = tuple(tuple(dict.fromkeys((flatten(itm))))
-                        for itm in tuple(zip(evelst, oddlst)))
-        toclean = df(tuple(flatten(item)) for item in toclean)
-        ndf = []
-        for row in toclean.iterrows():
-            if row[1].isnull().any():
-                ndf.append(['NON'] + row[1].values.tolist())
-            else:
-                ndf.append(row[1].values)
-        toclean = pd.concat([good, df(ndf)], axis=1).dropna(axis=1, how='all').drop_duplicates()
-    else:
-        toclean = tuple(tuple(no_ascii(line.decode(encoding)).lower(
-                      ).encode('utf8').decode('utf8').strip().replace(' ', '_').split())
-                          for line in rawsheet.readlines())
-        for line in toclean:
-            nline = tuple(itm for itm in line)
-            nsheet.append(nline)
-        toclean = tuple('\t'.join(no_ascii(itm).replace(' ', 'NON')
-                                  for itm in flatten(line))
-                        for line in nsheet)
-        toclean = df((line.split('\t') for line in toclean)).convert_dtypes('int')
-
-#         ndf = []
-#         for row in toclean.iterrows():
-# #             testna = tuple(itm[0] for itm in enumerate(toclean.iteritems())
-# #                            if all(itm[1][1].notnull()))
-#             if row[1].notna().all():
-#                 ndf.append(row[1].values.tolist())
-#             elif row[1].isnull().any():
-#                 ndf.append(row[1].values.tolist()[:3] + ['NON'] + row[1].values.tolist()[3:])
-
-        toclean = df((row[1].values.tolist()
-                      for row in toclean.iterrows())).dropna(axis=1, how='all').drop_duplicates()
-        
-    rawsheet.close()
-    if hdr:
-        toclean = toclean.T.set_index(0).T.reset_index(drop=True)
-    else:
-        toclean = toclean.T.reset_index(drop=True).T
-    return (filename, toclean.fillna('NON').replace('NON', np.nan).convert_dtypes(float))
-
-#########################################################################
 ############################## TO TEST ##################################
-def get_compiler(inpt):
-    mrows = tuple(tuple(row[1].values.tolist())
-                  for row in inpt.dropna(axis=0, how='any').iterrows())
+# def get_compiler(inpt):
+#     mrows = tuple(tuple(row[1].values.tolist())
+#                   for row in inpt.dropna(axis=0, how='any').iterrows())
+#     patterns = tuple(tuple(tuple('\W' if char.isalpha() else '\D'
+#                 if char.isnumeric() else '\S' for char in str(item))
+#                 for item in mrow) for mrow in mrows)
+#     len_patterns = tuple(tuple(len(pattern) for pattern in
+#                      flatten([[''.join(symbol for symbol in item)]
+#                               for item in patrow]))
+#                      for patrow in patterns)
+#     patterns = df(tuple(tuple(pattern for pattern in
+#                      flatten([[''.join(symbol for symbol in item)]
+#                               for item in patrow]))
+#                      for patrow in patterns))
+#     check_maxrow = pd.Series((tuple(len(str(val)) for val in row[1].values))
+#                              for row in patterns.iterrows()).max()
+#     maxrow = pd.Series(tuple(patterns.loc[[row[0] for row in patterns.iterrows()
+#                                  if tuple(len(str(val)) for val in row[1].values) == \
+#                                            check_maxrow]].values.tolist())[0])
+#     maxrow = pd.Series(tuple(letters(str(val)).split() for val in maxrow.values))
+#     len_patterns = tuple(str({itm[1].min(), itm[1].max()})
+#                          for itm in df(len_patterns).loc[maxrow.index].iteritems())
+# #     assert patterns.shape == inpt.dropna(axis=0, how='any').shape
+#     reg_row = tuple(zip(tuple('\\' + pd.Series(ch for ch in itm).unique().tolist()[0]
+#                            for itm in maxrow), len_patterns))
+#     reg_row = tuple(''.join(val for val in itm) for itm in reg_row)
+#     return reg_row
 
-    patterns = tuple(tuple(tuple('\W' if char.isalpha() else '\D'
-                if char.isnumeric() else '\S'
-                for char in str(item))
-                for item in mrow)
-                for mrow in mrows)
-    len_patterns = tuple(tuple(len(pattern) for pattern in
-                     flatten([[''.join(symbol for symbol in item)]
-                              for item in patrow]))
-                     for patrow in patterns)
-    patterns = tuple(tuple(pattern for pattern in
-                     flatten([[''.join(symbol for symbol in item)]
-                              for item in patrow]))
-                     for patrow in patterns)
-    patterns = df(patterns)
-    check_maxrow = pd.Series((tuple(len(str(val)) for val in row[1].values))
-                             for row in patterns.iterrows()).max()
-    maxrow = pd.Series(tuple(patterns.loc[[row[0] for row in patterns.iterrows()
-                                 if tuple(len(str(val)) for val in row[1].values) == \
-                                           check_maxrow]].values.tolist())[0])
-    maxrow = pd.Series(tuple(letters(str(val)).split() for val in maxrow.values))
-    len_patterns = tuple(str({itm[1].min(), itm[1].max()})
-                         for itm in df(len_patterns).loc[maxrow.index].iteritems())
-#     assert patterns.shape == inpt.dropna(axis=0, how='any').shape
-    reg_row = tuple(zip(tuple('\\' + pd.Series(ch for ch in itm).unique().tolist()[0]
-                           for itm in maxrow), len_patterns))
-    reg_row = tuple(''.join(val for val in itm) for itm in reg_row)
-    return reg_row
+# def parsebroken(inpt):
+#     allvals = list(enumerate(inpt.iteritems()))
+#     test = tuple(enumerate(tuple(itertools.chain.from_iterable(allvals))))
+#     allcols = pd.Series([itm[1][1][0] for itm in test])
+#     valsonly = [(itm[0], itm[1][1][1][1].values) for itm in enumerate(test)]
+#     uvals = df([itm[1] for itm in valsonly]).drop_duplicates().T
+#     colnames = allcols.loc[uvals.columns].to_dict()
+#     uvals = uvals.rename(columns=colnames)
+#     uvals = uvals.loc[sheets[-1].index]
+#     return uvals
 
-def parsebroken(inpt):
-    allvals = list(enumerate(inpt.iteritems()))
-    test = tuple(enumerate(tuple(itertools.chain.from_iterable(allvals))))
-    allcols = pd.Series([itm[1][1][0] for itm in test])
-    valsonly = [(itm[0], itm[1][1][1][1].values) for itm in enumerate(test)]
-    uvals = df([itm[1] for itm in valsonly]).drop_duplicates().T
-    colnames = allcols.loc[uvals.columns].to_dict()
-    uvals = uvals.rename(columns=colnames)
-    uvals = uvals.loc[sheets[-1].index]
-    return uvals
+########## Unused #########################################################
+# def cleanup(test2, hdr):
+#     checkup = dupvalues(test2)
+#     while hdr:
+#         if checkup:
+#             test2 = fixbrokensheet(test2[1:]).inset(0, 'header', colnames)
+#         else:
+#             test2 = test2.inset(0, 'header', colnames)    
+#     else:
+#         test2 = test2
+#     return test2
+
+# def get_encoding2(sheetlist):
+#     ''' 
+#     Short version of get_encoding using 'chardet.detect()'
+#     instead of UniversalDectector
+    
+#     Detect character encoding for files not encoded
+#     with current encoding type ('UTF-8').
+
+#     Parameters
+#     ----------
+#     sheetlist: list of paths or os.path-like objects pointing
+#                 to a document file (various extensions supported,
+#                 see online documentation at
+#                 https://chardet.readthedocs.io/en/latest/
+
+#     Returns
+#     -------
+#     encodings: list of (sheet basename, encoding dict) tuples
+#                 for each sheet in 'sheetlist'
+#     '''
+#     sheetlist = sorted(sheetlist)
+#     results = []
+#     for sheetpath in sheetlist:
+#         bsheet = open(sheetpath, "rb").read()
+#         rezz = chardet.detect(bsheet)
+#         results.append(df.from_dict(rezz))
+#     return results
