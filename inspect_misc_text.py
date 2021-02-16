@@ -119,9 +119,9 @@ def evenodd(inpt):
     ''' 
     Source: https://www.geeksforgeeks.org/python-split-even-odd-elements-two-different-lists
     '''
-    evelist = [ele[1] for ele in enumerate(inpt) if ele[0]%2 ==0] 
-    oddlist = [ele[1] for ele in enumerate(inpt) if ele[0]%2 !=0]
-    return evelist, oddlist  
+    eveseq = tuple(ele[1] for ele in enumerate(inpt) if ele[0]%2 ==0)
+    oddseq = tuple(ele[1] for ele in enumerate(inpt) if ele[0]%2 !=0)
+    return (eveseq, oddseq) 
 
 def evenodd_col2(inpt):
     evlst, odlst = evenodd([itm[0] for itm in enumerate(inpt)])
@@ -218,31 +218,3 @@ def splitrows2vals(inpt):
 #     else:
 #         test2 = test2
 #     return test2
-
-# def get_encoding2(sheetlist):
-#     ''' 
-#     Short version of get_encoding using 'chardet.detect()'
-#     instead of UniversalDectector
-    
-#     Detect character encoding for files not encoded
-#     with current encoding type ('UTF-8').
-
-#     Parameters
-#     ----------
-#     sheetlist: list of paths or os.path-like objects pointing
-#                 to a document file (various extensions supported,
-#                 see online documentation at
-#                 https://chardet.readthedocs.io/en/latest/
-
-#     Returns
-#     -------
-#     encodings: list of (sheet basename, encoding dict) tuples
-#                 for each sheet in 'sheetlist'
-#     '''
-#     sheetlist = sorted(sheetlist)
-#     results = []
-#     for sheetpath in sheetlist:
-#         bsheet = open(sheetpath, "rb").read()
-#         rezz = chardet.detect(bsheet)
-#         results.append(df.from_dict(rezz))
-#     return results

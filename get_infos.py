@@ -2,13 +2,13 @@
 
 from cimaq_utils import *
 from cimaq_utils import loadimages
-from blind_rename import *
+from blind_rename import rename_imposter_cols
 from inspect_misc_text import *
 from zipctl import uzipfiles
 from os.path import expanduser as xpu
 from collections import OrderedDict
 
-def get_infos(filepath):
+def get_infos(filepath=None, mem=False):
     ''' 
     Obtain highly detailed information about a data file
     
@@ -23,9 +23,12 @@ def get_infos(filepath):
     
     Returns: DataFrame
     '''
-    
-    rawsheet = open(filepath , "rb", buffering=0)
-    hdr = rawsheet.read(1) not in b'.-0123456789'
+    if not filepath:
+        rawsheet = mem
+        hdr = rawsheet[1] not in b'.-0123456789'
+    else:
+        rawsheet = open(filepath , "rb", buffering=0)
+        hdr = rawsheet.read(1) not in b'.-0123456789'
     rawsheet.seek(0)
     test = tuple(line for line in rawsheet.readlines())
     rawsheet.seek(0)
@@ -42,6 +45,8 @@ def get_infos(filepath):
         if detector.done: break
     detector.close()
     encoding = detector.result['encoding']
+    if encoding == None:
+        encoding = 'utf8'
     rawsheet.seek(0)
     if not rowbreaks:
         rowbreaks = False
@@ -55,7 +60,7 @@ def get_infos(filepath):
     else:
         width, nfields = widths.max(), int(row_fields[:-1].max())
     rawsheet.seek(0)
-    txttest = [line[:-1].decode(encoding) for line in rawsheet.readlines()]
+    txttest = [line.decode(encoding) for line in rawsheet.readlines()]
     dialect = csv.Sniffer().sniff(''.join(line for line in txttest))
     valuez = [splitext(bname(filepath))[0], splitext(bname(filepath))[1],
               filepath, hdr, dupindex, rowbreaks, width, nlines,

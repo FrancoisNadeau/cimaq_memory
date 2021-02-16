@@ -44,8 +44,12 @@ def cleanarchv(indir, outdir):
      for itm in loadimages(indir)
      if os.path.isfile(itm) and not itm.endswith('.zip')]
 
-def uzipfiles(indir, outdir):
-    outdir = pjoin(dname(indir), outdir)
+def uzipfiles(indir, outdir=None):
+    if outdir != None:
+        outdir = outdir
+    else:
+        outdir = pjoin(dname(indir), outdir)
+    os.makedirs(outdir, exist_ok=True)
     for item in tqdm([itm for itm in loadimages(indir)
                       if not itm.startswith('.')]):
         with zipfile.ZipFile(item, 'r') as archv:

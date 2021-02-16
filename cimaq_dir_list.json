@@ -1,19 +1,18 @@
 {
-  "confdir": [
-    "confounds"
-  ],
-  "mean_paths": [
-    "participants/MotionResults/fMRI_meanMotion.tsv",
-    "participants/MemoTaskParticipantFile.tsv",
-    "participants/Neuropsych/ALL_Neuropsych_scores.tsv",
-    "participants/Participants_bids.tsv",
-    "participants/sub_list_TaskQC.tsv",
-    "participants/TaskResults/fMRI_behavMemoScores.tsv"
-  ],
-  "new_mean_dir": [
-    "mean_sheets"
-  ],
-  "uzeprimes": [
-    "task_files/uzeprimes"
-  ]
+  "dir_list": {
+    "confdir": "confounds",
+    "mean_motion": "participants/MotionResults/fMRI_meanMotion.tsv",
+    "mean_file": "participants/MemoTaskParticipantFile.tsv",
+    "mean_npsych": "participants/Neuropsych/ALL_Neuropsych_scores.tsv",
+    "mean_bids": "participants/Participants_bids.tsv",
+    "mean_qc": "participants/sub_list_TaskQC.tsv",
+    "mean_behav": "participants/TaskResults/fMRI_behavMemoScores.tsv",
+    "new_mean_dir": "mean_sheets",
+    "uzeprimes": "participants/task_files/uzeprimes",
+    "zeprimes": "task_files/zipped_eprime"
+  },
+  "patterns": {
+    "dccid": "b'(?<!\\d)\\d{6}(?!\\d)'",
+    "pscid": "b'(?<!\\d)\\d{7}(?!\\d)'"
+  }
 }

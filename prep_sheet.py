@@ -45,8 +45,8 @@ def prep_sheet(filename, encoding, hdr, delimiter, width, lineterminator,
         toclean = tuple('\t'.join(no_ascii(itm).replace(' ', 'NON')
                                   for itm in flatten(line))
                         for line in nsheet)
-        toclean = df((line.split('\t') for line in toclean)).convert_dtypes('int').fillna('NON')
-
+        toclean = df((line.split('\t') for
+                      line in toclean)).convert_dtypes('int').fillna('NON')
         toclean = df((row[1].values.tolist()
                       for row in toclean.iterrows())).dropna(axis=1, how='all').drop_duplicates()        
     rawsheet.close()
@@ -59,7 +59,7 @@ def prep_sheet(filename, encoding, hdr, delimiter, width, lineterminator,
     
 def main():
     prep_sheet(filename, encoding, hdr, delimiter, width, lineterminator,
-               dupindex, row_breaks, n_fields, n_lines, new_delim='\t')
+               dupindex, row_breaks, n_fields, n_lines, new_delim)
 
 if __name__ == "__main__":
     main()    
