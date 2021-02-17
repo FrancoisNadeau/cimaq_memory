@@ -9,7 +9,11 @@
     "mean_behav": "participants/TaskResults/fMRI_behavMemoScores.tsv",
     "new_mean_dir": "mean_sheets",
     "uzeprimes": "participants/task_files/uzeprimes",
-    "zeprimes": "task_files/zipped_eprime"
+    "zeprimes": "task_files/zipped_eprime",
+    "pdf_files": "task_files/pdf_files",
+    "edat2_files": "task_files/edat2_files",
+    "pdf_files": "task_files/pdf_files",
+    "pdf_files": "task_files/pdf_files"
   },
   "patterns": {
     "dccid": "b'(?<!\\d)\\d{6}(?!\\d)'",
