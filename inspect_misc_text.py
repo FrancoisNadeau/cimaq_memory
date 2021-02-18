@@ -79,7 +79,7 @@ def get_dialect(filename, encoding):
     with open(filename, encoding=encoding) as src:
         dialect = csv.Sniffer().sniff(src.readline())
         src.seek(0)
-        lines4test = list(src.readlines())
+#         lines4test = list(src.readlines())
         src.seek(0)
         valuez = [bname(filename), dialect.delimiter, dialect.doublequote,
                   dialect.escapechar, dialect.lineterminator, dialect.quotechar,

@@ -49,16 +49,15 @@ def uzipfiles(indir, outdir=None):
     if outdir != None:
         outdir = outdir
     else:
-        outdir = pjoin(dname(indir), outdir)
+        outdir = pjoin(dname(indir), 'uz_'+bname(indir))
     os.makedirs(outdir, exist_ok=True)
     for item in tqdm([itm for itm in loadimages(indir)
                       if not itm.startswith('.')]):
         with zipfile.ZipFile(item, 'r') as archv:
             archv.extractall(path=pjoin(outdir,
                                        os.path.splitext(bname(item))[0]),
-                             members=getinfolist(item))
+                             members=getnamelist(item))
         archv.close()
-    cleanarchv(indir, outdir)
     [shutil.move(
         itm,pjoin(outdir,
                   bname(itm).lower().replace(' ', '_').replace('-', '_')))
