@@ -27,16 +27,17 @@ def getnamelist(filename):
         ``` zip -r dir.zip . -x ".*" -x "__MACOSX"
     Source: https://apple.stackexchange.com/questions/239578/compress-without-ds-store-and-macosx
     '''
-    return [itm for itm in
-            zipfile.ZipFile(filename).namelist()
-            if  bname(itm).startswith('.') == False \
-            and '__MACOSX' not in itm \
-            and 'textClipping' not in itm]
+    return tuple(sorted(list(itm for itm in
+                             zipfile.ZipFile(filename).namelist()
+                             if  bname(itm).startswith('.') == False \
+                             and '__MACOSX' not in itm \
+                             and 'textClipping' not in itm
+                             and itm != os.path.splitext(bname(dname(itm)))[0]+'/')))
 
 def getinfolist(filename):
     namelist = getnamelist(filename)
-    return [zipfile.ZipFile(filename).getinfo(mmbr)
-                for mmbr in namelist]
+    return tuple(zipfile.ZipFile(filename).getinfo(mmbr)
+                 for mmbr in namelist)
     
 def cleanarchv(indir, outdir):
     os.makedirs(pjoin(dname(indir), outdir), exist_ok=True)
