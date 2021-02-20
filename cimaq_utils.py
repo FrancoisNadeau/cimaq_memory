@@ -130,6 +130,9 @@ def megamerge(dflist, howto, onto=None):
                   dflist)
 
 ################## CIMA-Q SPECIDIC ############################################
-
-
-
+def get_cimaq_dir_paths(cimaq_dir="~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives"):
+    json_params = json_read(xpu('~/cimaq_memory/cimaq_dir_list.json'), 'r')
+    dlst = df.from_dict(json_params['dir_list'], orient='index', columns=['suffixes'])
+    patterns =  df.from_dict(json_params['patterns'], orient='index', columns=['patterns'])
+    dlst['fpaths'] = [join(xpu(cimaq_dir), sfx) for sfx in dlst.suffixes]
+    return dlst.T, patterns
