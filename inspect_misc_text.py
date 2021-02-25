@@ -51,27 +51,29 @@ from cimaq_utils import flatten
 
 ########### Miscellaneous '.txt' Files Parser #################################         
 
-def get_encoding(sheetpath):
-    ''' Detect character encoding for files not encoded
-        with default encoding type ('UTF-8').
+# def get_encoding(sheetpath):
+#     ''' Detect character encoding for files not encoded
+#         with default encoding type ('UTF-8').
 
-    Parameters
-    ----------
-    sheetpath: Path or os.path-like objects pointing
-               to a document file (various extensions supported,
-               see online documentation at
-               https://chardet.readthedocs.io/en/latest/
+#     Parameters
+#     ----------
+#     sheetpath: Path or os.path-like objects pointing
+#                to a document file (various extensions supported,
+#                see online documentation at
+#                https://chardet.readthedocs.io/en/latest/
 
-    Returns Pandas Series
-        Ex: (index=["encoding", "confidence"], name="sheetname")
-        "language" is dropped because it is known a priori to be Python
-    '''
-    detector, bsheet = udet(), open(sheetpath , "rb")
-    for line in bsheet.readlines():
-        detector.feed(line)
-        if detector.done: break
-    detector.close(), bsheet.close()
-    return detector.result['encoding']
+#     Returns Pandas Series
+#         Ex: (index=["encoding", "confidence"], name="sheetname")
+#         "language" is dropped because it is known a priori to be Python
+#     '''
+#     detector, bsheet = udet(), open(sheetpath , "rb")
+#     for line in bsheet.readlines():
+#         detector.feed(line)
+#         if detector.done: break
+#     detector.close(), bsheet.close()
+#     return detector.result['encoding']
+
+###############################################################################
 
 def get_dialect(filename, encoding):
     ''' Source: https://wellsr.com/python/introduction-to-csv-dialects-with-the-python-csv-module/#DialectDetection
@@ -82,13 +84,18 @@ def get_dialect(filename, encoding):
 #         lines4test = list(src.readlines())
         src.seek(0)
         valuez = [bname(filename), dialect.delimiter, dialect.doublequote,
-                  dialect.escapechar, dialect.lineterminator, dialect.quotechar,
-                  dialect.quoting, dialect.skipinitialspace]
+                  dialect.escapechar, dialect.lineterminator,
+                  dialect.quotechar, dialect.quoting, dialect.skipinitialspace]
         cnames =['fname', 'delimiter', 'doublequote', 'escapechar',
                  'lineterminator', 'quotechar', 'quoting', 'skipinitialspace']
         dialect_df = pd.Series(valuez, index=cnames)
         src.close()
         return dialect_df
+
+def make_labels(datas, var_name):
+    ''' Returns dict of (key, val) pairs using 'enumerate' on possible values
+        filtered by 'Counter' - can be used to map DataFrame objects - '''
+    return dict(enumerate(Counter(datas[var_name]).keys(), start=1))
 
 def no_ascii(astring):
     '''
@@ -100,38 +107,30 @@ def letters(instring):
     '''
     Source: https://stackoverflow.com/questions/12400272/how-do-you-filter-a-string-to-only-contain-letters
     '''
-    valids = []
-    for character in instring:
-        if character.isalpha():
-            valids.append(character)
-    return ''.join(valids)
+    return ''.join([ch for ch in instring if character.isalpha()])
 
 def num_only(astring):
     return ''.join(c for c in astring if c.isdigit())
 
-def listat(inds, inpt):
-    '''
-    Source: https://stackoverflow.com/questions/18272160/access-multiple-elements-of-list-knowing-their-index
-    '''
-    return itemgetter(*inds)(inpt)
-
 def evenodd(inpt): 
     ''' 
     Source: https://www.geeksforgeeks.org/python-split-even-odd-elements-two-different-lists
+    Source: https://stackoverflow.com/questions/18272160/access-multiple-elements-of-list-knowing-their-index
+
     '''
     eveseq = tuple(ele[1] for ele in enumerate(inpt) if ele[0]%2 ==0)
     oddseq = tuple(ele[1] for ele in enumerate(inpt) if ele[0]%2 !=0)
-    return (eveseq, oddseq) 
-
-def evenodd_col2(inpt):
-    evlst, odlst = evenodd([itm[0] for itm in enumerate(inpt)])
-    evvals, odvals = listat(evlst, inpt), listat(odlst, inpt)    
-    return df(evvals), df(odvals)
+    return (eveseq, oddseq)
 
 def splitrows(inpt):
     evlst, odlst = evenodd([itm[0] for itm in enumerate(inpt)])
     evvals, odvals = itemgetter(*evlst)(inpt), itemgetter(*odlst)(inpt)
     return evvals == odvals
+
+def evenodd_col2(inpt):
+    evlst, odlst = evenodd([itm[0] for itm in enumerate(inpt)])
+    evvals, odvals = listat(evlst, inpt), listat(odlst, inpt)    
+    return df(evvals), df(odvals)
 
 def dupvalues(inpt): # Works well
     '''
@@ -141,11 +140,14 @@ def dupvalues(inpt): # Works well
     evlst, odlst = evenodd_col2([itm[0] for itm in enumerate(inpt)])
     evvals = itemgetter(*[itm[1] for itm in enumerate(evlst)])(inpt)
     odvals = itemgetter(*[itm[1] for itm in enumerate(odlst)])(inpt)
-    return df(evvals, dtype='object').values == df(odvals, dtype='object').values
+    return df(evvals, dtype='object').values == \
+               df(odvals, dtype='object').values
+
+###############################################################################
 
 def get_doublerows(inpt): # Works well
-    return [item[0] for item in enumerate(df(inpt).iteritems())
-            if splitrows(item[1][1])]
+    return [itm[0] for itm in enumerate(df(inpt).iteritems())
+            if splitrows(itm[1][1])]
 
 def dupcols(inpt):
     '''
@@ -167,7 +169,18 @@ def splitrows2vals(inpt):
     evvals, odvals = itemgetter(*evlst)(inpt), itemgetter(*odlst)(inpt)
     return evvals == odvals
 
-############################## TO TEST ##################################
+def filter_lst_exc(exclude:list, str_lst:list, sort:bool=False) -> list:
+    ''' https://www.geeksforgeeks.org/python-filter-list-of-strings-based-on-the-substring-list/ '''
+    outlst = [itm for itm in str_lst if
+              all(sub not in itm for sub in exclude)]
+    return [sorted(outlst) if sort else outlst][0]
+
+def filter_lst_inc(inclst:list, str_lst:list, sort:bool=False) -> list:
+    ''' https://www.geeksforgeeks.org/python-filter-list-of-strings-based-on-the-substring-list/ '''
+    outlst = [itm for itm in str_lst if any(sub in itm for sub in inclst)]
+    return [sorted(outlst) if sort else outlst][0]
+
+################################# TO TEST #####################################
 # def get_compiler(inpt):
 #     mrows = tuple(tuple(row[1].values.tolist())
 #                   for row in inpt.dropna(axis=0, how='any').iterrows())

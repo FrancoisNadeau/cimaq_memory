@@ -72,7 +72,7 @@ def loadimages(indir: Union[os.PathLike, str]):
                 imlist.append(indir)
     return imlist
 
-def flatten(nestedlst):
+def flatten(nested_seq):
     """
     Description
     -----------
@@ -91,16 +91,11 @@ def flatten(nestedlst):
     ------
         flatlst: unidimensional list
     """
-    flatlst = [bottomElem for sublist in nestedlst
-               for bottomElem in (flatten(sublist)\
-               if (isinstance(sublist, Sequence)\
-               and not isinstance(sublist, str)) else [sublist])]
-    return flatlst
-
-def make_labels(datas, var_name):
-    ''' Returns dict of (key, val) pairs using 'enumerate' on possible values
-        filtered by 'Counter' - can be used to map DataFrame objects - '''
-    return dict(enumerate(Counter(datas[var_name]).keys(), start=1))
+    return [bottomElem for sublist in nested_seq
+            for bottomElem in (flatten(sublist)\
+                               if (isinstance(sublist, Sequence)\
+                                   and not isinstance(sublist, str))
+                               else [sublist])]
 
 def loadfiles(pathlist):
     return df(((os.path.splitext(bname(sheet))[0],

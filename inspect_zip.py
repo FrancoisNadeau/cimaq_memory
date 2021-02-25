@@ -1,64 +1,47 @@
-#!/usr/bin/env python3
 
-from cimaq_utils import *
-from cimaq_utils import loadimages
-from blind_rename import *
-from inspect_misc_text import *
-from inspect_misc_text import no_ascii
-from zipctl import uzipfiles
-from get_infos import get_infos
-from fix_cimaq import get_cimaq_dir_paths
-# from get_zipinfos import get_zipinfos
+def getnametuple(myzip): 
+    '''
+    Adjustment to ZipFile.namelist() function to prevent MAC-exclusive
+    '__MACOSX' and '.DS_Store' files from interfering.
+    Only necessary for files compressed with OS 10.3 or earlier.
+    Source: https://superuser.com/questions/104500/what-is-macosx-folder
+    Command line solution:
+        ``` zip -r dir.zip . -x ".*" -x "__MACOSX"
+    Source: https://apple.stackexchange.com/questions/239578/compress-without-ds-store-and-macosx
+    '''
+    return tuple(sorted(list(itm for itm in
+                             myzip.namelist()
+                             if  bname(itm).startswith('.') == False \
+                             and '__MACOSX' not in itm \
+                             and 'textClipping' not in itm
+                             and itm != os.path.splitext(bname(dname(itm)))[0]+'/')))
 
-from os.path import expanduser as xpu
-from os.path import join as pjoin
-from collections import OrderedDict
-from zipfile import ZipFile
-import clevercsv
-import codecs
-import googletrans
-
-from cimaq_filter import cimaq_filter
-from fix_cimaq import get_cimaq_dir_paths
-from zipctl import getnamelist
-from zipctl import getinfolist
-from chardet import UniversalDetector as Udet
-from collections import Counter
-
-def get_all_bitems(inpt, encoding):
+def get_all_bitems(inpt:bytes, encoding:str=None):
+    encoding = [encoding if encoding else get_bzip_enc(inpt)][0]  
     return [line.replace(bytes('\x00', encoding),
-                                          bytes('n\a', encoding)).split()
-                             for line in bytes('\n', encoding).join(
-                                 inpt.splitlines()).split(
-                                     bytes('\n', encoding))]
+                         bytes('n\a', encoding)).split()
+            for line in bytes('\n', encoding).join(
+                inpt.splitlines()).split( bytes('\n', encoding))]
 
-def scan_zip(myzip, nlst):
-    return df(tuple(dict(zip(evenodd(itm)[0], evenodd(itm)[1])) for itm
-                    in tuple(tuple(no_ascii(repr(itm)).strip().replace(
-               "'", "").replace("'",'').replace(
-                   '=',' ')[:-2].split())[1:]
-               for itm in set(repr(myzip.getinfo(itm)).strip(
-                   ' ').replace(itm, itm.replace(' ', '_')) if ' ' in
-                              itm else repr(myzip.getinfo(itm)).strip(
-                                  ' ') for itm in nlst))))
-###############################################################################
-def scan_bzip(myzip, nlst):
-    contents = scan_zip(myzip, nlst)
-    contents = scan_zip(myzip, nlst)
-    contents[['dst_paths', 'exts']] = \
-        [(join(os.path.splitext(myzip.filename)[0], fnm),
-         os.path.splitext(fnm)[1])
-         for fnm in contents.filename]
-    contents[['src_paths', 'src_names']] = \
-        [(join(os.path.splitext(myzip.filename)[0], fnm), fnm) for fnm in nlst]
-    contents = contents.sort_values('filename').reset_index(drop = True)    
-    contents['bsheets'] = [myzip.open(row[1].src_names, 'r').read().lower()
-                           for row in contents.iterrows()]
-    return contents
+def get_delimiter(inpt:bytes, encoding:str=None):
+    encoding = [encoding if encoding else get_bzip_enc(inpt)][0]
+    seps = Counter(pd.Series(pd.Series(pd.Series(next((
+               re.sub(bytes('|', encoding).join(map(re.escape, itm[1])),
+               bytes('|', encoding), itm[0])
+               for itm in tuple(zip(inpt.splitlines(),
+               [line.replace(bytes('\x00', encoding),
+                         bytes('', encoding)).split()
+                for line in bytes('\n', encoding).join(
+                inpt.splitlines()).split( bytes('\n', encoding))]))))).unique().max().split(
+                   bytes('\\', encoding))).unique()[0].split(
+                       bytes('|', encoding))[1:], dtype='object').unique()).most_common(1)
+    if seps:
+        return [seps[0][0] if seps[0][0] else bytes('\s', encoding)][0]
+    else:
+        return bytes('\s', encoding)
 
-def get_bzip_enc(inpt):
-    encodings = []
-    detector = udet()
+def get_bzip_enc(inpt:bytes):
+    encodings, detector = [], udet()
     detector.reset()
     while True:
         next((detector.feed(line) for line in
@@ -69,73 +52,92 @@ def get_bzip_enc(inpt):
             break
         break
     detector.close()
-    return tuple(detector.result.values())[0]
-   
-def get_lineterminator(inpt):
+    return detector.result['encoding']
+
+def get_lineterminator(inpt:bytes)->bytes:
     return pd.Series(next((itm[0].strip(itm[1])
                            for itm in
                            tuple(zip(inpt.splitlines(keepends=True),
                                      inpt.splitlines()))))).unique()[0]
 
-def get_has_header(inpt, encoding=None):
-    if not encoding:
-        encoding = get_bzip_enc(inpt)
+def get_has_header(inpt:bytes, encoding=None)->bool:
+    encoding = [encoding if encoding else get_bzip_enc(inpt)][0]
+    return bool(inpt[0] not in bytes('.-0123456789', encoding))
+
+    
+def get_widths(inpt:bytes, encoding=None):
+    encoding = [encoding if encoding else get_bzip_enc(inpt)][0]
+    return pd.Series(int(len(line)) if len(line) != \
+                                bytes('nan', encoding)
+                                    else 1 for line in
+                                inpt.splitlines()[1:-1]).max()
+
+def get_zip_contents(archv_path:Union[os.PathLike, str],
+                     ntpl=[], exclude=[], to_close:bool=True)->object:
+    myzip = ZipFile(archv_path)
+    ntpl = [ntpl if ntpl else getnametuple(myzip)][0]    
+    if exclude:
+        ntpl = filter_lst_exc(exclude, getnametuple(myzip))
+    vals = df(tuple(dict(zip(evenodd(itm)[0], evenodd(itm)[1])) for itm
+                    in tuple(tuple(no_ascii(repr(itm.lower())).strip().replace(
+               "'", "").replace("'",'').replace(
+                   '=',' ')[:-2].split())[1:]
+               for itm in set(repr(myzip.getinfo(itm)).strip(
+                   ' ').replace(itm, itm.replace(' ', '_')) if ' ' in
+                       itm else repr(myzip.getinfo(itm)).strip(
+                           ' ') for itm in ntpl))), dtype='object').sort_values(
+                               'filename').reset_index(drop=True)
+    vals[['src_name', 'ext']] = [(nm, os.path.splitext(nm)[1])
+                                    for nm in ntpl]
+    vals['filename'] = [row[1].filename.replace('/', '_')
+                        for row in vals.iterrows()]
+    if to_close:
+        myzip.close()
+        return vals
     else:
-        encoding = encoding
-    return bool(inpt[0] not in
-                bytes('.-0123456789', encoding))
+        return (myzip, vals)
+
+def scan_zip_contents(archv_path:Union[os.PathLike, str],
+                      ntpl=[], to_xtrct=[], exclude=[],
+                      to_close:bool=True, withbytes:bool=False,
+                      dst_path: Union[os.PathLike, str]=None)->object:
+    myzip, vals = get_zip_contents(archv_path, ntpl,
+                                   exclude, to_close=False)
+    if exclude:
+        vals = vals.drop([row[0] for row in vals.iterrows()
+                          if row[1].filename not in filter_lst_exc(
+                              exclude, vals.filename)], axis=0)
+    if to_xtrct:
+        dst_path = [dst_path if dst_path
+                    else pjoin(dname(archv_path),
+                               os.path.splitext(bname(archv_path))[0])][0]
+        if dst_path:
+            os.makedirs(dst_path, exist_ok = True)
+        xtrct_lst = vals.loc[[row[0] for row in vals.iterrows()
+                              if row[1].filename in
+                              filter_lst_inc(to_xtrct,
+                                             list(vals.filename),
+                                            sort=True)]]
+        [shutil.move(myzip.extract(member=row[1].src_name,
+                       path=dst_path), pjoin(dst_path, row[1].filename))
+         for row in tqdm(xtrct_lst.iterrows(), desc = 'extraction')]
+        vals = vals.loc[[row[0] for row in vals.iterrows()
+                         if row[1].filename not in xtrct_lst.values]]
+        removeEmptyFolders(dst_path, False)
+    if withbytes:
+        vals['bsheets'] = [myzip.open(row[1].src_name).read().lower()
+                           for row in vals.iterrows()]
+    if to_close:
+        myzip.close()
+    return vals.reset_index(drop = True)
+
+def scan_archv(inpt:bytes)->dict:
+    encod = get_bzip_enc(inpt)
+    return  dict(zip(('encoding', 'delimiter', 'has_header',
+                      'width', 'nrows'),
+                     (encod, get_delimiter(inpt, encod),
+                      get_has_header(inpt, encod),
+                      get_widths(inpt, encod),
+                      len(inpt.splitlines()))))
 
 
-def get_specs(inpt):
-    specnames = ['n_rows', 'row_fields', 'widths', 'item_widths']
-    specs = (len(inpt.splitlines()),
-             [len(line.split()) for line in inpt.splitlines()],
-             [len(line) for line in inpt.splitlines()],
-             [[len(itm) for itm in line.split()]
-              for line in inpt.splitlines()])
-    return dict(zip(specnames, specs))
-
-def get_delimiter(inpt, encoding=None):
-    if not encoding:
-        encoding = get_bzip_enc(inpt)
-    else:
-        encoding = encoding
-
-    seps = Counter(pd.Series(pd.Series(pd.Series(next((
-               re.sub(bytes('|', encoding).join(map(re.escape, itm[1])),
-               bytes('|', encoding), itm[0])
-               for itm in tuple(zip(inpt.splitlines(),
-               get_all_bitems(inpt, encoding)))))).unique().max().split(
-                   bytes('\\', encoding))).unique()[0].split(
-                       bytes('|', encoding))[1:]).unique()).most_common(1)
-    if seps:
-        return seps
-    else:
-        return [(False, False)]
-    
-def get_zipcontents(fpath):
-    myzip = ZipFile(fpath, 'r')
-    nlst = tuple(getnamelist(fpath))
-    contents = scan_bzip(myzip, nlst)
-    
-    contents['encoding'] = [get_bzip_enc(row[1]['bsheets'])
-                            for row in contents.iterrows()]
-
-    contents['lineterminator'] = [get_lineterminator(row[1]['bsheets'])
-                                  for row in contents.iterrows()]
-
-    contents['has_header'] = [get_has_header(row[1]['bsheets'],
-                                             row[1]['encoding'])
-                              for row in contents.iterrows()]
-    
-    contents[['n_rows', 'row_fields', 'widths', 'item_widths']] = \
-        [tuple(get_specs(row[1]['bsheets']).values())
-         for row in contents.iterrows()]
-    
-    contents['delimiter'] = [get_delimiter(row[1]['bsheets'],
-                                           encoding=row[1]['encoding'])[0][0]
-                             for row in contents.iterrows()]
-
-    myzip.close()
-    contents = contents.drop(columns='bsheets')
-    return contents
