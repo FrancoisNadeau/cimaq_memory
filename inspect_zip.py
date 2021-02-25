@@ -1,3 +1,29 @@
+#!/usr/bin/env python3
+
+import os
+import pandas as pd
+import regex as re
+import shutil
+
+from chardet import UniversalDetector as udet
+from collections import Counter
+from os.path import expanduser as xpu
+from os.path import basename as bname
+from os.path import dirname as dname
+
+from os.path import join as pjoin
+from pandas import DataFrame as df
+from tqdm import tqdm
+from typing import Union
+from zipfile import ZipFile
+
+from removeEmptyFolders import removeEmptyFolders
+
+from inspect_misc_text import evenodd
+from inspect_misc_text import filter_lst_exc
+from inspect_misc_text import filter_lst_inc
+from inspect_misc_text import filter_lst_inc
+from inspect_misc_text import no_ascii
 
 def getnametuple(myzip): 
     '''
@@ -65,12 +91,13 @@ def get_has_header(inpt:bytes, encoding=None)->bool:
     return bool(inpt[0] not in bytes('.-0123456789', encoding))
 
     
-def get_widths(inpt:bytes, encoding=None):
+def get_widths(inpt:bytes, encoding=None, hdr=None):
+    lines = [inpt.splitlines()[1:] if hdr else inpt.splitlines()][0]
     encoding = [encoding if encoding else get_bzip_enc(inpt)][0]
-    return pd.Series(int(len(line)) if len(line) != \
-                                bytes('nan', encoding)
-                                    else 1 for line in
-                                inpt.splitlines()[1:-1]).max()
+    return int(pd.Series(len(line) for line in
+                          lines).fillna(1).max())
+    
+    
 
 def get_zip_contents(archv_path:Union[os.PathLike, str],
                      ntpl=[], exclude=[], to_close:bool=True)->object:
@@ -111,8 +138,7 @@ def scan_zip_contents(archv_path:Union[os.PathLike, str],
         dst_path = [dst_path if dst_path
                     else pjoin(dname(archv_path),
                                os.path.splitext(bname(archv_path))[0])][0]
-        if dst_path:
-            os.makedirs(dst_path, exist_ok = True)
+        os.makedirs(dst_path, exist_ok = True)
         xtrct_lst = vals.loc[[row[0] for row in vals.iterrows()
                               if row[1].filename in
                               filter_lst_inc(to_xtrct,
@@ -133,11 +159,23 @@ def scan_zip_contents(archv_path:Union[os.PathLike, str],
 
 def scan_archv(inpt:bytes)->dict:
     encod = get_bzip_enc(inpt)
+    hdr = get_has_header(inpt, encod)
     return  dict(zip(('encoding', 'delimiter', 'has_header',
                       'width', 'nrows'),
                      (encod, get_delimiter(inpt, encod),
-                      get_has_header(inpt, encod),
-                      get_widths(inpt, encod),
+                      hdr, get_widths(inpt, encod, hdr),
                       len(inpt.splitlines()))))
 
+def force_utf8(inpt: bytes, encoding:str)->bytes:
+    return inpt.replace('0xff'.encode(encoding), ''.encode(encoding)).replace(
+               '\x00'.encode(encoding), ''.encode(encoding)).decode(
+                   'ascii', 'replace').replace('�', '').strip().encode('utf8')
+
+def mkfrombytes(inpt:bytes, encoding:str, delimiter:bytes, hdr:bool)->object:
+    return [re.sub(b'\s{2,}', b'\t',
+                   re.sub(delimiter, b'\t',
+                          re.sub(delimiter + b'{2,}',
+                                 delimiter + b'n\a' + delimiter,
+                                 line))).strip().replace(b' ', b'_').split(b'\t')
+            for line in force_utf8(inpt, encoding).splitlines()]
 
