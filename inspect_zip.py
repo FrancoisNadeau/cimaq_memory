@@ -97,7 +97,28 @@ def get_widths(inpt:bytes, encoding=None, hdr=None):
     return int(pd.Series(len(line) for line in
                           lines).fillna(1).max())
     
-    
+def get_dupindex(inpt:bytes, hdr:bool=False, delimiter:bytes=None)->bool:
+    bytelines = [inpt.splitlines() if not hdr else inpt.splitlines()[1:]][0]
+    ev_itms, od_itms = evenodd([line.split(delimiter) for line in bytelines])
+    return bool([line[0] for line in ev_itms] == [line[0] for line in od_itms])
+
+def get_dupvalues(inpt:bytes, hdr:bool=False, delimiter:bytes=None)->list:
+    bytelines = [inpt.splitlines() if not hdr else inpt.splitlines()[1:]][0]
+    ev_itms, od_itms = evenodd([line.split(delimiter) for line in bytelines])
+    checkup = tuple(zip(list(df(ev_itms).iteritems()), list(df(od_itms).iteritems())))
+    return [itm[0][1].all() == itm[1][1].all() for itm in checkup]
+
+def fix_dupindex(inpt:bytes, hdr:bool=False, delimiter:bytes=None)->bytes:
+    byte_itms = [line.split(delimiter)
+                 for line in [inpt.splitlines() if not hdr
+                              else inpt.splitlines()[1:]][0]]
+    dupvals = tuple(zip(df(byte_itms).columns, get_dupvalues(inpt)))
+    good = df(byte_itms)[[itm[0] for itm in dupvals if itm[1]]]
+    test = evenodd([row[1] for row in df(byte_itms)[[itm[0] for itm in dupvals
+                         if not itm[1]]].iterrows()])
+    return pd.concat([good.drop_duplicates().reset_index(drop=True),
+                      df(test[0]).reset_index(drop=True),
+                      df(test[1]).reset_index(drop=True)], axis=1)
 
 def get_zip_contents(archv_path:Union[os.PathLike, str],
                      ntpl=[], exclude=[], to_close:bool=True)->object:
@@ -146,7 +167,7 @@ def scan_zip_contents(archv_path:Union[os.PathLike, str],
                                             sort=True)]]
         [shutil.move(myzip.extract(member=row[1].src_name,
                        path=dst_path), pjoin(dst_path, row[1].filename))
-         for row in tqdm(xtrct_lst.iterrows(), desc = 'extraction')]
+         for row in xtrct_lst.iterrows()]
         vals = vals.loc[[row[0] for row in vals.iterrows()
                          if row[1].filename not in xtrct_lst.values]]
         removeEmptyFolders(dst_path, False)
@@ -161,21 +182,23 @@ def scan_archv(inpt:bytes)->dict:
     encod = get_bzip_enc(inpt)
     hdr = get_has_header(inpt, encod)
     return  dict(zip(('encoding', 'delimiter', 'has_header',
-                      'width', 'nrows'),
+                      'width', 'nrows', 'dup_index'),
                      (encod, get_delimiter(inpt, encod),
                       hdr, get_widths(inpt, encod, hdr),
-                      len(inpt.splitlines()))))
+                      len(inpt.splitlines()),
+                      get_dupindex(inpt))))
 
 def force_utf8(inpt: bytes, encoding:str)->bytes:
     return inpt.replace('0xff'.encode(encoding), ''.encode(encoding)).replace(
                '\x00'.encode(encoding), ''.encode(encoding)).decode(
                    'ascii', 'replace').replace('�', '').strip().encode('utf8')
 
-def mkfrombytes(inpt:bytes, encoding:str, delimiter:bytes, hdr:bool)->object:
-    return [re.sub(b'\s{2,}', b'\t',
-                   re.sub(delimiter, b'\t',
+def mkfrombytes(inpt:bytes, encoding:str, delimiter:bytes, hdr:bool=False,
+                dupindex:bool=None, new_sep:bytes=b'\t')->object:
+    return b'\n'.join([re.sub(b'\s{2,}', new_sep,
+                   re.sub(delimiter, new_sep,
                           re.sub(delimiter + b'{2,}',
-                                 delimiter + b'n\a' + delimiter,
-                                 line))).strip().replace(b' ', b'_').split(b'\t')
-            for line in force_utf8(inpt, encoding).splitlines()]
+                                 delimiter + b'NaN' + delimiter,
+                                 line))).strip().replace(b' ', b'_').replace(b'\x00', b'')
+                       for line in force_utf8(inpt, encoding).splitlines()]).decode()
 
