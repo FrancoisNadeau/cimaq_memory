@@ -47,7 +47,7 @@ from removeEmptyFolders import removeEmptyFolders
 from json_read import json_read
 from json_write import json_write
 
-def loadimages(indir: Union[os.PathLike, str]):
+def loadimages(indir:Union[os.PathLike, str])->list:
     '''
     Description
     -----------
@@ -97,13 +97,14 @@ def flatten(nested_seq):
                                    and not isinstance(sublist, str))
                                else [sublist])]
 
-def loadfiles(pathlist):
+def loadfiles(pathlist:Union[list, tuple])->object:
     return df(((os.path.splitext(bname(sheet))[0],
                 os.path.splitext(bname(sheet))[1],
                 sheet) for sheet in pathlist),
-              columns=['fname', 'ext', 'fpaths'])
+              columns=['fname', 'ext', 'fpaths']).sort_values(
+                  'fname').reset_index(drop=True)
 
-def sortmap(info_df, patterns):
+def sortmap(info_df:object, patterns:object)->object:
     ''' Identifies files in info_df with boolean values
         True: Pattern is in filename; False: It is not'''
     patterns = df(patterns, columns=['ids', 'patterns'])
@@ -114,7 +115,7 @@ def sortmap(info_df, patterns):
              in fname for fname in info_df.fname]
     return info_df
 
-def find_key(input_dict, value):
+def find_key(input_dict:dict, value):
     ''' Source: https://stackoverflow.com/questions/16588328/return-key-by-value-in-dictionary '''
     return next((k for k, v in input_dict.items() if v == value), None)
 
@@ -129,5 +130,6 @@ def get_cimaq_dir_paths(cimaq_dir="~/../../media/francois/seagate_1tb/cimaq_03-1
     json_params = json_read(xpu('~/cimaq_memory/cimaq_dir_list.json'), 'r')
     dlst = df.from_dict(json_params['dir_list'], orient='index', columns=['suffixes'])
     patterns =  df.from_dict(json_params['patterns'], orient='index', columns=['patterns'])
+    prefixes = pd.Series(json_params['prefixes'])
     dlst['fpaths'] = [join(xpu(cimaq_dir), sfx) for sfx in dlst.suffixes]
-    return dlst.T, patterns
+    return dlst.T, patterns, prefixes

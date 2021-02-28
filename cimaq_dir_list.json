@@ -2,6 +2,7 @@
   "dir_list": {
     "cimaq_dir": "~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives",
     "confdir": "confounds",
+    "events_dir": "cleaned_events",
     "mean_motion": "participants/MotionResults/fMRI_meanMotion.tsv",
     "mean_file": "participants/MemoTaskParticipantFile.tsv",
     "mean_npsych": "participants/Neuropsych/ALL_Neuropsych_scores.tsv",
@@ -11,13 +12,16 @@
     "new_mean_dir": "mean_sheets",
     "uzeprimes": "task_files/uzeprimes",
     "zeprimes": "task_files/zipped_eprime",
-    "pdf_files": "task_files/pdf_files",
     "edat2_files": "task_files/edat2_files",
-    "pdf_files": "task_files/pdf_files",
     "pdf_files": "task_files/pdf_files"
   },
   "patterns": {
-    "dccid": "b'(?<!\\d)\\d{6}(?!\\d)'",
-    "pscid": "b'(?<!\\d)\\d{7}(?!\\d)'"
-  }
+    "dccid": "(?<!\\d)\\d{6}(?!\\d)",
+    "pscid": "(?<!\\d)\\d{7}(?!\\d)"
+  },
+   "prefixes": {
+       "1": "output_responses",
+       "2": "onset_event",
+       "3": "output_retrieval"
+   }
 }

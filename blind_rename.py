@@ -29,7 +29,7 @@ def findblind_cols(sheets, pattern):
     pattern despite differently named columns or items
     '''
     sheets = lowercols(sheets)
-    sheets2 = [df(item[1].str.fullmatch(pattern)
+    sheets2 = [df(item[1].values.tostring().decode().str.fullmatch(pattern)
                   for item in sheet.iteritems())
                for sheet in sheets]
     matched_cols = [sheet.loc[[row[0] for row
