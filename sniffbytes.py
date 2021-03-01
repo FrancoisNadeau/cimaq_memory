@@ -42,7 +42,7 @@ def get_bytes(inpt:Union[bytes, str, os.PathLike])->bytes:
             else b'0'][0]
 
 def get_bzip_enc(inpt:Union[bytes, str, os.PathLike])->str:
-    inpt = get_bytes(inpt)#.replace(b'\x00', b'non')    
+    inpt = get_bytes(inpt)    
     detector = udet()
     detector.reset()
     while True:
@@ -154,13 +154,14 @@ def mkfrombytes(inpt:Union[bytes, str, os.PathLike],
                 new_sep:bytes=b'\t')->bytes:
     inpt = get_bytes(inpt)
     encoding = [encoding if encoding else get_bzip_enc(inpt)][0]    
-    return unidecode(b'\n'.join([re.sub(b'\s{2,}', new_sep,
+    return b'\n'.join([re.sub(b'\s{2,}', new_sep,
                                         re.sub(delimiter, new_sep,
                           re.sub(delimiter + b'{2,}',
                                  delimiter + b'NaN' + delimiter,
                                  line))).strip().replace(b' ', b'_').replace(b'\x00', b'')
                        for line in force_utf8(inpt, encoding).splitlines()]).replace(
-                           delimiter, new_sep).decode()).encode()   
+                           delimiter, new_sep).decode().encode()   
+
 
 def fix_dupindex(inpt:Union[bytes, str, os.PathLike],
                  encoding:str=None, hdr:bool=False,
@@ -174,12 +175,12 @@ def fix_dupindex(inpt:Union[bytes, str, os.PathLike],
     good = df(byte_itms)[[itm[0] for itm in dupvals if itm[1]]]
     test = evenodd([row[1] for row in df(byte_itms)[[itm[0] for itm in dupvals
                          if not itm[1]]].iterrows()])
-    newbytes = unidecode(force_utf8(b'\n'.join([b'\t'.join(
-                   [str(item).encode() for item in line]) for line in \
+    newbytes = '\n'.join(['\t'.join(
+                   [item.decode(encoding) for item in line]) for line in \
                        pd.concat([good.drop_duplicates().reset_index(drop=True),
                                   df(test[0]).reset_index(drop=True),
                                   df(test[1]).reset_index(drop=True)],
-                                 axis=1).values.tolist()]), 'utf8').decode()).encode()
+                                 axis=1).convert_dtypes(str).values.tolist()]).encode('utf8')#, 'utf8').decode().encode()
     return newbytes
 
 def scansniff(folderpath:Union[str, os.PathLike])->object:
