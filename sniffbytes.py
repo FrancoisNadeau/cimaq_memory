@@ -29,6 +29,7 @@ from inspect_misc_text import filter_lst_exc
 from inspect_misc_text import filter_lst_inc
 from inspect_misc_text import no_ascii
 
+
 def get_bytes(inpt:Union[bytes, str, os.PathLike])->bytes:
     ''' Returns bytes from file either from memory or from reading '''
     if os.path.isfile(inpt):
@@ -292,7 +293,7 @@ def scansniff_zip(folderpath:Union[str, os.PathLike],
                   exclude:Union[str, list, tuple]=[])->object:
     scanned_zip = [scan_zip_contents(fpath, to_xtrct=[],
                                      exclude=exclude, withbytes=True)
-                   for fpath in tqdm(sorted(loadimages(folderpath)),
+                   for fpath in tqdm(filter_lst_exc(exclude, sorted(loadimages(folderpath))),
                                       desc = 'scanning')]
     zip_contents = [df(pd.concat([row[1], pd.Series(scan_bytes(row[1]['bsheets']))])
                      for row in itm.sort_values('filename').iterrows())
