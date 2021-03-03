@@ -154,35 +154,31 @@ def mkfrombytes(inpt:Union[bytes, str, os.PathLike],
                 hdr:bool=False, dupindex:bool=None,
                 new_sep:bytes=b'\t')->bytes:
     inpt = get_bytes(inpt)
-    encoding = [encoding if encoding else get_bzip_enc(inpt)][0]    
+    encoding = [encoding if encoding else get_bzip_enc(inpt)][0]
+    delimiter = [delimiter if delimiter else get_delimiter(inpt)][0]
+    
     return b'\n'.join([re.sub(b'\s{2,}', new_sep,
                                         re.sub(delimiter, new_sep,
                           re.sub(delimiter + b'{2,}',
                                  delimiter + b'NaN' + delimiter,
-                                 line))).strip().replace(b' ', b'_').replace(b'\x00', b'')
+                                 line))).strip().replace(b' ', b'_').replace(b'\x00', b'NaN')
                        for line in force_utf8(inpt, encoding).splitlines()]).replace(
-                           delimiter, new_sep).decode().encode()   
-
+                           delimiter, new_sep).decode().encode()
 
 def fix_dupindex(inpt:Union[bytes, str, os.PathLike],
                  encoding:str=None, hdr:bool=False,
                  delimiter:bytes=None)->bytes:
-    inpt = get_bytes(inpt)
-    encoding = [encoding if encoding else get_bzip_enc(inpt)][0]
-    byte_itms = [line.split(delimiter)
-                 for line in [inpt.splitlines() if not hdr
-                              else inpt.splitlines()[1:]][0]]
-    dupvals = tuple(zip(df(byte_itms).columns, get_dupvalues(inpt)))
-    good = df(byte_itms)[[itm[0] for itm in dupvals if itm[1]]]
-    test = evenodd([row[1] for row in df(byte_itms)[[itm[0] for itm in dupvals
-                         if not itm[1]]].iterrows()])
-    newbytes = '\n'.join(['\t'.join(
-                   [item.decode(encoding) for item in line]) for line in \
-                       pd.concat([good.drop_duplicates().reset_index(drop=True),
-                                  df(test[0]).reset_index(drop=True),
-                                  df(test[1]).reset_index(drop=True)],
-                                 axis=1).convert_dtypes(str).values.tolist()]).encode('utf8')#, 'utf8').decode().encode()
-    return newbytes
+    tmp = evenodd(force_utf8(mkfrombytes(get_bytes(inpt))).splitlines())
+
+    evdf = df([line.decode().split() for line in tmp[0]])
+    oddf = df([line.decode().split() for line in tmp[1]])
+
+    booltest = [col for col in evdf.columns if
+                evdf[col].values.all() == oddf[col].values.all()]
+    newsheet = pd.merge(evdf, oddf, on = booltest)
+    return '\n'.join(['\t'.join([itm for itm in line])
+                      for line in newsheet.rename(dict(enumerate(
+                          newsheet.columns))).values.tolist()]).encode()
 
 def scansniff(folderpath:Union[str, os.PathLike])->object:
     contents = loadfiles(sorted(loadimages(
@@ -293,7 +289,8 @@ def scansniff_zip(folderpath:Union[str, os.PathLike],
                   exclude:Union[str, list, tuple]=[])->object:
     scanned_zip = [scan_zip_contents(fpath, to_xtrct=[],
                                      exclude=exclude, withbytes=True)
-                   for fpath in tqdm(filter_lst_exc(exclude, sorted(loadimages(folderpath))),
+                   for fpath in tqdm(filter_lst_exc(
+                       exclude, sorted(loadimages(folderpath))),
                                       desc = 'scanning')]
     zip_contents = [df(pd.concat([row[1], pd.Series(scan_bytes(row[1]['bsheets']))])
                      for row in itm.sort_values('filename').iterrows())
@@ -322,25 +319,3 @@ def repair_dataset(folderpath:Union[str, os.PathLike],
 
     [stream2file(row[1].newsheets, row[1].dst_path)
      for row in tqdm(sctest.iterrows(), desc = 'saving')]
-
-#######################################################
-# def get_bdialect(inpt:Union[bytes, str, os.PathLike], encoding:str=None):
-#     ''' Source: https://wellsr.com/python/introduction-to-csv-dialects-with-the-python-csv-module/#DialectDetection
-#         Description: Prints out all relevant formatting parameters of a dialect '''
-#     inpt = get_bytes(inpt)
-#     encoding = [encoding if encoding else get_bzip_enc(inpt)][0]
-#     hdr = get_has_header(inpt)
-#     delimiter = get_delimiter(inpt, encoding)
-#     valuez = [encoding, hdr, get_widths(inpt, encoding, hdr),
-#               len(inpt.splitlines()),
-#               delimiter, get_lineterminator(inpt),
-#               bool([line.strip() for
-#                     line in inpt.splitlines()] != inpt.splitlines()),
-#               get_dupindex(inpt, encoding, delimiter)]
-#     cnames =['encoding', 'has_header', 'width', 'nrows', 'delimiter',
-#              'lineterminator', 'skipinitialspace', 'dupindex']
-#     dialect_df = pd.Series(valuez, index=cnames)
-#     return dialect_df
-
-                   
-

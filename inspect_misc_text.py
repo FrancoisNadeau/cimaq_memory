@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import chardet
 import collections
 import csv
 import glob
@@ -23,11 +22,8 @@ import shutil
 import string
 import sys
 import tarfile
-import xml.parsers.expat as xmlprse
 import zipfile
 
-from chardet import detect
-from chardet.universaldetector import UniversalDetector as udet
 from collections import Counter
 from collections import OrderedDict
 from functools import reduce
@@ -70,7 +66,7 @@ def get_dialect(filename, encoding:str=None):
         src.close()
         return dialect_df
 
-def make_labels(datas, var_name):
+def make_labels(datas:Union[dict, object], var_name:Union[int, str])->dict:
     ''' Returns dict of (key, val) pairs using 'enumerate' on possible values
         filtered by 'Counter' - can be used to map DataFrame objects - '''
     return dict(enumerate(Counter(datas[var_name]).keys(), start=1))
