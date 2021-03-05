@@ -37,7 +37,7 @@ from os import listdir as ls
 from os.path import basename as bname
 from os.path import dirname as dname
 from os.path import expanduser as xpu
-from os.path import join
+from os.path import join as pjoin
 from os.path import splitext
 from pandas import DataFrame as df
 from tqdm import tqdm
@@ -46,84 +46,9 @@ from typing import Union
 from removeEmptyFolders import removeEmptyFolders
 from json_read import json_read
 from json_write import json_write
-
-def loadimages(indir:Union[os.PathLike, str])->list:
-    '''
-    Description
-    -----------
-    Lists the full relative path of all '.jpeg' files in a directory.
-    Only lists files, not directories.
-
-    Parameters
-    ----------
-    imdir: type = str
-        Name of the directory containing the images.
-
-    Return
-    ------
-    imlist: type = list
-        1D list containing all '.jpeg' files' full relative paths
-    '''
-    imlist = []
-    for allimages in os.walk(indir):
-        for image in allimages[2]:
-            indir = join(allimages[0], image)
-            if os.path.isfile(indir):
-                imlist.append(indir)
-    return imlist
-
-def flatten(nested_seq):
-    """
-    Description
-    -----------
-    Returns unidimensional list from nested list using list comprehension.
-
-    Parameters
-    ----------
-        nestedlst: list containing other lists etc.
-
-    Variables
-    ---------
-        bottomElem: type = str
-        sublist: type = list
-
-    Return
-    ------
-        flatlst: unidimensional list
-    """
-    return [bottomElem for sublist in nested_seq
-            for bottomElem in (flatten(sublist)\
-                               if (isinstance(sublist, Sequence)\
-                                   and not isinstance(sublist, str))
-                               else [sublist])]
-
-def loadfiles(pathlist:Union[list, tuple])->object:
-    return df(((os.path.splitext(bname(sheet))[0],
-                os.path.splitext(bname(sheet))[1],
-                sheet) for sheet in pathlist),
-              columns=['fname', 'ext', 'fpaths']).sort_values(
-                  'fname').reset_index(drop=True)
-
-def sortmap(info_df:object, patterns:object)->object:
-    ''' Identifies files in info_df with boolean values
-        True: Pattern is in filename; False: It is not'''
-    patterns = df(patterns, columns=['ids', 'patterns'])
-    for row in patterns.iterrows():
-        cmplr = re.compile(row[1]['patterns'])
-        info_df[row[1]['ids']] = \
-            [cmplr.search(row[1]['patterns']).group()
-             in fname for fname in info_df.fname]
-    return info_df
-
-def find_key(input_dict:dict, value):
-    ''' Source: https://stackoverflow.com/questions/16588328/return-key-by-value-in-dictionary '''
-    return next((k for k, v in input_dict.items() if v == value), None)
-
-def megamerge(dflist, howto, onto=None):
-    return reduce(lambda x, y: pd.merge(x, y,
-                                        on=onto,
-                                        how=howto).astype('object'),
-                  dflist)
+from sniffbytes import loadfiles
+from sniffbytes import loadimages
+from sniffbytes import repair_dataset
 
 ################## CIMA-Q SPECIDIC ############################################
 def get_cimaq_dir_paths(cimaq_dir="~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives"):
@@ -131,5 +56,71 @@ def get_cimaq_dir_paths(cimaq_dir="~/../../media/francois/seagate_1tb/cimaq_03-1
     dlst = df.from_dict(json_params['dir_list'], orient='index', columns=['suffixes'])
     patterns =  df.from_dict(json_params['patterns'], orient='index', columns=['patterns'])
     prefixes = pd.Series(json_params['prefixes'])
-    dlst['fpaths'] = [join(xpu(cimaq_dir), sfx) for sfx in dlst.suffixes]
+    dlst['fpaths'] = [pjoin(xpu(cimaq_dir), sfx) for sfx in dlst.suffixes]
     return dlst.T, patterns, prefixes
+
+def repair_enc_task(cimaq_dir):
+    onsets = loadfiles([fpath for fpath in 
+                        loadimages(get_cimaq_dir_paths(cimaq_dir)[0].temp_events_dir.fpaths)
+                        if 'onset_event' in bname(fpath)]).sort_values(
+                            'fname').reset_index(drop = True)
+    onsets[['pscid', 'dccid', 'subids']] = [(row[1].fname.split('_')[0],
+                                             row[1].fname.split('_')[1],
+                                             'sub-' + '-'.join(row[1].fname.split('_')[:2]))
+                                  for row in onsets.iterrows()]
+    outputs = loadfiles([fpath for fpath in 
+                        loadimages(get_cimaq_dir_paths(cimaq_dir)[0].temp_events_dir.fpaths)
+                        if 'output_responses' in bname(fpath)]).sort_values(
+                            'fname').reset_index(drop = True)
+    retrievals = loadfiles([fpath for fpath in 
+                        loadimages(get_cimaq_dir_paths(cimaq_dir)[0].temp_events_dir.fpaths)
+                        if 'output_retrieval' in bname(fpath)]).sort_values(
+                            'fname').reset_index(drop = True)
+    os.makedirs(get_cimaq_dir_paths(cimaq_dir)[0].events_dir.fpaths, exist_ok = True)
+    os.makedirs(get_cimaq_dir_paths(cimaq_dir)[0].behavioral_dir.fpaths, exist_ok = True)
+
+    for row in tqdm(onsets.iterrows(), desc = 'encoding_task'):
+        pd.concat([pd.read_csv(onsets.iloc[row[0]].fpaths, sep = '\t', header = None).rename(
+                   {0: 'trialnumber', 1: 'category',
+                    2: 'trialcode', 3: 'oldnumber',
+                    5: 'stim_onset', 6: 'stim_duration',
+                    8: 'fix_onset', 9: 'fix_duration'},
+                         axis = 1).drop([4, 7], axis = 1),
+                  pd.read_csv(outputs.iloc[row[0]].fpaths, sep = '\t')[['correctsource', 'stim_rt']]],
+                  axis = 1).to_csv(pjoin(get_cimaq_dir_paths(cimaq_dir)[0].events_dir.fpaths,
+                                         'sub-'+'-'.join(bname(row[1].fpaths).split('_')[:2]) + \
+                                                         '_task-encoding_events.tsv'), sep = '\t')
+        pd.read_csv(retrievals.loc[row[0]].fpaths, header = 0, sep = '\t').iloc[:, :-1].to_csv(
+                pjoin(get_cimaq_dir_paths(cimaq_dir)[0].behavioral_dir.fpaths,
+                      'sub-'+'-'.join(bname(row[1].fpaths).split('_')[:2]) + \
+                          '_task-retrieval_behavioral.tsv'), sep = '\t')
+    shutil.rmtree(get_cimaq_dir_paths(cimaq_dir)[0].temp_events_dir.fpaths)
+    return onsets[['pscid', 'dccid', 'subids']]
+
+def fetch_cimaq(cimaq_dir):
+    qc_ok = sorted([str(itm[0]) for itm in
+                pd.read_csv(get_cimaq_dir_paths(
+                    cimaq_dir)[0].mean_qc.fpaths, sep='\t').values])
+    qc_ok
+    to_exclude = df(sorted([(str(bname(itm).split('_')[0]),
+                         str(bname(itm).split('_')[1]), itm) for itm in
+                        loadimages(get_cimaq_dir_paths(
+                            cimaq_dir)[0].zeprimes.fpaths)
+                        if str(bname(itm).split('_')[1]) not in qc_ok]),
+                   columns = ['pscid', 'dccid', 'fpaths']).set_index(
+                       'dccid').sort_index().reset_index().fpaths.tolist()
+
+    repair_dataset(get_cimaq_dir_paths(cimaq_dir)[0].zeprimes.fpaths,
+                   get_cimaq_dir_paths(cimaq_dir)[0].temp_events_dir.fpaths,
+                   exclude = ['pratique', 'practice', '.pdf', '.edat2'] + to_exclude)
+    allids = repair_enc_task(cimaq_dir)
+    pscids = allids.pscid
+    dccids = allids.dccid
+    subids = allids.subids
+    cimaq = pd.concat([subids, pscids, dccids] + [loadfiles(loadimages(cimaqpath)).dropna(axis = 0)['fpaths']
+                                  for cimaqpath in get_cimaq_dir_paths(cimaq_dir)[0].loc['fpaths'][1: 6]],
+                      axis = 1).dropna(axis = 0).T.reset_index(drop = True).T
+    cimaq = cimaq.rename(columns = {0: 'subid', 1: 'pscid', 2: 'dccid', 3: 'stereonl', 4: 'behavioral',
+                                    5: 'confounds', 6: 'events', 7:'func'})
+    return cimaq
+

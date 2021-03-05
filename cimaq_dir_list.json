@@ -1,8 +1,12 @@
 {
   "dir_list": {
     "cimaq_dir": "~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives",
-    "confdir": "confounds",
-    "events_dir": "cleaned_events",
+    "stereonl_dir": "anat",
+    "behavioral_dir": "task_retrieval_bahvioral",
+    "confonunds_dir": "confounds",
+    "events_dir": "task_encoding_events",
+    "func_dir": "fmri/resample",
+    "temp_events_dir": "cleaned_events",
     "mean_motion": "participants/MotionResults/fMRI_meanMotion.tsv",
     "mean_file": "participants/MemoTaskParticipantFile.tsv",
     "mean_npsych": "participants/Neuropsych/ALL_Neuropsych_scores.tsv",

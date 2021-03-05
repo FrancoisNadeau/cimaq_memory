@@ -21,14 +21,88 @@ from zipfile import ZipFile
 
 from removeEmptyFolders import removeEmptyFolders
 
-from cimaq_utils import loadfiles
-from cimaq_utils import loadimages
-
 from inspect_misc_text import evenodd
 from inspect_misc_text import filter_lst_exc
 from inspect_misc_text import filter_lst_inc
 from inspect_misc_text import no_ascii
 
+def loadimages(indir:Union[os.PathLike, str])->list:
+    '''
+    Description
+    -----------
+    Lists the full relative path of all '.jpeg' files in a directory.
+    Only lists files, not directories.
+
+    Parameters
+    ----------
+    imdir: type = str
+        Name of the directory containing the images.
+
+    Return
+    ------
+    imlist: type = list
+        1D list containing all '.jpeg' files' full relative paths
+    '''
+    imlist = []
+    for allimages in os.walk(indir):
+        for image in allimages[2]:
+            indir = pjoin(allimages[0], image)
+            if os.path.isfile(indir):
+                imlist.append(indir)
+    return imlist
+
+def flatten(nested_seq):
+    """
+    Description
+    -----------
+    Returns unidimensional list from nested list using list comprehension.
+
+    Parameters
+    ----------
+        nestedlst: list containing other lists etc.
+
+    Variables
+    ---------
+        bottomElem: type = str
+        sublist: type = list
+
+    Return
+    ------
+        flatlst: unidimensional list
+    """
+    return [bottomElem for sublist in nested_seq
+            for bottomElem in (flatten(sublist)\
+                               if (isinstance(sublist, Sequence)\
+                                   and not isinstance(sublist, str))
+                               else [sublist])]
+
+def loadfiles(pathlist:Union[list, tuple])->object:
+    return df(((bname(sheet).split('.', 1)[0],
+                '.'+bname(sheet).split('.', 1)[1] ,
+                sheet) for sheet in pathlist),
+              columns=['fname', 'ext', 'fpaths']).sort_values(
+                  'fname').reset_index(drop=True)
+
+def sortmap(info_df:object, patterns:object)->object:
+    ''' Identifies files in info_df with boolean values
+        True: Pattern is in filename; False: It is not'''
+    patterns = df(patterns, columns=['ids', 'patterns'])
+    for row in patterns.iterrows():
+        cmplr = re.compile(row[1]['patterns'])
+        info_df[row[1]['ids']] = \
+            [cmplr.search(row[1]['patterns']).group()
+             in fname for fname in info_df.fname]
+    return info_df
+
+def find_key(input_dict:dict, value):
+    ''' Source: https://stackoverflow.com/questions/16588328/return-key-by-value-in-dictionary '''
+    return next((k for k, v in input_dict.items() if v == value), None)
+
+def megamerge(dflist, howto, onto=None):
+    return reduce(lambda x, y: pd.merge(x, y,
+                                        on=onto,
+                                        how=howto).astype('object'),
+                  dflist)
 
 def get_bytes(inpt:Union[bytes, str, os.PathLike])->bytes:
     ''' Returns bytes from file either from memory or from reading '''
@@ -297,6 +371,29 @@ def scansniff_zip(folderpath:Union[str, os.PathLike],
                     for itm in tqdm(scanned_zip, desc = 'sniffing')]
     return zip_contents
 
+# def repair_dataset(folderpath:Union[str, os.PathLike],
+#                    dst_path:Union[str, os.PathLike]=None,
+#                    exclude:Union[str, list, tuple]=[])->None:
+#     sctest = pd.concat([itm.drop([row[0] for row in itm.iterrows()
+#                         if 'empty_datas' in row[1].values],
+#                        axis=0) for itm in
+#               scansniff_zip(folderpath, exclude)],
+#                        ignore_index=True).sort_values('filename')
+
+#     sctest[['newsheets', 'dst_path']] = \
+#         [(mkfrombytes(row[1].bsheets, row[1].encoding,
+#                       row[1].delimiter, row[1].dup_index)
+#                       if not row[1].dup_index else
+#                       fix_dupindex(mkfrombytes(row[1].bsheets, row[1].encoding,
+#                                                row[1].delimiter, row[1].dup_index),
+#                                    row[1].has_header, row[1].delimiter),
+#                       pjoin([dst_path if dst_path else folderpath][0],
+#                             os.path.splitext(row[1].filename)[0]+'.tsv'))
+#                      for row in tqdm(sctest.iterrows(), desc = 'repairing')]
+
+#     [stream2file(row[1].newsheets, row[1].dst_path)
+#      for row in tqdm(sctest.iterrows(), desc = 'saving')]
+
 def repair_dataset(folderpath:Union[str, os.PathLike],
                    dst_path:Union[str, os.PathLike]=None,
                    exclude:Union[str, list, tuple]=[])->None:
@@ -307,15 +404,15 @@ def repair_dataset(folderpath:Union[str, os.PathLike],
                        ignore_index=True).sort_values('filename')
 
     sctest[['newsheets', 'dst_path']] = \
-        [(mkfrombytes(row[1].bsheets, row[1].encoding,
+        [itm[1] for itm in sorted([(row[1].filename, (mkfrombytes(row[1].bsheets, row[1].encoding,
                       row[1].delimiter, row[1].dup_index)
                       if not row[1].dup_index else
                       fix_dupindex(mkfrombytes(row[1].bsheets, row[1].encoding,
                                                row[1].delimiter, row[1].dup_index),
                                    row[1].has_header, row[1].delimiter),
                       pjoin([dst_path if dst_path else folderpath][0],
-                            os.path.splitext(row[1].filename)[0]+'.tsv'))
-                     for row in tqdm(sctest.iterrows(), desc = 'repairing')]
+                            os.path.splitext(row[1].filename)[0]+'.tsv')))
+                     for row in tqdm(sctest.iterrows(), desc = 'repairing')])]
 
     [stream2file(row[1].newsheets, row[1].dst_path)
      for row in tqdm(sctest.iterrows(), desc = 'saving')]
