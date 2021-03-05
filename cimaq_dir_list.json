@@ -1,6 +1,5 @@
 {
   "dir_list": {
-    "cimaq_dir": "~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives",
     "stereonl_dir": "anat",
     "behavioral_dir": "task_retrieval_bahvioral",
     "confonunds_dir": "confounds",

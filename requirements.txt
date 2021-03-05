@@ -1,0 +1,11 @@
+chardet
+matplotlib
+nibabel
+nilearn>=0.6.0a
+numpy
+pandas
+regex
+sklearn
+tqdm
+typing
+unidecode
