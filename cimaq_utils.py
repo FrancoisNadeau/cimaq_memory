@@ -48,7 +48,7 @@ from json_read import json_read
 from json_write import json_write
 from sniffbytes import loadfiles
 from sniffbytes import loadimages
-from sniffbytes import repair_dataset
+from repair_dataset import repair_dataset
 
 ################## CIMA-Q SPECIDIC ############################################
 def get_cimaq_dir_paths(cimaq_dir="~/../../media/francois/seagate_1tb/cimaq_03-19/cimaq_derivatives"):
@@ -60,8 +60,9 @@ def get_cimaq_dir_paths(cimaq_dir="~/../../media/francois/seagate_1tb/cimaq_03-1
     return dlst.T, patterns, prefixes
 
 def repair_enc_task(cimaq_dir):
+    dlst = get_cimaq_dir_paths(cimaq_dir)[0]        
     onsets = loadfiles([fpath for fpath in 
-                        loadimages(get_cimaq_dir_paths(cimaq_dir)[0].temp_events_dir.fpaths)
+                        loadimages(dlst.temp_events_dir.fpaths)
                         if 'onset_event' in bname(fpath)]).sort_values(
                             'fname').reset_index(drop = True)
     onsets[['pscid', 'dccid', 'subids']] = [(row[1].fname.split('_')[0],
@@ -69,15 +70,15 @@ def repair_enc_task(cimaq_dir):
                                              'sub-' + '-'.join(row[1].fname.split('_')[:2]))
                                   for row in onsets.iterrows()]
     outputs = loadfiles([fpath for fpath in 
-                        loadimages(get_cimaq_dir_paths(cimaq_dir)[0].temp_events_dir.fpaths)
+                        loadimages(dlst.temp_events_dir.fpaths)
                         if 'output_responses' in bname(fpath)]).sort_values(
                             'fname').reset_index(drop = True)
     retrievals = loadfiles([fpath for fpath in 
-                        loadimages(get_cimaq_dir_paths(cimaq_dir)[0].temp_events_dir.fpaths)
+                        loadimages(dlst.temp_events_dir.fpaths)
                         if 'output_retrieval' in bname(fpath)]).sort_values(
                             'fname').reset_index(drop = True)
-    os.makedirs(get_cimaq_dir_paths(cimaq_dir)[0].events_dir.fpaths, exist_ok = True)
-    os.makedirs(get_cimaq_dir_paths(cimaq_dir)[0].behavioral_dir.fpaths, exist_ok = True)
+    os.makedirs(pjoin(os.getcwd(), dlst.events_dir.suffixes), exist_ok = True)
+    os.makedirs(pjoin(os.getcwd(), dlst.behavioral_dir.suffixes), exist_ok = True)
 
     for row in tqdm(onsets.iterrows(), desc = 'encoding_task'):
         pd.concat([pd.read_csv(onsets.iloc[row[0]].fpaths, sep = '\t', header = None).rename(
@@ -87,38 +88,39 @@ def repair_enc_task(cimaq_dir):
                     8: 'fix_onset', 9: 'fix_duration'},
                          axis = 1).drop([4, 7], axis = 1),
                   pd.read_csv(outputs.iloc[row[0]].fpaths, sep = '\t')[['correctsource', 'stim_rt']]],
-                  axis = 1).to_csv(pjoin(get_cimaq_dir_paths(cimaq_dir)[0].events_dir.fpaths,
+                  axis = 1).to_csv(pjoin(os.get_cwd(), dlst.events_dir.suffixes,
                                          'sub-'+'-'.join(bname(row[1].fpaths).split('_')[:2]) + \
                                                          '_task-encoding_events.tsv'), sep = '\t')
-        pd.read_csv(retrievals.loc[row[0]].fpaths, header = 0, sep = '\t').iloc[:, :-1].to_csv(
-                pjoin(get_cimaq_dir_paths(cimaq_dir)[0].behavioral_dir.fpaths,
+        pd.read_csv(retrievals.loc[row[0]].fpaths,
+                    header = 0, sep = '\t').iloc[:, :-1].to_csv(
+                pjoin(os.getcwd(), dlst.behavioral_dir.suffixes,
                       'sub-'+'-'.join(bname(row[1].fpaths).split('_')[:2]) + \
                           '_task-retrieval_behavioral.tsv'), sep = '\t')
-    shutil.rmtree(get_cimaq_dir_paths(cimaq_dir)[0].temp_events_dir.fpaths)
+    shutil.rmtree(dlst.temp_events_dir.fpaths)
     return onsets[['pscid', 'dccid', 'subids']]
 
 def fetch_cimaq(cimaq_dir):
+    dlst = get_cimaq_dir_paths(cimaq_dir)[0]    
+    dst_dir = pjoin(os.getcwd(), dlst.temp_events_dir.suffixes)
     qc_ok = sorted([str(itm[0]) for itm in
                 pd.read_csv(get_cimaq_dir_paths(
                     cimaq_dir)[0].mean_qc.fpaths, sep='\t').values])
     qc_ok
     to_exclude = df(sorted([(str(bname(itm).split('_')[0]),
                          str(bname(itm).split('_')[1]), itm) for itm in
-                        loadimages(get_cimaq_dir_paths(
-                            cimaq_dir)[0].zeprimes.fpaths)
+                        loadimages(dlst.zeprimes.fpaths)
                         if str(bname(itm).split('_')[1]) not in qc_ok]),
                    columns = ['pscid', 'dccid', 'fpaths']).set_index(
                        'dccid').sort_index().reset_index().fpaths.tolist()
-
-    repair_dataset(get_cimaq_dir_paths(cimaq_dir)[0].zeprimes.fpaths,
-                   get_cimaq_dir_paths(cimaq_dir)[0].temp_events_dir.fpaths,
+    os.makedirs(dst_dir, exist_ok = True)
+    repair_dataset(dlst.zeprimes.fpaths, dst_dir,
                    exclude = ['pratique', 'practice', '.pdf', '.edat2'] + to_exclude)
     allids = repair_enc_task(cimaq_dir)
     pscids = allids.pscid
     dccids = allids.dccid
     subids = allids.subids
     cimaq = pd.concat([subids, pscids, dccids] + [loadfiles(loadimages(cimaqpath)).dropna(axis = 0)['fpaths']
-                                  for cimaqpath in get_cimaq_dir_paths(cimaq_dir)[0].loc['fpaths'][1: 6]],
+                                  for cimaqpath in dlst.loc['fpaths'][1: 6]],
                       axis = 1).dropna(axis = 0).T.reset_index(drop = True).T
     cimaq = cimaq.rename(columns = {0: 'subid', 1: 'pscid', 2: 'dccid', 3: 'stereonl', 4: 'behavioral',
                                     5: 'confounds', 6: 'events', 7:'func'})

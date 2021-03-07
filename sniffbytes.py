@@ -3,6 +3,7 @@
 import chardet
 import itertools
 import gzip
+import io
 import itertools
 import json
 import lzma
@@ -20,7 +21,8 @@ import zipfile
 from chardet import UniversalDetector as udet
 from collections import Counter
 from functools import reduce
-from io import StringIO
+# from io import BytesIO
+# from io import StringIO
 from numpy import nan as NaN
 from operator import itemgetter
 from os import listdir as ls
@@ -113,19 +115,48 @@ def megamerge(dflist: list, howto: str, onto: str = None) -> object:
         lambda x, y: pd.merge(x, y, on=onto, how=howto).astype("object"), dflist
     )
 
-
 def get_bytes(inpt: Union[bytes, str, os.PathLike]) -> bytes:
     """ Returns bytes from file either from memory or from reading """
-    if os.path.isfile(inpt):
+    if type(inpt) == bytes:
+        return [inpt if bool(len(inpt.splitlines()) > \
+                  0 and inpt != None) else b"1"][0]
+    else:
         with open(inpt, "rb", buffering=0) as myfile:
             outpt = myfile.read()
+            if bool(len(myfile.read().splitlines()) > \
+                      0 and outpt != None):
+                return outpt
+            else:
+                return b"1"[0]
             myfile.close()
-    if type(inpt) == bytes:
-        outpt = inpt
-    return [outpt if bool(len(outpt.splitlines()) > 0 and outpt != None) else b"0"][0]
+            # def get_bytes(inpt: Union[bytes, str, os.PathLike,
+#                           io.BytesIO, io.StringIO]) -> bytes:
+#     """ Returns bytes from file either from memory or from reading """
+#     if type(inpt) == bytes:
+#         return [io.BytesIO(inpt) if bool(len(inpt.splitlines()) > \
+#                   0 and inpt != None) else io.BytesIO(b"0")][0]
+#     elif type(inpt) in Union[str, os.PathLike, io.StringIO]:
+#         with open(inpt, "rb", buffering=0) as myfile:
+#             outpt = myfile.read()
+#             if bool(len(myfile.read().splitlines()) > \
+#                       0 and outpt != None):
+#                 return io.BytesIO(outpt)
+#             else:
+#                 return io.BytesIO(b"0")[0]
+#             myfile.close()
+            
+# def get_bytes(inpt: Union[bytes, str, os.PathLike]) -> bytes:
+#     """ Returns bytes from file either from memory or from reading """
+#     if os.path.isfile(inpt):
+#         with open(inpt, "rb", buffering=0) as myfile:
+#             outpt = myfile.read()
+#             myfile.close()
+#     if type(inpt) == bytes:
+#         outpt = inpt
+#     return [outpt if bool(len(outpt.splitlines()) > 0 and outpt != None) else b"0"][0]
 
 
-def get_bzip_enc(inpt: Union[bytes, str, os.PathLike]) -> str:
+def get_bencod(inpt: Union[bytes, str, os.PathLike]) -> str:
     inpt = get_bytes(inpt)
     detector = udet()
     detector.reset()
@@ -147,7 +178,7 @@ def get_bzip_enc(inpt: Union[bytes, str, os.PathLike]) -> str:
 def get_has_header(inpt: Union[bytes, str, os.PathLike], encoding=None) -> bool:
     """ Returns True if 1st line of inpt is a header line """
     inpt = get_bytes(inpt)
-    encoding = [encoding if encoding else get_bzip_enc(inpt)][0]
+    encoding = [encoding if encoding else get_bencod(inpt)][0]
     return [
         bool(inpt[0] not in bytes(".-0123456789", encoding)) if len(inpt) > 1 else False
     ][0]
@@ -158,13 +189,13 @@ def get_widths(
 ) -> Union[str, int]:
     inpt = get_bytes(inpt).replace("\x00".encode(encoding), "".encode(encoding))
     lines = [inpt.splitlines()[1:] if hdr else inpt.splitlines()][0]
-    encoding = [encoding if encoding else get_bzip_enc(inpt)][0]
+    encoding = [encoding if encoding else get_bencod(inpt)][0]
     return pd.Series(len(line) for line in lines).fillna(1).max()
 
 
 def get_all_bitems(inpt: Union[bytes, str, os.PathLike], encoding: str = None):
     inpt = get_bytes(inpt)
-    encoding = [encoding if encoding else get_bzip_enc(inpt)][0]
+    encoding = [encoding if encoding else get_bencod(inpt)][0]
     return [
         line.replace(bytes("\x00", encoding), bytes("n\a", encoding)).split()
         for line in bytes("\n", encoding)
@@ -187,7 +218,7 @@ def get_lineterminator(inpt: Union[bytes, str, os.PathLike]) -> bytes:
 
 def get_delimiter(inpt: Union[bytes, str, os.PathLike], encoding: str = None) -> bytes:
     inpt = get_bytes(inpt)
-    encoding = [encoding if encoding else get_bzip_enc(inpt)][0]
+    encoding = [encoding if encoding else get_bencod(inpt)][0]
     return Counter(
         pd.Series(
             pd.Series(
@@ -242,7 +273,7 @@ def get_dupvalues(
     delimiter: bytes = None,
 ) -> list:
     inpt = get_bytes(inpt)
-    encoding = [encoding if encoding else get_bzip_enc(inpt)][0]
+    encoding = [encoding if encoding else get_bencod(inpt)][0]
     hdr = [hdr if hdr != None else get_has_header(inpt, encoding)][0]
     bytelines = [inpt.splitlines() if not hdr else inpt.splitlines()[1:]][0]
     ev_itms, od_itms = evenodd([line.split(delimiter) for line in bytelines])
@@ -254,7 +285,7 @@ def scan_bytes(
     inpt: Union[bytes, str, os.PathLike], encoding: str = None, hdr: bool = None
 ) -> dict:
     inpt = get_bytes(inpt)
-    encoding = [encoding if encoding else get_bzip_enc(inpt)][0]
+    encoding = [encoding if encoding else get_bencod(inpt)][0]
     #     hdr = get_has_header(inpt, encoding)
     hdr = [hdr if hdr != None else get_has_header(inpt, encoding)][0]
     try:
@@ -275,17 +306,19 @@ def scan_bytes(
         return dict(
             zip(
                 ("encoding", "delimiter", "has_header", "width", "dup_index", "nrows"),
-                (["empty_datas"]) * 6,
+                ([encoding] + ["empty_datas"]* 5) ,
             )
         )
 
 
 def force_utf8(inpt: Union[bytes, str, os.PathLike], encoding: str = None) -> bytes:
     inpt = get_bytes(inpt)
-    encoding = [encoding if encoding else get_bzip_enc(inpt)][0]
+    encoding = [encoding if encoding else get_bencod(inpt)][0]
     return (
         inpt.replace("0xff".encode(encoding), "".encode(encoding))
-        .replace("\x00".encode(encoding), "".encode(encoding))
+        .replace("x00".encode(encoding), "".encode(encoding))
+        .replace("x0".encode(encoding), "".encode(encoding))
+#         .replace("\x".encode(encoding), "".encode(encoding))
         .decode("ascii", "replace")
         .replace("�", "")
         .strip()
@@ -302,7 +335,7 @@ def mkfrombytes(
     new_sep: bytes = b"\t",
 ) -> bytes:
     inpt = get_bytes(inpt)
-    encoding = [encoding if encoding else get_bzip_enc(inpt)][0]
+    encoding = [encoding if encoding else get_bencod(inpt)][0]
     delimiter = [delimiter if delimiter else get_delimiter(inpt)][0]
 
     return (
@@ -428,93 +461,94 @@ def filter_lst_inc(
 ######## For ZipFile archives ########################################
 
 
-def getnametuple(myzip):
-    """
-    Adjustment to ZipFile.namelist() function to prevent MAC-exclusive
-    '__MACOSX' and '.DS_Store' files from interfering.
-    Only necessary for files compressed with OS 10.3 or earlier.
-    Source: https://superuser.com/questions/104500/what-is-macosx-folder
-    Command line solution:
-        ``` zip -r dir.zip . -x ".*" -x "__MACOSX"
-    Source: https://apple.stackexchange.com/questions/239578/compress-without-ds-store-and-macosx
-    """
-    return tuple(
-        sorted(
-            list(
-                itm
-                for itm in myzip.namelist()
-                if bname(itm).startswith(".") == False
-                and "__MACOSX" not in itm
-                and "textClipping" not in itm
-                and itm != os.path.splitext(bname(dname(itm)))[0] + "/"
-            )
-        )
-    )
+# def getnametuple(myzip):
+#     """
+#     Adjustment to ZipFile.namelist() function to prevent MAC-exclusive
+#     '__MACOSX' and '.DS_Store' files from interfering.
+#     Only necessary for files compressed with OS 10.3 or earlier.
+#     Source: https://superuser.com/questions/104500/what-is-macosx-folder
+#     Command line solution:
+#         ``` zip -r dir.zip . -x ".*" -x "__MACOSX"
+#     Source: https://apple.stackexchange.com/questions/239578/compress-without-ds-store-and-macosx
+#     """
+#     return tuple(
+#         sorted(
+#             list(
+#                 itm
+#                 for itm in myzip.namelist()
+#                 if bname(itm).startswith(".") == False
+#                 and "__MACOSX" not in itm
+#                 and "textClipping" not in itm
+#                 and itm != os.path.splitext(bname(dname(itm)))[0] + "/"
+#             )
+#         )
+#     )
 
 
-def get_zip_contents(
-    archv_path: Union[os.PathLike, str],
-    ntpl: Union[str, list, tuple] = [],
-    exclude: Union[str, list, tuple] = [],
-    to_close: bool = True,
-) -> object:
-    myzip = ZipFile(archv_path)
-    ntpl = [ntpl if ntpl else getnametuple(myzip)][0]
+# def get_zip_contents(
+#     archv_path: Union[os.PathLike, str],
+#     ntpl: Union[str, list, tuple] = [],
+#     exclude: Union[str, list, tuple] = [],
+#     to_close: bool = True,
+# ) -> object:
+#     myzip = ZipFile(archv_path)
+#     ntpl = [ntpl if ntpl else getnametuple(myzip)][0]
 
-    vals = (
-        df(
-            tuple(
-                dict(zip(evenodd(itm)[0], evenodd(itm)[1]))
-                for itm in tuple(
-                    tuple(
-                        no_ascii(repr(itm.lower()))
-                        .strip()
-                        .replace("'", "")
-                        .replace("'", "")
-                        .replace("=", " ")[:-2]
-                        .split()
-                    )[1:]
-                    for itm in set(
-                        repr(myzip.getinfo(itm))
-                        .strip(" ")
-                        .replace(itm, itm.replace(" ", "_"))
-                        if " " in itm
-                        else repr(myzip.getinfo(itm)).strip(" ")
-                        for itm in ntpl
-                    )
-                )
-            ),
-            dtype="object",
-        )
-        .sort_values("filename")
-        .reset_index(drop=True)
-    )
-    vals[["src_name", "ext"]] = [(nm, os.path.splitext(nm)[1]) for nm in ntpl]
-    vals["filename"] = [
-        "_".join(
-            pd.Series(
-                row[1].filename.replace("/", "_").replace("-", "_").lower().split("_")
-            )
-            .unique()
-            .__iter__()
-        )
-        for row in vals.iterrows()
-    ]
-    if exclude:
-        vals = vals.drop(
-            [
-                row[0]
-                for row in vals.iterrows()
-                if row[1].filename
-                not in filter_lst_exc(exclude, [itm.lower() for itm in vals.filename])
-            ],
-            axis=0,
-        )
-    if to_close:
-        myzip.close()
-        return vals
-    else:
-        return (myzip, vals)
+#     vals = (
+#         df(
+#             tuple(
+#                 dict(zip(evenodd(itm)[0], evenodd(itm)[1]))
+#                 for itm in tuple(
+#                     tuple(
+#                         no_ascii(repr(itm.lower()))
+#                         .strip()
+#                         .replace("'", "")
+#                         .replace("'", "")
+#                         .replace("=", " ")[:-2]
+#                         .split()
+#                     )[1:]
+#                     for itm in set(
+#                         repr(myzip.getinfo(itm))
+#                         .strip(" ")
+#                         .replace(itm, itm.replace(" ", "_"))
+#                         if " " in itm
+#                         else repr(myzip.getinfo(itm)).strip(" ")
+#                         for itm in ntpl
+#                     )
+#                 )
+#             ),
+#             dtype="object",
+#         )
+#         .sort_values("filename")
+#         .reset_index(drop=True)
+#     )
+#     vals[["src_name", "ext"]] = [(nm, os.path.splitext(nm)[1]) for nm in ntpl]
+#     vals["filename"] = [
+#         "_".join(
+#             pd.Series(
+#                 row[1].filename.lower().replace("/",
+#                                                 "_").replace("-",
+#                                                              "_").split("_")
+#             ).unique()
+#             .__iter__()
+#         )
+#         for row in vals.iterrows()
+#     ]
+#     if exclude:
+#         vals = vals.drop(
+#             [
+#                 row[0]
+#                 for row in vals.iterrows()
+#                 if row[1].filename
+#                 not in filter_lst_exc(exclude, [itm.lower() for itm in vals.filename])
+#             ],
+#             axis=0,
+#         )
+#     if to_close:
+#         myzip.close()
+#         return vals
+#     else:
+#         return (myzip, vals)
 
 
 def scan_zip_contents(
@@ -601,84 +635,3 @@ def scansniff_zip(
         for itm in tqdm(scanned_zip, desc="sniffing")
     ]
     return zip_contents
-
-
-# def repair_dataset(folderpath:Union[str, os.PathLike],
-#                    dst_path:Union[str, os.PathLike]=None,
-#                    exclude:Union[str, list, tuple]=[])->None:
-#     sctest = pd.concat([itm.drop([row[0] for row in itm.iterrows()
-#                         if 'empty_datas' in row[1].values],
-#                        axis=0) for itm in
-#               scansniff_zip(folderpath, exclude)],
-#                        ignore_index=True).sort_values('filename')
-
-#     sctest[['newsheets', 'dst_path']] = \
-#         [(mkfrombytes(row[1].bsheets, row[1].encoding,
-#                       row[1].delimiter, row[1].dup_index)
-#                       if not row[1].dup_index else
-#                       fix_dupindex(mkfrombytes(row[1].bsheets, row[1].encoding,
-#                                                row[1].delimiter, row[1].dup_index),
-#                                    row[1].has_header, row[1].delimiter),
-#                       pjoin([dst_path if dst_path else folderpath][0],
-#                             os.path.splitext(row[1].filename)[0]+'.tsv'))
-#                      for row in tqdm(sctest.iterrows(), desc = 'repairing')]
-
-#     [stream2file(row[1].newsheets, row[1].dst_path)
-#      for row in tqdm(sctest.iterrows(), desc = 'saving')]
-
-
-def repair_dataset(
-    folderpath: Union[str, os.PathLike],
-    dst_path: Union[str, os.PathLike] = None,
-    exclude: Union[str, list, tuple] = [],
-) -> None:
-    sctest = pd.concat(
-        [
-            itm.drop(
-                [row[0] for row in itm.iterrows() if "empty_datas" in row[1].values],
-                axis=0,
-            )
-            for itm in scansniff_zip(folderpath, exclude)
-        ],
-        ignore_index=True,
-    ).sort_values("filename")
-
-    sctest[["newsheets", "dst_path"]] = [
-        itm[1]
-        for itm in sorted(
-            [
-                (
-                    row[1].filename,
-                    (
-                        mkfrombytes(
-                            row[1].bsheets,
-                            row[1].encoding,
-                            row[1].delimiter,
-                            row[1].dup_index,
-                        )
-                        if not row[1].dup_index
-                        else fix_dupindex(
-                            mkfrombytes(
-                                row[1].bsheets,
-                                row[1].encoding,
-                                row[1].delimiter,
-                                row[1].dup_index,
-                            ),
-                            row[1].has_header,
-                            row[1].delimiter,
-                        ),
-                        pjoin(
-                            [dst_path if dst_path else folderpath][0],
-                            os.path.splitext(row[1].filename)[0] + ".tsv",
-                        ),
-                    ),
-                )
-                for row in tqdm(sctest.iterrows(), desc="repairing")
-            ]
-        )
-    ]
-
-    [
-        stream2file(row[1].newsheets, row[1].dst_path)
-        for row in tqdm(sctest.iterrows(), desc="saving")
-    ]
