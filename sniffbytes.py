@@ -120,7 +120,7 @@ def get_bytes(inpt: Union[bytes, str, os.PathLike]) -> bytes:
     if type(inpt) == bytes:
         return [inpt if bool(len(inpt.splitlines()) > \
                   0 and inpt != None) else b"1"][0]
-    else:
+    elif os.path.isfile(inpt):
         with open(inpt, "rb", buffering=0) as myfile:
             outpt = myfile.read()
             if bool(len(myfile.read().splitlines()) > \
@@ -129,32 +129,6 @@ def get_bytes(inpt: Union[bytes, str, os.PathLike]) -> bytes:
             else:
                 return b"1"[0]
             myfile.close()
-            # def get_bytes(inpt: Union[bytes, str, os.PathLike,
-#                           io.BytesIO, io.StringIO]) -> bytes:
-#     """ Returns bytes from file either from memory or from reading """
-#     if type(inpt) == bytes:
-#         return [io.BytesIO(inpt) if bool(len(inpt.splitlines()) > \
-#                   0 and inpt != None) else io.BytesIO(b"0")][0]
-#     elif type(inpt) in Union[str, os.PathLike, io.StringIO]:
-#         with open(inpt, "rb", buffering=0) as myfile:
-#             outpt = myfile.read()
-#             if bool(len(myfile.read().splitlines()) > \
-#                       0 and outpt != None):
-#                 return io.BytesIO(outpt)
-#             else:
-#                 return io.BytesIO(b"0")[0]
-#             myfile.close()
-            
-# def get_bytes(inpt: Union[bytes, str, os.PathLike]) -> bytes:
-#     """ Returns bytes from file either from memory or from reading """
-#     if os.path.isfile(inpt):
-#         with open(inpt, "rb", buffering=0) as myfile:
-#             outpt = myfile.read()
-#             myfile.close()
-#     if type(inpt) == bytes:
-#         outpt = inpt
-#     return [outpt if bool(len(outpt.splitlines()) > 0 and outpt != None) else b"0"][0]
-
 
 def get_bencod(inpt: Union[bytes, str, os.PathLike]) -> str:
     inpt = get_bytes(inpt)
@@ -174,6 +148,38 @@ def get_bencod(inpt: Union[bytes, str, os.PathLike]) -> str:
     detector.close()
     return detector.result["encoding"]
 
+# def is_printable(astring):
+#     return ''.join(ch for ch in list(astring)
+#                     if ch in list(string.printable))
+
+def is_printable(astring):
+    return ''.join(ch for ch in list(astring)
+                    if ch in list(string.printable))
+
+def bytes_printable(inpt: bytes, encoding: str = None) -> bytes:
+    ''' Same as is_printable, but for bytes in native file encoding '''
+    encoding = [encoding if encoding else get_bencod(inpt)][0]
+    b_printable = ''.encode(encoding).join([ch.encode(encoding)
+                              for ch in list(string.printable)])
+    return ''.encode(encoding).join([chr(val).encode(encoding) for val in
+                       list(inpt) if chr(val).encode(encoding) in b_printable])
+    
+def get_nullrep(inpt: bytes, encoding: str = None) -> bytes:
+    ''' Returns null byte representation as bytes in native file encoding'''
+    encoding = [encoding if encoding else get_bencod(inpt)][0]
+#     return bytes([inpt.splitlines(keepends = True)[-1][-1]]).decode(encoding).encode(encoding)
+#     rep = chr(list(inpt)[-1]).encode(encoding)
+    return [chr(itm) for itm in list(chr(list(inpt.splitlines()[-1])[-1]).encode(encoding))]
+
+def strip_null(inpt: bytes, encoding: str = None) -> bytes:
+    ''' Remove null bytes from byte stream with proper representation
+        Adapted from:
+        https://stackoverflow.com/questions/21017698/converting-int-to-bytes-in-python-3
+        All files end by a null byte, so the last byte in a file shows
+        how null bytes are represented within this file '''
+    encoding = [encoding if encoding else get_bencod(inpt)][0]
+    return inpt.decode(encoding, 'replace').replace('�', '').replace(
+        ''.join(get_nullrep(inpt, encoding)), '').encode()
 
 def get_has_header(inpt: Union[bytes, str, os.PathLike], encoding=None) -> bool:
     """ Returns True if 1st line of inpt is a header line """
@@ -215,11 +221,10 @@ def get_lineterminator(inpt: Union[bytes, str, os.PathLike]) -> bytes:
         )
     ).unique()[0]
 
-
 def get_delimiter(inpt: Union[bytes, str, os.PathLike], encoding: str = None) -> bytes:
     inpt = get_bytes(inpt)
     encoding = [encoding if encoding else get_bencod(inpt)][0]
-    return Counter(
+    seps = Counter(
         pd.Series(
             pd.Series(
                 pd.Series(
@@ -254,8 +259,11 @@ def get_delimiter(inpt: Union[bytes, str, os.PathLike], encoding: str = None) ->
             .split(bytes("|", encoding))[1:],
             dtype="object",
         ).unique()
-    ).most_common(1)[0][0]
-
+    ).most_common(1).__iter__()
+    try:
+        return list(seps)[0][0]
+    except IndexError:
+        return [list(seps) if list(seps) != [] else b'no entry'][0]
 
 def get_dupindex(
     inpt: Union[bytes, str, os.PathLike], hdr: bool = False, delimiter: bytes = None
@@ -263,8 +271,10 @@ def get_dupindex(
     inpt = get_bytes(inpt)
     bytelines = [inpt.splitlines() if not hdr else inpt.splitlines()[1:]][0]
     ev_itms, od_itms = evenodd([line.split(delimiter) for line in bytelines])
-    return bool([line[0] for line in ev_itms] == [line[0] for line in od_itms])
-
+    try:
+        return bool([line[0] for line in ev_itms] == [line[0] for line in od_itms])
+    except IndexError:
+        return False
 
 def get_dupvalues(
     inpt: Union[bytes, str, os.PathLike],
@@ -278,7 +288,10 @@ def get_dupvalues(
     bytelines = [inpt.splitlines() if not hdr else inpt.splitlines()[1:]][0]
     ev_itms, od_itms = evenodd([line.split(delimiter) for line in bytelines])
     checkup = tuple(zip(list(df(ev_itms).iteritems()), list(df(od_itms).iteritems())))
-    return [itm[0][1].all() == itm[1][1].all() for itm in checkup]
+    try:
+        return [itm[0][1].all() == itm[1][1].all() for itm in checkup]
+    except IndexError:
+        return False
 
 
 def scan_bytes(
@@ -288,80 +301,80 @@ def scan_bytes(
     encoding = [encoding if encoding else get_bencod(inpt)][0]
     #     hdr = get_has_header(inpt, encoding)
     hdr = [hdr if hdr != None else get_has_header(inpt, encoding)][0]
+    sep = get_delimiter(inpt, encoding)
     try:
-        return dict(
-            zip(
-                ("encoding", "delimiter", "has_header", "width", "dup_index", "nrows"),
+        dupind = get_dupindex(inpt)
+    except IndexError:
+        dupind = False 
+    return dict(zip(
+                ("encoding", "delimiter", "has_header",
+                 "width", "dup_index", "nrows"),
                 (
                     encoding,
-                    get_delimiter(inpt, encoding),
-                    hdr,
+                    sep, hdr,
                     get_widths(inpt, encoding, hdr),
-                    get_dupindex(inpt),
+                    dupind,
                     len(inpt.splitlines()),
                 ),
             )
         )
-    except IndexError:
-        return dict(
-            zip(
-                ("encoding", "delimiter", "has_header", "width", "dup_index", "nrows"),
-                ([encoding] + ["empty_datas"]* 5) ,
-            )
-        )
-
 
 def force_utf8(inpt: Union[bytes, str, os.PathLike], encoding: str = None) -> bytes:
     inpt = get_bytes(inpt)
     encoding = [encoding if encoding else get_bencod(inpt)][0]
     return (
-        inpt.replace("0xff".encode(encoding), "".encode(encoding))
-        .replace("x00".encode(encoding), "".encode(encoding))
+        inpt.replace("\0xff".encode(encoding), "".encode(encoding))
+        .replace("\x00".encode(encoding), "".encode(encoding))
         .replace("x0".encode(encoding), "".encode(encoding))
-#         .replace("\x".encode(encoding), "".encode(encoding))
-        .decode("ascii", "replace")
+        .decode("utf8", "replace")
         .replace("�", "")
         .strip()
         .encode("utf8")
     )
 
-
-def mkfrombytes(
-    inpt: Union[bytes, str, os.PathLike],
-    encoding: str = None,
-    delimiter: bytes = None,
-    hdr: bool = False,
-    dupindex: bool = None,
-    new_sep: bytes = b"\t",
-) -> bytes:
+def mkfrombytes(inpt: Union[bytes, str, os.PathLike],
+                encoding: str = None,
+                delimiter: bytes = None,
+                hdr: bool = False,
+                dupindex: bool = None,
+                new_sep: bytes = b"\t") -> bytes:
     inpt = get_bytes(inpt)
     encoding = [encoding if encoding else get_bencod(inpt)][0]
     delimiter = [delimiter if delimiter else get_delimiter(inpt)][0]
-
-    return (
-        b"\n".join(
-            [
-                re.sub(
-                    b"\s{2,}",
-                    new_sep,
-                    re.sub(
-                        delimiter,
-                        new_sep,
+    hdr = [hdr if hdr else get_has_header(inpt)][0]
+    dupindex = [dupindex if dupindex else get_dupindex(inpt)][0]
+    if not dupindex:
+        try:
+            return (
+                b"\n".join(
+                    [
                         re.sub(
-                            delimiter + b"{2,}", delimiter + b"NaN" + delimiter, line
-                        ),
-                    ),
+                            b"\s{2,}",
+                            new_sep,
+                            re.sub(
+                                delimiter,
+                                new_sep,
+                                re.sub(
+                                    delimiter + b"{2,}",
+                                    delimiter + b"NaN" + delimiter, line
+                                ),
+                            ),
+                        )
+                        .strip()
+                        .replace(b" ", b"_")
+                        .replace(b"\x00", b"NaN")
+                        for line in force_utf8(inpt, encoding).splitlines()
+                    ]
                 )
-                .strip()
-                .replace(b" ", b"_")
-                .replace(b"\x00", b"NaN")
-                for line in force_utf8(inpt, encoding).splitlines()
-            ]
-        )
-        .replace(delimiter, new_sep)
-        .decode()
-        .encode()
-    )
+                .replace(delimiter, new_sep)
+                .decode()
+                .encode()
+            )
+        except:
+            return strip_null(inpt, encoding)
+
+    else:
+        return fix_dupindex(inpt, encoding, hdr, delimiter)
 
 
 def fix_dupindex(
@@ -370,7 +383,9 @@ def fix_dupindex(
     hdr: bool = False,
     delimiter: bytes = None,
 ) -> bytes:
-    tmp = evenodd(force_utf8(mkfrombytes(get_bytes(inpt))).splitlines())
+    inpt = get_bytes(inpt)
+    encoding = [encoding if encoding else get_bencod(inpt)][0]
+    tmp = evenodd(force_utf8(inpt).splitlines())
 
     evdf = df([line.decode().split() for line in tmp[0]])
     oddf = df([line.decode().split() for line in tmp[1]])
