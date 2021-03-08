@@ -137,8 +137,8 @@ def get_bencod(inpt: Union[bytes, str, os.PathLike]) -> str:
     while True:
         next((detector.feed(line) for line in inpt.splitlines()))
         if (
-            not detector.done
-            and not detector.result
+            not detector.done \
+            and not detector.result \
             and detector.result["encoding"] != None
         ):
             continue
@@ -148,9 +148,8 @@ def get_bencod(inpt: Union[bytes, str, os.PathLike]) -> str:
     detector.close()
     return detector.result["encoding"]
 
-# def is_printable(astring):
-#     return ''.join(ch for ch in list(astring)
-#                     if ch in list(string.printable))
+def ensure_bencod(inpt: bytes, encoding: str = None) -> bytes:
+    return inpt.decode(encoding, 'replace').replace('�', '').encode(encoding)
 
 def is_printable(astring):
     return ''.join(ch for ch in list(astring)
@@ -163,13 +162,27 @@ def bytes_printable(inpt: bytes, encoding: str = None) -> bytes:
                               for ch in list(string.printable)])
     return ''.encode(encoding).join([chr(val).encode(encoding) for val in
                        list(inpt) if chr(val).encode(encoding) in b_printable])
-    
-def get_nullrep(inpt: bytes, encoding: str = None) -> bytes:
-    ''' Returns null byte representation as bytes in native file encoding'''
+
+def force_ascii(inpt: Union[str, bytes], encoding: str = None) -> Union[str, bytes]:
+    """
+    Source: https://stackoverflow.com/questions/8689795/how-can-i-remove-non-ascii-characters-but-leave-periods-and-spaces-using-python
+    """
     encoding = [encoding if encoding else get_bencod(inpt)][0]
+    return "".encode(encoding).join(filter(lambda x: x in \
+        set([chr(int.from_bytes(itm, sys.byteorder)).encode(encoding)
+             for itm in [itm.encode(encoding) for itm in
+                         list(string.printable)]]), astring))
+    
+# def get_nullrep(inpt: bytes, encoding: str = None) -> bytes:
+#     ''' Returns null byte representation as bytes in native file encoding'''
+#     encoding = [encoding if encoding else get_bencod(inpt)][0]
 #     return bytes([inpt.splitlines(keepends = True)[-1][-1]]).decode(encoding).encode(encoding)
 #     rep = chr(list(inpt)[-1]).encode(encoding)
-    return [chr(itm) for itm in list(chr(list(inpt.splitlines()[-1])[-1]).encode(encoding))]
+#     return [chr(itm) for itm in list(chr(list(inpt.splitlines()[-1])[-1]).encode(encoding))]
+
+def get_nullrep(inpt, encoding: str = None) -> bytes:
+    return [itm for itm in list(inpt) if
+            chr(int.from_bytes(itm, sys.byteorder)).encode(encoding) == "\x00".encode(encoding)]
 
 def strip_null(inpt: bytes, encoding: str = None) -> bytes:
     ''' Remove null bytes from byte stream with proper representation
@@ -178,8 +191,26 @@ def strip_null(inpt: bytes, encoding: str = None) -> bytes:
         All files end by a null byte, so the last byte in a file shows
         how null bytes are represented within this file '''
     encoding = [encoding if encoding else get_bencod(inpt)][0]
-    return inpt.decode(encoding, 'replace').replace('�', '').replace(
-        ''.join(get_nullrep(inpt, encoding)), '').encode()
+#     return inpt.decode(encoding, 'replace').replace('�', '').replace(
+#         ''.join(get_nullrep(inpt, encoding)), '').encode()
+    try:
+        return inpt.replace(chr(int.from_bytes(
+                   b"\x00", sys.byteorder)).encode(encoding), ''.encode(encoding))
+    except UnidecodeError:
+        return inpt.replace(get_nullrep(inpt, encoding), ''.encode(encoding))
+
+# def strip_null(inpt: bytes, encoding: str = None) -> bytes:
+#     ''' Remove null bytes from byte stream with proper representation
+#         Adapted from:
+#         https://stackoverflow.com/questions/21017698/converting-int-to-bytes-in-python-3
+#         All files end by a null byte, so the last byte in a file shows
+#         how null bytes are represented within this file '''
+#     encoding = [encoding if encoding else get_bencod(inpt)][0]
+# #     return inpt.decode(encoding, 'replace').replace('�', '').replace(
+# #         ''.join(get_nullrep(inpt, encoding)), '').encode()
+# try:
+#     return inpt.replace(chr(int.from_bytes(b"\x00", sys.byteorder)).encode(encoding), ''.encode(encoding))
+
 
 def get_has_header(inpt: Union[bytes, str, os.PathLike], encoding=None) -> bool:
     """ Returns True if 1st line of inpt is a header line """
@@ -263,7 +294,7 @@ def get_delimiter(inpt: Union[bytes, str, os.PathLike], encoding: str = None) ->
     try:
         return list(seps)[0][0]
     except IndexError:
-        return [list(seps) if list(seps) != [] else b'no entry'][0]
+        return [list(seps) if list(seps) != [] else '\\s'.encode(encoding)][0]
 
 def get_dupindex(
     inpt: Union[bytes, str, os.PathLike], hdr: bool = False, delimiter: bytes = None
@@ -308,12 +339,12 @@ def scan_bytes(
         dupind = False 
     return dict(zip(
                 ("encoding", "delimiter", "has_header",
-                 "width", "dup_index", "nrows"),
+                 "dup_index", "width", "nrows"),
                 (
                     encoding,
                     sep, hdr,
-                    get_widths(inpt, encoding, hdr),
                     dupind,
+                    get_widths(inpt, encoding, hdr),
                     len(inpt.splitlines()),
                 ),
             )
@@ -428,11 +459,11 @@ def make_labels(datas: Union[dict, object], var_name: Union[int, str]) -> dict:
     return dict(enumerate(Counter(datas[var_name]).keys(), start=1))
 
 
-def no_ascii(astring: str) -> str:
-    """
-    Source: https://stackoverflow.com/questions/8689795/how-can-i-remove-non-ascii-characters-but-leave-periods-and-spaces-using-python
-    """
-    return "".join(filter(lambda x: x in set(string.printable), astring))
+# def force_ascii(astring: str) -> str:
+#     """
+#     Source: https://stackoverflow.com/questions/8689795/how-can-i-remove-non-ascii-characters-but-leave-periods-and-spaces-using-python
+#     """
+#     return "".join(filter(lambda x: x in set(string.printable), astring))
 
 
 def letters(astring: str) -> str:
@@ -515,7 +546,7 @@ def filter_lst_inc(
 #                 dict(zip(evenodd(itm)[0], evenodd(itm)[1]))
 #                 for itm in tuple(
 #                     tuple(
-#                         no_ascii(repr(itm.lower()))
+#                         force_ascii(repr(itm.lower()))
 #                         .strip()
 #                         .replace("'", "")
 #                         .replace("'", "")
