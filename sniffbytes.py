@@ -235,9 +235,9 @@ def get_all_bitems(inpt: Union[bytes, str, os.PathLike], encoding: str = None):
     encoding = [encoding if encoding else get_bencod(inpt)][0]
     return [
         line.replace(bytes("\x00", encoding), bytes("n\a", encoding)).split()
-        for line in bytes("\n", encoding)
+        for line in bytes("\\n", encoding)
         .join(inpt.splitlines())
-        .split(bytes("\n", encoding))
+        .split(bytes("\\n", encoding))
     ]
 
 
@@ -273,9 +273,9 @@ def get_delimiter(inpt: Union[bytes, str, os.PathLike], encoding: str = None) ->
                                         line.replace(
                                             bytes("\x00", encoding), bytes("", encoding)
                                         ).split()
-                                        for line in bytes("\n", encoding)
+                                        for line in bytes("\\n", encoding)
                                         .join(inpt.splitlines())
-                                        .split(bytes("\n", encoding))
+                                        .split(bytes("\\n", encoding))
                                     ],
                                 )
                             )
@@ -296,7 +296,7 @@ def get_delimiter(inpt: Union[bytes, str, os.PathLike], encoding: str = None) ->
     except IndexError:
         return [list(seps) if list(seps) != [] else '\\s'.encode(encoding)][0]
 
-def get_dupindex(
+def get_dup_index(
     inpt: Union[bytes, str, os.PathLike], hdr: bool = False, delimiter: bytes = None
 ) -> bool:
     inpt = get_bytes(inpt)
@@ -334,7 +334,7 @@ def scan_bytes(
     hdr = [hdr if hdr != None else get_has_header(inpt, encoding)][0]
     sep = get_delimiter(inpt, encoding)
     try:
-        dupind = get_dupindex(inpt)
+        dupind = get_dup_index(inpt)
     except IndexError:
         dupind = False 
     return dict(zip(
@@ -355,6 +355,7 @@ def force_utf8(inpt: Union[bytes, str, os.PathLike], encoding: str = None) -> by
     encoding = [encoding if encoding else get_bencod(inpt)][0]
     return (
         inpt.replace("\0xff".encode(encoding), "".encode(encoding))
+        .replace("0xf8".encode(encoding), "".encode(encoding))
         .replace("\x00".encode(encoding), "".encode(encoding))
         .replace("x0".encode(encoding), "".encode(encoding))
         .decode("utf8", "replace")
@@ -363,21 +364,46 @@ def force_utf8(inpt: Union[bytes, str, os.PathLike], encoding: str = None) -> by
         .encode("utf8")
     )
 
+def fforce_utf8(inpt: Union[bytes, str, os.PathLike], encoding: str = None) -> bytes:
+    inpt = get_bytes(inpt)
+    encoding = [encoding if encoding else get_bencod(inpt)][0]
+    return b'\\n'.join([b'\t'.join([chr(int.frombytes(item, sys.byteorder)).encode()
+                                   for item in list(line) if
+                                   chr(int.frombytes(item, sys.byteorder)) != '\x00']
+                                  for line in inpt.splitlines())])
+#         inpt.replace("\0xff".encode(encoding), "".encode(encoding))
+#         .replace("\x00".encode(encoding), "".encode(encoding))
+#         .replace("x0".encode(encoding), "".encode(encoding))
+#         .decode("utf8", "replace")
+#         .replace("�", "")
+#         .strip()
+#         .encode("utf8")
+#     )
+
 def mkfrombytes(inpt: Union[bytes, str, os.PathLike],
                 encoding: str = None,
                 delimiter: bytes = None,
                 hdr: bool = False,
-                dupindex: bool = None,
+                dup_index: bool = None,
                 new_sep: bytes = b"\t") -> bytes:
     inpt = get_bytes(inpt)
-    encoding = [encoding if encoding else get_bencod(inpt)][0]
-    delimiter = [delimiter if delimiter else get_delimiter(inpt)][0]
+#     if not params:
+    encoding = [encoding if encoding
+                else get_bencod(inpt)][0]
+    delimiter = [delimiter if delimiter
+                 else get_delimiter(inpt)][0]
     hdr = [hdr if hdr else get_has_header(inpt)][0]
-    dupindex = [dupindex if dupindex else get_dupindex(inpt)][0]
-    if not dupindex:
+    dup_index = [dup_index if dup_index
+                else get_dup_index(inpt)][0]
+#     else:
+#         params = [df.from_dict(params, orient = 'index') if
+#                   type(params) == dict else params][0]
+#         encoding, delimiter, hdr, dup_index = \
+#             params[['encoding', 'delimiter', 'hdr', 'dup_index']]
+    if not dup_index:
         try:
             return (
-                b"\n".join(
+                b"\\n".join(
                     [
                         re.sub(
                             b"\s{2,}",
@@ -394,7 +420,7 @@ def mkfrombytes(inpt: Union[bytes, str, os.PathLike],
                         .strip()
                         .replace(b" ", b"_")
                         .replace(b"\x00", b"NaN")
-                        for line in force_utf8(inpt, encoding).splitlines()
+                        for line in force_utf8(strip_null(inpt, encoding), encoding).splitlines()
                     ]
                 )
                 .replace(delimiter, new_sep)
@@ -403,12 +429,13 @@ def mkfrombytes(inpt: Union[bytes, str, os.PathLike],
             )
         except:
             return strip_null(inpt, encoding)
-
     else:
-        return fix_dupindex(inpt, encoding, hdr, delimiter)
+        return force_utf8(strip_null(fix_dup_index(inpt,
+                                                   encoding, hdr, delimiter),
+                                     encoding), encoding)
 
 
-def fix_dupindex(
+def fix_dup_index(
     inpt: Union[bytes, str, os.PathLike],
     encoding: str = None,
     hdr: bool = False,
@@ -425,7 +452,7 @@ def fix_dupindex(
         col for col in evdf.columns if evdf[col].values.all() == oddf[col].values.all()
     ]
     newsheet = pd.merge(evdf, oddf, on=booltest)
-    return "\n".join(
+    return "\\n".join(
         [
             "\t".join([itm for itm in line])
             for line in newsheet.rename(
