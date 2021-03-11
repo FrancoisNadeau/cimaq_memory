@@ -172,59 +172,6 @@ def get_bytes(inpt: Union[str, os.PathLike]):
         outpt = inpt.encode()
     return outpt
 
-# def get_bytes(
-#     inpt: Union[bytes, bytearray, str, os.PathLike, object]
-# ) -> bytes:
-#     """ Returns raw bytes stream buffer either from reading file
-#         or from memory (i.e. from another buffer) using
-#         a context manager to open, read and close files
-#         without errors.
-#     """
-#     if type(inpt) == bytes or bytearray:
-#         return [inpt.lower() if bool(len(inpt.splitlines()) > \
-#                   0 and inpt != None) else b"1"][0]
-#     if type(inpt) != bytes and type(inpt) != bytearray:
-#         return get_bytes_str_path(inpt)
-        
-#     elif os.path.isfile(inpt):
-#         with open(inpt, "rb", buffering=0) as myfile:
-#             outpt = myfile.read().lower()
-#             myfile.close()
-#             if bool(len(myfile.read().splitlines()) > \
-#                       0 and outpt != None):
-#                 return outpt
-#             else:
-#                 return b"1"[0]
-
-
-# def get_bytes(
-#     inpt: Union[bytes, bytearray, str, os.PathLike, object]
-# ) -> bytes:
-#     """ Returns raw bytes stream buffer either from reading file
-#         or from memory (i.e. from another buffer) using
-#         a context manager to open, read and close files
-#         without errors.
-#     """
-#     if type(inpt) == bytes or bytearray:
-#         return [inpt.lower() if bool(len(inpt.splitlines()) > \
-#                   0 and inpt != None) else b"1"][0]
-#     elif type(inpt) == str and os.path.isfile(inpt):
-#     #os.path.isfile(inpt):
-#         with open(inpt, "rb", buffering=0) as myfile:
-#             outpt = [myfile.read().lower() if
-#                      bool(len(myfile.read().splitlines()) > 
-#                           0 and outpt != None)
-#                      else b"1"][0]
-#             myfile.close()
-# #             if bool(len(myfile.read().splitlines()) > \
-# #                       0 and outpt != None):
-# #                 return outpt
-# #             else:
-# #                 return b"1"[0]
-#     elif type(inpt) == str and not os.path.isfile(inpt):
-#         outpt = inpt.decode()
-#     return outpt
-
 
 def get_bencod(
     inpt: Union[bytes, bytearray, str, os.PathLike, object]
@@ -391,22 +338,15 @@ def get_delimiter(
     ).most_common(1).__iter__()
     try:
         delimiter = list(delimiters)[0][0]
-#         return [delimiter if delimiter != "".encode(encoding)
-#                 else get_lineterminator(inpt, encoding)][0]
     except IndexError:
         delimiter = get_lineterminator(inpt, encoding)
     return [delimiter if delimiter != b"" else " ".encode(encoding)][0]
-#         delimiter = [list(delimiters) if list(delimiters) not in [[], "".encode(encoding)]
-# #                 and list(delimiters) != "".encode(encoding)
-#                 else get_lineterminator(inpt, encoding)][0]
-#                      #" ".encode(encoding)][0]
 
 
 def get_dup_index(
     inpt: Union[bytes, bytearray, str, os.PathLike, object],
     encoding: str = None,
     has_header: bool = None,
-#     delimiter: bytes = None
 ) -> bool:
     """ Returns True if the first item of each even and each
         odd line is repeated. Returns False otherwise or upon IndexError.
@@ -427,9 +367,9 @@ def get_dup_index(
                    of the value used as delimiter.
     """
     inpt = get_bytes(inpt)
-    has_header = [has_header if has_header != None else get_has_header(inpt, encoding)][0]
-#     delimiter = [delimiter if delimiter != None else get_delimiter(inpt, encoding)][0]
-    bytelines = [inpt.splitlines() if not has_header else inpt.splitlines()[1:]][0]
+    bytelines = [inpt.splitlines() if not
+                 [has_header if has_header != None else
+                  get_has_header(inpt, encoding)][0] else inpt.splitlines()[1:]][0]
     ev_itms, od_itms = evenodd([line.split() for line in bytelines])
     try:
         return bool([line[0] for line in ev_itms] == \
@@ -454,16 +394,22 @@ def get_nfields(
           --------
         has_header: True if first line is a header, else False.
     """    
-    inpt = [get_bytes(inpt).splitlines()[1:] if has_header else
+    inpt = [get_bytes(inpt).splitlines()[1:] if
+            [has_header if has_header != None else
+                  get_has_header(inpt, encoding)][0] else
             get_bytes(inpt).splitlines()][0]
     return pd.Series(len(line.split())
                       for line in inpt).max()
 
 ###############################################################################
 
-def scan_bytes(
+def sniff_bytes(
     inpt: Union[bytes, bytearray, str, os.PathLike, object],
-    encoding: str = None, has_header: bool = None
+    encoding: str = None,
+    has_header: bool = None,
+    delimiter: bytes = None,
+    lineterminator: bytes = None,
+    dup_index: bool = None
 ) -> dict:
     """ Returns a dictionary containing informations about datas from
         a readable file or buffer of raw bytes.
@@ -487,17 +433,17 @@ def scan_bytes(
     """
     inpt = get_bytes(inpt)
     encoding = [encoding if encoding else get_bencod(inpt)][0]
-    has_header = [has_header if has_header != None else get_has_header(inpt, encoding)][0]
-    delimiter = get_delimiter(inpt, encoding)
-    lineterminator = get_lineterminator(inpt)
-    try:
-        dupind = get_dup_index(inpt, encoding, has_header)
-    except IndexError:
-        dupind = False 
+    has_header = [has_header if has_header != None
+                  else get_has_header(inpt, encoding)][0]
     return dict(zip(
                 ("encoding", "delimiter", "has_header", "dup_index",
                   "lineterminator", "nfields", "width", "nrows"),
-                (encoding, delimiter, has_header, dupind, lineterminator,
+                (encoding, [delimiter if delimiter != None else
+                            get_delimiter(inpt, encoding)][0],
+                 has_header, [dup_index if dup_index != None else
+                              get_dup_index(inpt, encoding, has_header)][0],
+                 [lineterminator if lineterminator != None
+                  else get_lineterminator(inpt, encoding)][0],
                  get_nfields(inpt, has_header),
                  get_widths(inpt, encoding, has_header),
                  len(inpt.splitlines()),
@@ -536,17 +482,15 @@ def fix_na_reps(
     inpt = get_bytes(inpt)
     encoding = [encoding if encoding else get_bencod(inpt)][0]
     delimiter = [delimiter if delimiter else get_delimiter(inpt, encoding)][0]
-    lineterminator = [lineterminator if lineterminator else get_lineterminator(inpt, encoding)][0]
-    return lineterminator.join(re.sub(delimiter+'{2,}'.encode(encoding),
-                      delimiter+str(np.nan).encode(encoding)+delimiter,
-                      line) for line in inpt.splitlines())
+    return [lineterminator if lineterminator else
+            get_lineterminator(inpt, encoding)][0].join(
+                re.sub(delimiter+'{2,}'.encode(encoding),
+                       delimiter+str(np.nan).encode(encoding)+delimiter,
+                       line) for line in inpt.splitlines())
 
 def fix_dup_index(
     inpt: Union[bytes, bytearray, str, os.PathLike, object],
-    encoding: str = None,
-    has_header: bool = False,
-    delimiter: bytes = None,
-    nfields: int = None
+    encoding: str = None
 ) -> bytes:
     """ Fixes files where indexes are duplicated.
     
@@ -558,9 +502,6 @@ def fix_dup_index(
         - Optional
           --------
         encoding: Character encoding of the bytes in buffer.
-          
-        has_header: True if first line is a header, else False.
-        
         
         delimiter: Bytes (in native file encoding) representation
                    of the value used as delimiter.
@@ -571,7 +512,6 @@ def fix_dup_index(
     """                   
     inpt = get_bytes(inpt)
     encoding = [encoding if encoding else get_bencod(inpt)][0]
-    nfields = [nfields if nfields else get_nfields(inpt, has_header)]
     evdf, oddf = (df((line.split() for line in lines),
                      dtype = object) for lines
                   in evenodd(inpt.splitlines()))
@@ -590,7 +530,7 @@ def fix_dup_index(
                                      oddf.iteritems())[booltest[-1]+1:],
                                 axis = 1)),
                       axis = 1)
-    return b'\n'.join(b'\t'.join(itm if type(itm) == bytes
+    return '\n'.encode(encoding).join('\t'.encode(encoding).join(itm if type(itm) == bytes
                                  else str(np.nan).encode() for
                                  itm in row[1].values.tolist())
                       for row in datas.iterrows())
@@ -640,21 +580,34 @@ def clean_bytes(
         
         dup_index: True if 'inpt' has duplicated index values, else False.
     """
+    inpt = get_bytes(inpt)
     encoding = [encoding if encoding else get_bencod(inpt)][0]
-    has_header = [has_header if has_header != None else get_has_header(inpt, encoding)][0]
+    has_header = [has_header if has_header != None else
+                                get_has_header(inpt, encoding)][0]
     delimiter = [delimiter if delimiter != None else get_delimiter(inpt, encoding)][0]
-    lineterminator = [lineterminator if lineterminator else get_lineterminator(inpt, encoding)][0]
-    dup_index = [dup_index if dup_index != None else get_dup_index(inpt, encoding, has_header)][0]
-    newsheet = b'\n'.join([b'\t'.join(itm.strip(b"\s") for itm in re.sub(b"\s"+b"{2,}",
-                                         b"\s"+delimiter+b"\s",
+    dup_index = [dup_index if dup_index != None else
+                 get_dup_index(inpt, encoding,
+                               has_header)][0]
+    newsheet = b'\n'.join([b'\t'.join(itm.strip(b" ") for itm in re.sub(b" "+b"{2,}",
+                                         b" "+delimiter+b" ",
                                          line).split(delimiter))
                        for line in fix_na_reps(get_bytes(inpt).lower(), encoding,
-                                               delimiter).decode(
+                                               delimiter,
+                                               [lineterminator if lineterminator else
+                                                get_lineterminator(inpt, encoding)][0]).decode(
                            "utf8", "replace").replace("�", "").strip().encode(
                            "utf8").splitlines()])
-    return [fix_dup_index(newsheet, encoding, has_header, delimiter, nfields)
+    return [fix_dup_index(newsheet, encoding)
             if dup_index else newsheet][0]
 
+def bytes2df(inpt, **kwargs):
+    return [df((line.split('\t') for line in unidecode(
+                  clean_bytes(inpt, **kwargs).decode()).split('\n')),
+                 dtype = object).T.set_index(0, drop = True).T
+             if get_has_header(inpt) else
+        df((line.split('\t') for line in unidecode(
+                 clean_bytes(inpt, **kwargs).decode()).split('\n')),
+                                   dtype = object)][0]
 
 def stream2file(inpt: Union[str, bytes],
                 dst_path: Union[str, os.PathLike]) -> None:
@@ -703,7 +656,7 @@ def scansniff(folderpath: Union[str, os.PathLike]) -> object:
     contents = loadfiles(sorted(loadimages(folderpath))).sort_values("fname")
     contents[["encoding", "delimiter", "has_header",
               "width", "dup_index", "nrows"]] = \
-        [pd.Series(scan_bytes(fpath), dtype = object)
+        [pd.Series(sniff_bytes(fpath), dtype = object)
          for fpath in tqdm(contents.fpaths, desc="sniffing")]
     return contents
 
