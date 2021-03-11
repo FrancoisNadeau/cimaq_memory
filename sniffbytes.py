@@ -234,7 +234,7 @@ def get_has_header(
 
 def get_widths(
     inpt: Union[bytes, bytearray, str, os.PathLike, object],
-    encoding: str = None, hdr: bool = None
+    encoding: str = None, has_header: bool = None
 ) -> Union[str, int]:
     """ Returns an integer corresponding to the longest line in
         bytes buffer that is not a header, which could include
@@ -251,7 +251,7 @@ def get_widths(
     """    
     inpt = get_bytes(inpt).replace(
                "\x00".encode(encoding), "".encode(encoding))
-    lines = [inpt.splitlines()[1:] if hdr else inpt.splitlines()][0]
+    lines = [inpt.splitlines()[1:] if has_header else inpt.splitlines()][0]
     encoding = [encoding if encoding else get_bencod(inpt)][0]
     return pd.Series(len(line) for line in lines).fillna(1).max()
 
@@ -351,7 +351,7 @@ def get_delimiter(
 
 def get_dup_index(
     inpt: Union[bytes, bytearray, str, os.PathLike, object],
-    hdr: bool = False,
+    has_header: bool = False,
     delimiter: bytes = None
 ) -> bool:
     """ Returns True if the first item of each even and each
@@ -367,13 +367,13 @@ def get_dup_index(
                 
         - Optional
           --------
-        hdr: True if first line is a header, else False
+        has_header: True if first line is a header, else False
         
         delimiter: Bytes (in native file encoding) representation
                    of the value used as delimiter.
     """
     inpt = get_bytes(inpt)
-    bytelines = [inpt.splitlines() if not hdr else inpt.splitlines()[1:]][0]
+    bytelines = [inpt.splitlines() if not has_header else inpt.splitlines()[1:]][0]
     ev_itms, od_itms = evenodd([line.split(delimiter) for line in bytelines])
     try:
         return bool([line[0] for line in ev_itms] == \
@@ -383,7 +383,7 @@ def get_dup_index(
     
 def get_nfields(
     inpt: Union[bytes, bytearray, str, os.PathLike, object],
-    hdr: bool = None
+    has_header: bool = None
 ) -> bytes:
     """ Returns a bytes representation of an integer corresponding
         to the maximal number of fields in the bytes stream lines
@@ -396,9 +396,9 @@ def get_nfields(
                 
         - Optional
           --------
-        hdr: True if first line is a header, else False.
+        has_header: True if first line is a header, else False.
     """    
-    inpt = [get_bytes(inpt).splitlines()[1:] if hdr else
+    inpt = [get_bytes(inpt).splitlines()[1:] if has_header else
             get_bytes(inpt).splitlines()][0]
     return pd.Series(len(line.split())
                       for line in inpt).max()
@@ -407,7 +407,7 @@ def get_nfields(
 
 def scan_bytes(
     inpt: Union[bytes, bytearray, str, os.PathLike, object],
-    encoding: str = None, hdr: bool = None
+    encoding: str = None, has_header: bool = None
 ) -> dict:
     """ Returns a dictionary containing informations about datas from
         a readable file or buffer of raw bytes.
@@ -420,13 +420,13 @@ def scan_bytes(
         
             inpt = help(sniffer.get_bytes)
             encoding = help(sniffer.get_bencod)
-            hdr = help(sniffer.get_has_header)
+            has_header = help(sniffer.get_has_header)
             sep = help(sniffer.get_delimiter)
             lineterminator = help(sniffer.get_lineterminator)
     """
     inpt = get_bytes(inpt)
     encoding = [encoding if encoding else get_bencod(inpt)][0]
-    hdr = [hdr if hdr != None else get_has_header(inpt, encoding)][0]
+    has_header = [has_header if has_header != None else get_has_header(inpt, encoding)][0]
     sep = get_delimiter(inpt, encoding)
     lineterminator = get_lineterminator(inpt)
     try:
@@ -436,9 +436,9 @@ def scan_bytes(
     return dict(zip(
                 ("encoding", "delimiter", "has_header", "dup_index",
                   "lineterminator", "nfields", "width", "nrows"),
-                (encoding, sep, hdr, dupind, lineterminator,
-                 get_nfields(inpt, hdr),
-                 get_widths(inpt, encoding, hdr),
+                (encoding, sep, has_header, dupind, lineterminator,
+                 get_nfields(inpt, has_header),
+                 get_widths(inpt, encoding, has_header),
                  len(inpt.splitlines()),
                 ),
             )
@@ -483,7 +483,7 @@ def fix_na_reps(
 def fix_dup_index(
     inpt: Union[bytes, bytearray, str, os.PathLike, object],
     encoding: str = None,
-    hdr: bool = False,
+    has_header: bool = False,
     delimiter: bytes = None,
     nfields: int = None
 ) -> bytes:
@@ -498,7 +498,7 @@ def fix_dup_index(
           --------
         encoding: Character encoding of the bytes in buffer.
           
-        hdr: True if first line is a header, else False.
+        has_header: True if first line is a header, else False.
         
         
         delimiter: Bytes (in native file encoding) representation
@@ -510,7 +510,7 @@ def fix_dup_index(
     """                   
     inpt = get_bytes(inpt)
     encoding = [encoding if encoding else get_bencod(inpt)][0]
-    nfields = [nfields if nfields else get_nfields(inpt, hdr)]
+    nfields = [nfields if nfields else get_nfields(inpt, has_header)]
     evdf, oddf = (df((line.split() for line in lines),
                      dtype = object) for lines
                   in evenodd(inpt.splitlines()))
@@ -538,7 +538,7 @@ def fix_dup_index(
 def clean_bytes(
     inpt: Union[bytes, bytearray, str, os.PathLike, object],
     encoding: str = None,
-    hdr: bool = None,
+    has_header: bool = None,
     delimiter: bytes = None,
     lineterminator: bytes = None,
     dup_index: bool = None,
@@ -569,7 +569,7 @@ def clean_bytes(
           --------
         encoding: Character encoding of the bytes in buffer.
           
-        hdr: True if first line is a header, else False.
+        has_header: True if first line is a header, else False.
         
         delimiter: Bytes (in native file encoding) representation
                    of the value used as delimiter.
@@ -586,7 +586,7 @@ def clean_bytes(
                                                delimiter).decode(
                            "utf8", "replace").replace("�", "").strip().encode(
                            "utf8").splitlines()])
-    return [fix_dup_index(newsheet, encoding, hdr, delimiter, nfields)
+    return [fix_dup_index(newsheet, encoding, has_header, delimiter, nfields)
             if dup_index else newsheet][0]
 
 
@@ -673,7 +673,6 @@ def get_all_bitems(inpt: Union[bytes, str, os.PathLike], encoding: str = None):
         .join(inpt.splitlines())
         .split(bytes("\\n", encoding))
     ]
-
 
 ######### String Manipulation ########################################
 
