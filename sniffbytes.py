@@ -158,26 +158,73 @@ def megamerge(dflist: list, howto: str, onto: str = None) -> object:
     )
 
 
-def get_bytes(
-    inpt: Union[bytes, bytearray, str, os.PathLike, object]
-) -> bytes:
-    """ Returns raw bytes stream buffer either from reading file
-        or from memory (i.e. from another buffer) using
-        a context manager to open, read and close files
-        without errors.
-    """
+def get_bytes(inpt: Union[str, os.PathLike]):
     if type(inpt) == bytes or bytearray:
-        return [inpt.lower() if bool(len(inpt.splitlines()) > \
+        outpt = [inpt.lower() if bool(len(inpt.splitlines()) > \
                   0 and inpt != None) else b"1"][0]
-    elif os.path.isfile(inpt):
-        with open(inpt, "rb", buffering=0) as myfile:
+    if type(inpt) == str and os.path.isfile(inpt):
+        with open(inpt, "rb", buffering = 0) as myfile:
             outpt = myfile.read().lower()
+            outpt = [outpt if bool(len(outpt.splitlines()) > 1)
+                     else b"1"][0]
             myfile.close()
-            if bool(len(myfile.read().splitlines()) > \
-                      0 and outpt != None):
-                return outpt
-            else:
-                return b"1"[0]
+    if type(inpt) == str and not os.path.isfile(inpt):
+        outpt = inpt.encode()
+    return outpt
+
+# def get_bytes(
+#     inpt: Union[bytes, bytearray, str, os.PathLike, object]
+# ) -> bytes:
+#     """ Returns raw bytes stream buffer either from reading file
+#         or from memory (i.e. from another buffer) using
+#         a context manager to open, read and close files
+#         without errors.
+#     """
+#     if type(inpt) == bytes or bytearray:
+#         return [inpt.lower() if bool(len(inpt.splitlines()) > \
+#                   0 and inpt != None) else b"1"][0]
+#     if type(inpt) != bytes and type(inpt) != bytearray:
+#         return get_bytes_str_path(inpt)
+        
+#     elif os.path.isfile(inpt):
+#         with open(inpt, "rb", buffering=0) as myfile:
+#             outpt = myfile.read().lower()
+#             myfile.close()
+#             if bool(len(myfile.read().splitlines()) > \
+#                       0 and outpt != None):
+#                 return outpt
+#             else:
+#                 return b"1"[0]
+
+
+# def get_bytes(
+#     inpt: Union[bytes, bytearray, str, os.PathLike, object]
+# ) -> bytes:
+#     """ Returns raw bytes stream buffer either from reading file
+#         or from memory (i.e. from another buffer) using
+#         a context manager to open, read and close files
+#         without errors.
+#     """
+#     if type(inpt) == bytes or bytearray:
+#         return [inpt.lower() if bool(len(inpt.splitlines()) > \
+#                   0 and inpt != None) else b"1"][0]
+#     elif type(inpt) == str and os.path.isfile(inpt):
+#     #os.path.isfile(inpt):
+#         with open(inpt, "rb", buffering=0) as myfile:
+#             outpt = [myfile.read().lower() if
+#                      bool(len(myfile.read().splitlines()) > 
+#                           0 and outpt != None)
+#                      else b"1"][0]
+#             myfile.close()
+# #             if bool(len(myfile.read().splitlines()) > \
+# #                       0 and outpt != None):
+# #                 return outpt
+# #             else:
+# #                 return b"1"[0]
+#     elif type(inpt) == str and not os.path.isfile(inpt):
+#         outpt = inpt.decode()
+#     return outpt
+
 
 def get_bencod(
     inpt: Union[bytes, bytearray, str, os.PathLike, object]
@@ -279,7 +326,7 @@ def get_lineterminator(
             )
         )
     ).unique()[0]
-    return [linterminator if linterminator != ''.encode(encoding)
+    return [linterminator if linterminator != "".encode(encoding)
             else '\n'.encode(encoding)][0]
 
 def get_delimiter(
@@ -343,10 +390,16 @@ def get_delimiter(
         ).unique()
     ).most_common(1).__iter__()
     try:
-        return list(delimiters)[0][0]
+        delimiter = list(delimiters)[0][0]
+#         return [delimiter if delimiter != "".encode(encoding)
+#                 else get_lineterminator(inpt, encoding)][0]
     except IndexError:
-        return [list(delimiters) if list(delimiters) != []
-                else '\\s'.encode(encoding)][0]
+        delimiter = get_lineterminator(inpt, encoding)
+    return [delimiter if delimiter != b"" else " ".encode(encoding)][0]
+#         delimiter = [list(delimiters) if list(delimiters) not in [[], "".encode(encoding)]
+# #                 and list(delimiters) != "".encode(encoding)
+#                 else get_lineterminator(inpt, encoding)][0]
+#                      #" ".encode(encoding)][0]
 
 
 def get_dup_index(
@@ -592,8 +645,8 @@ def clean_bytes(
     delimiter = [delimiter if delimiter != None else get_delimiter(inpt, encoding)][0]
     lineterminator = [lineterminator if lineterminator else get_lineterminator(inpt, encoding)][0]
     dup_index = [dup_index if dup_index != None else get_dup_index(inpt, encoding, has_header)][0]
-    newsheet = b'\n'.join([b'\t'.join(itm.strip(b'\\s') for itm in re.sub(b'\\s{2,}',
-                                         b'\\s'+delimiter+b'\\s',
+    newsheet = b'\n'.join([b'\t'.join(itm.strip(b"\s") for itm in re.sub(b"\s"+b"{2,}",
+                                         b"\s"+delimiter+b"\s",
                                          line).split(delimiter))
                        for line in fix_na_reps(get_bytes(inpt).lower(), encoding,
                                                delimiter).decode(
@@ -620,7 +673,10 @@ def stream2file(inpt: Union[str, bytes],
         binary_file.close()
         
 ################## Unused Yet #########################################        
-def bytes_printable(inpt: bytes, encoding: str = None) -> bytes:
+def bytes_printable(
+    inpt: bytes,
+    encoding: str = None
+) -> bytes:
     ''' Same as is_printable, but for bytes in native file encoding '''
     encoding = [encoding if encoding else get_bencod(inpt)][0]
     b_printable = ''.encode(encoding).join([ch.encode(encoding)
