@@ -99,7 +99,8 @@ def scanzip(archv_path: Union[os.PathLike, str],
             ),
             dtype = object,
         ).sort_values("filename").reset_index(drop=True)
-
+    vals['filename'] = [row[1].filename.replace("/", "_")
+                        for row in vals.iterrows()]
     vals['src_names'] = sorted(ntpl)
     vals['bsheets'] = [myzip.open(row[1].src_names).read()
                        for row in vals.iterrows()]

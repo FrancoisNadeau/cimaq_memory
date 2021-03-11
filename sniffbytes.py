@@ -304,7 +304,7 @@ def get_delimiter(
     """
     inpt = get_bytes(inpt)
     encoding = [encoding if encoding else get_bencod(inpt)][0]
-    seps = Counter(
+    delimiters = Counter(
         pd.Series(
             pd.Series(
                 pd.Series(
@@ -343,16 +343,17 @@ def get_delimiter(
         ).unique()
     ).most_common(1).__iter__()
     try:
-        return list(seps)[0][0]
+        return list(delimiters)[0][0]
     except IndexError:
-        return [list(seps) if list(seps) != []
+        return [list(delimiters) if list(delimiters) != []
                 else '\\s'.encode(encoding)][0]
 
 
 def get_dup_index(
     inpt: Union[bytes, bytearray, str, os.PathLike, object],
-    has_header: bool = False,
-    delimiter: bytes = None
+    encoding: str = None,
+    has_header: bool = None,
+#     delimiter: bytes = None
 ) -> bool:
     """ Returns True if the first item of each even and each
         odd line is repeated. Returns False otherwise or upon IndexError.
@@ -373,8 +374,10 @@ def get_dup_index(
                    of the value used as delimiter.
     """
     inpt = get_bytes(inpt)
+    has_header = [has_header if has_header != None else get_has_header(inpt, encoding)][0]
+#     delimiter = [delimiter if delimiter != None else get_delimiter(inpt, encoding)][0]
     bytelines = [inpt.splitlines() if not has_header else inpt.splitlines()[1:]][0]
-    ev_itms, od_itms = evenodd([line.split(delimiter) for line in bytelines])
+    ev_itms, od_itms = evenodd([line.split() for line in bytelines])
     try:
         return bool([line[0] for line in ev_itms] == \
                     [line[0] for line in od_itms])
@@ -411,6 +414,11 @@ def scan_bytes(
 ) -> dict:
     """ Returns a dictionary containing informations about datas from
         a readable file or buffer of raw bytes.
+        
+        Order is as folllows:
+            ("encoding", "delimiter", "has_header", "dup_index",
+             "lineterminator", "nfields", "width", "nrows").
+             
         Information is similar to csv.dialect objects.
         The outout is designed to work well with common data structures,
         including, bu not restricted to:
@@ -421,22 +429,22 @@ def scan_bytes(
             inpt = help(sniffer.get_bytes)
             encoding = help(sniffer.get_bencod)
             has_header = help(sniffer.get_has_header)
-            sep = help(sniffer.get_delimiter)
+            delimiter = help(sniffer.get_delimiter)
             lineterminator = help(sniffer.get_lineterminator)
     """
     inpt = get_bytes(inpt)
     encoding = [encoding if encoding else get_bencod(inpt)][0]
     has_header = [has_header if has_header != None else get_has_header(inpt, encoding)][0]
-    sep = get_delimiter(inpt, encoding)
+    delimiter = get_delimiter(inpt, encoding)
     lineterminator = get_lineterminator(inpt)
     try:
-        dupind = get_dup_index(inpt)
+        dupind = get_dup_index(inpt, encoding, has_header)
     except IndexError:
         dupind = False 
     return dict(zip(
                 ("encoding", "delimiter", "has_header", "dup_index",
                   "lineterminator", "nfields", "width", "nrows"),
-                (encoding, sep, has_header, dupind, lineterminator,
+                (encoding, delimiter, has_header, dupind, lineterminator,
                  get_nfields(inpt, has_header),
                  get_widths(inpt, encoding, has_header),
                  len(inpt.splitlines()),
@@ -552,7 +560,7 @@ def clean_bytes(
             - Duplicated indexes
             - Inconsistent delimiters
             - Within-values inconsistencies
-                  - (e.g. using a variable amount of whitespaces to separate
+                  - (e.g. using a variable amount of whitespaces to delimiterarate
                      values within a same file or stream.
             - If file has a header row with labels or not
             - Variable source or native character encodings
@@ -578,7 +586,12 @@ def clean_bytes(
                         of the line termination character.
         
         dup_index: True if 'inpt' has duplicated index values, else False.
-    """     
+    """
+    encoding = [encoding if encoding else get_bencod(inpt)][0]
+    has_header = [has_header if has_header != None else get_has_header(inpt, encoding)][0]
+    delimiter = [delimiter if delimiter != None else get_delimiter(inpt, encoding)][0]
+    lineterminator = [lineterminator if lineterminator else get_lineterminator(inpt, encoding)][0]
+    dup_index = [dup_index if dup_index != None else get_dup_index(inpt, encoding, has_header)][0]
     newsheet = b'\n'.join([b'\t'.join(itm.strip(b'\\s') for itm in re.sub(b'\\s{2,}',
                                          b'\\s'+delimiter+b'\\s',
                                          line).split(delimiter))
