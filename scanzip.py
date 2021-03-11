@@ -105,9 +105,10 @@ def scanzip(archv_path: Union[os.PathLike, str],
                        for row in vals.iterrows()]
     
     myzip.close()
-    sniffed = df(snif.scan_bytes(row[1].bsheets)
-               for row in vals.iterrows()).to_dict()
-    return df.from_dict({**vals.to_dict(), **sniffed}, orient = 'index')
+    sniffed = df((snif.scan_bytes(row[1].bsheets)
+                 for row in vals.iterrows()), dtype = object).to_dict()
+    return df.from_dict({**vals.to_dict(), **sniffed},
+                        orient = 'index', dtype = object)
 
 def main():    
     if __name__ == "__main__":

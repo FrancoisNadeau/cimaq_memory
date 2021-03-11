@@ -41,6 +41,8 @@ from zipfile import ZipFile
 
 from removeEmptyFolders import removeEmptyFolders
 
+###############################################################################
+
 def loadimages(indir: Union[os.PathLike, str]) -> list:
     """ Description
         -----------
@@ -64,6 +66,7 @@ def loadimages(indir: Union[os.PathLike, str]) -> list:
                 imlist.append(indir)
     return imlist
 
+
 def flatten(nested_seq) -> list:
     """ Returns unidimensional list from nested list using list comprehension.
         ----------
@@ -81,16 +84,19 @@ def flatten(nested_seq) -> list:
         flatlst: unidimensional list 
     """
     return [bottomElem for sublist in nested_seq
-               for bottomElem in (flatten(sublist) if
-               (isinstance(sublist, Sequence) and not isinstance(sublist, str))
-            else [sublist])]
+            for bottomElem in (flatten(sublist) if
+                               (isinstance(sublist, Sequence) \
+                                and not isinstance(sublist, str))
+                               else [sublist])]
 
 def loadfiles(pathlist: Union[list, tuple]) -> object:
     return (df(((bname(sheet).split(".", 1)[0],
                 "." + bname(sheet).split(".", 1)[1], sheet,)
                 for sheet in pathlist),
+                dtype = object,
                 columns=["fname", "ext", "fpaths"],
         ).sort_values("fname").reset_index(drop=True))
+
 
 def evenodd(inpt) -> tuple:
     """
@@ -103,7 +109,9 @@ def evenodd(inpt) -> tuple:
 
 
 def filter_lst_exc(
-    exclude: Union[list, tuple], str_lst: Union[list, tuple], sort: bool = False
+    exclude: Union[list, tuple],
+    str_lst: Union[list, tuple],
+    sort: bool = False
 ) -> list:
     """
     Source: https://www.geeksforgeeks.org/python-filter-list-of-strings-based-on-the-substring-list/
@@ -114,12 +122,15 @@ def filter_lst_exc(
     exclude: patterns susceptible to return a match among items in 'str_lst'
     str_lst: list of items to be filtered
     """
-    outlst = [itm for itm in str_lst if all(sub not in itm for sub in exclude)]
+    outlst = [itm for itm in str_lst if
+              all(sub not in itm for sub in exclude)]
     return [sorted(outlst) if sort else outlst][0]
 
 
 def filter_lst_inc(
-    include: Union[list, tuple], str_lst: Union[list, tuple], sort: bool = False
+    include: Union[list, tuple],
+    str_lst: Union[list, tuple],
+    sort: bool = False
 ) -> list:
     """
     Source: https://www.geeksforgeeks.org/python-filter-list-of-strings-based-on-the-substring-list/
@@ -130,20 +141,9 @@ def filter_lst_inc(
     include: patterns susceptible to return a match among items in 'str_lst'
     str_lst: list of items to be filtered
     """
-    outlst = [itm for itm in str_lst if any(sub in itm for sub in include)]
+    outlst = [itm for itm in str_lst if
+              any(sub in itm for sub in include)]
     return [sorted(outlst) if sort else outlst][0]
-
-def sortmap(info_df: object, patterns: object) -> object:
-    """Identifies files in info_df with boolean values
-    True: Pattern is in filename; False: It is not"""
-    patterns = df(patterns, columns=["ids", "patterns"])
-    for row in patterns.iterrows():
-        cmplr = re.compile(row[1]["patterns"])
-        info_df[row[1]["ids"]] = [
-            cmplr.search(row[1]["patterns"]).group()
-            in fname for fname in info_df.fname
-        ]
-    return info_df
 
 
 def find_key(input_dict: dict, value):
@@ -153,10 +153,14 @@ def find_key(input_dict: dict, value):
 
 def megamerge(dflist: list, howto: str, onto: str = None) -> object:
     return reduce(
-        lambda x, y: pd.merge(x, y, on=onto, how=howto).astype("object"), dflist
+        lambda x, y: pd.merge(x, y, on=onto,
+                              how=howto).astype("object"), dflist
     )
 
-def get_bytes(inpt: Union[bytes, bytearray, str, os.PathLike, object]) -> bytes:
+
+def get_bytes(
+    inpt: Union[bytes, bytearray, str, os.PathLike, object]
+) -> bytes:
     """ Returns raw bytes stream buffer either from reading file
         or from memory (i.e. from another buffer) using
         a context manager to open, read and close files
@@ -175,7 +179,9 @@ def get_bytes(inpt: Union[bytes, bytearray, str, os.PathLike, object]) -> bytes:
             else:
                 return b"1"[0]
 
-def get_bencod(inpt: Union[bytes, bytearray, str, os.PathLike]) -> str:
+def get_bencod(
+    inpt: Union[bytes, bytearray, str, os.PathLike, object]
+) -> str:
     ''' Returns the character encoding of 'inpt' as a string
         
         Parameters
@@ -202,30 +208,9 @@ def get_bencod(inpt: Union[bytes, bytearray, str, os.PathLike]) -> str:
     return detector.result["encoding"]
 
 
-def bytes_printable(inpt: bytes, encoding: str = None) -> bytes:
-    ''' Same as is_printable, but for bytes in native file encoding '''
-    encoding = [encoding if encoding else get_bencod(inpt)][0]
-    b_printable = ''.encode(encoding).join([ch.encode(encoding)
-                              for ch in list(string.printable)])
-    return ''.encode(encoding).join([chr(val).encode(encoding) for val in
-                       list(inpt) if chr(val).encode(encoding) in b_printable])
-
-
-def force_ascii(inpt: Union[str, bytes],
-                encoding: str = None) -> Union[str, bytes]:
-    """
-    Source: https://stackoverflow.com/questions/8689795/how-can-i-remove-non-ascii-characters-but-leave-periods-and-spaces-using-python
-    """
-    encoding = [encoding if encoding else get_bencod(inpt)][0]
-    return "".encode(encoding).join(filter(lambda x: x in \
-        set([chr(int.from_bytes(itm, sys.byteorder)).encode(encoding)
-             for itm in [itm.encode(encoding) for itm in
-                         list(string.printable)]]), inpt))
-
-
 def get_has_header(
-    inpt: Union[bytes, str, os.PathLike],
-    encoding=None
+    inpt: Union[bytes, bytearray, str, os.PathLike, object],
+    encoding: str = None
 ) -> bool:
     """ Returns True if 1st line of inpt is a header line
         
@@ -248,7 +233,7 @@ def get_has_header(
 
 
 def get_widths(
-    inpt: Union[bytes, str, os.PathLike],
+    inpt: Union[bytes, bytearray, str, os.PathLike, object],
     encoding: str = None, hdr: bool = None
 ) -> Union[str, int]:
     """ Returns an integer corresponding to the longest line in
@@ -264,36 +249,17 @@ def get_widths(
           --------
         encoding: Character encoding of the bytes in buffer
     """    
-    inpt = get_bytes(inpt).replace("\x00".encode(encoding), "".encode(encoding))
+    inpt = get_bytes(inpt).replace(
+               "\x00".encode(encoding), "".encode(encoding))
     lines = [inpt.splitlines()[1:] if hdr else inpt.splitlines()][0]
     encoding = [encoding if encoding else get_bencod(inpt)][0]
     return pd.Series(len(line) for line in lines).fillna(1).max()
 
 
-def get_all_bitems(inpt: Union[bytes, str, os.PathLike], encoding: str = None):
-    """ Returns a unidimensional list containg all non-null items
-        within the bytes stream buffer
-
-        Parameters
-        ----------
-        inpt: Bytes stream from buffer or file
-                - See help(snif.get_bytes)
-                
-        - Optional
-          --------
-        encoding: Character encoding of the bytes in buffer
-    """        
-    inpt = get_bytes(inpt)
-    encoding = [encoding if encoding else get_bencod(inpt)][0]
-    return [
-        line.replace(bytes("\x00", encoding), bytes("n\a", encoding)).split()
-        for line in bytes("\\n", encoding)
-        .join(inpt.splitlines())
-        .split(bytes("\\n", encoding))
-    ]
-
-
-def get_lineterminator(inpt: Union[bytes, str, os.PathLike]) -> bytes:
+def get_lineterminator(
+    inpt: Union[bytes, bytearray, str, os.PathLike, object],
+    encoding: str = None
+) -> bytes:
     """ Returns the character used as line terminator within
         the bytes stream buffer in native character encoding
 
@@ -303,7 +269,8 @@ def get_lineterminator(inpt: Union[bytes, str, os.PathLike]) -> bytes:
                 - See help(snif.get_bytes)
     """                
     inpt = get_bytes(inpt)
-    return pd.Series(
+    encoding = [encoding if encoding else get_bencod(inpt)][0]    
+    linterminator = pd.Series(
         next(
             (
                 itm[0].strip(itm[1])
@@ -312,10 +279,13 @@ def get_lineterminator(inpt: Union[bytes, str, os.PathLike]) -> bytes:
             )
         )
     ).unique()[0]
+    return [linterminator if linterminator != ''.encode(encoding)
+            else '\n'.encode(encoding)][0]
 
 def get_delimiter(
-    inpt: Union[bytes, str, os.PathLike],
-    encoding: str = None) -> bytes:
+    inpt: Union[bytes, bytearray, str, os.PathLike, object],
+    encoding: str = None
+) -> bytes:
     """ Returns the character used as delimiter within
         the bytes stream buffer in native character encoding
             - Replaces csv.Sniffer,
@@ -331,7 +301,7 @@ def get_delimiter(
         - Optional
           --------
         encoding: Character encoding of the bytes in buffer
-    """       
+    """
     inpt = get_bytes(inpt)
     encoding = [encoding if encoding else get_bencod(inpt)][0]
     seps = Counter(
@@ -341,7 +311,8 @@ def get_delimiter(
                     next(
                         (
                             re.sub(
-                                bytes("|", encoding).join(map(re.escape, itm[1])),
+                                bytes("|", encoding).join(
+                                    map(re.escape, itm[1])),
                                 bytes("|", encoding),
                                 itm[0],
                             )
@@ -350,7 +321,8 @@ def get_delimiter(
                                     inpt.splitlines(),
                                     [
                                         line.replace(
-                                            bytes("\x00", encoding), bytes("", encoding)
+                                            bytes("\x00", encoding),
+                                            bytes("", encoding)
                                         ).split()
                                         for line in bytes("\n", encoding)
                                         .join(inpt.splitlines())
@@ -373,49 +345,18 @@ def get_delimiter(
     try:
         return list(seps)[0][0]
     except IndexError:
-        return [list(seps) if list(seps) != [] else '\\s'.encode(encoding)][0]
+        return [list(seps) if list(seps) != []
+                else '\\s'.encode(encoding)][0]
 
-def fix_na_reps(inpt: bytes,
-                encoding: str = None,
-                delimiter: bytes = None,
-                lterm: bytes = None) -> bytes:
-    """ Returns a version of the bytes buffer replacing any missing 'missing'
-        values by automatically.
-        To do so, the np.nan value, padded between whitespaces - all
-        converted into native file encoding, are inserted where two or
-        more consecutive delimiters are found.
-        
-        Parameters
-        ----------
-        inpt: Bytes stream from buffer or file
-                - See help(snif.get_bytes).
-                
-        - Optional
-          --------
-        encoding: Character encoding of the bytes in buffer.
-        
-        delimiter: Bytes (in native file encoding) representation
-                   of the value used as delimiter.
-                   
-        lterm: Bytes (in native file encoding) representation
-                   of the value used as line terminator.
-    """
-    inpt = get_bytes(inpt)
-    encoding = [encoding if encoding else get_bencod(inpt)][0]
-    delimiter = [delimiter if delimiter else get_delimiter(inpt, encoding)][0]
-    lterm = [lterm if lterm else get_lineterminator(inpt)][0]
-    return lterm.join(re.sub(delimiter+'{2,}'.encode(encoding),
-                      delimiter+str(np.nan).encode(encoding)+delimiter,
-                      line) for line in inpt.split(lterm))
 
 def get_dup_index(
-    inpt: Union[bytes, str, os.PathLike],
+    inpt: Union[bytes, bytearray, str, os.PathLike, object],
     hdr: bool = False,
     delimiter: bytes = None
 ) -> bool:
-    """ Returns True if the first item of each even and each odd line is repeated.
-        Returns False otherwise or upon IndexError.
-        Since IndexError is raised when trying to access values by an index out
+    """ Returns True if the first item of each even and each
+        odd line is repeated. Returns False otherwise or upon IndexError.
+        As IndexError is raised when trying to access values by an index out
         of a sequence boundairies, IndexError indicates single-byte files.
         Being a single byte, it can't be a duplicate index.
         
@@ -435,11 +376,15 @@ def get_dup_index(
     bytelines = [inpt.splitlines() if not hdr else inpt.splitlines()[1:]][0]
     ev_itms, od_itms = evenodd([line.split(delimiter) for line in bytelines])
     try:
-        return bool([line[0] for line in ev_itms] == [line[0] for line in od_itms])
+        return bool([line[0] for line in ev_itms] == \
+                    [line[0] for line in od_itms])
     except IndexError:
         return False
     
-def get_nfields(inpt: bytes, hdr: bool = None) -> bytes:
+def get_nfields(
+    inpt: Union[bytes, bytearray, str, os.PathLike, object],
+    hdr: bool = None
+) -> bytes:
     """ Returns a bytes representation of an integer corresponding
         to the maximal number of fields in the bytes stream lines
         for lines that are not a header.
@@ -458,9 +403,11 @@ def get_nfields(inpt: bytes, hdr: bool = None) -> bytes:
     return pd.Series(len(line.split())
                       for line in inpt).max()
 
+###############################################################################
 
 def scan_bytes(
-    inpt: Union[bytes, str, os.PathLike], encoding: str = None, hdr: bool = None
+    inpt: Union[bytes, bytearray, str, os.PathLike, object],
+    encoding: str = None, hdr: bool = None
 ) -> dict:
     """ Returns a dictionary containing informations about datas from
         a readable file or buffer of raw bytes.
@@ -475,13 +422,13 @@ def scan_bytes(
             encoding = help(sniffer.get_bencod)
             hdr = help(sniffer.get_has_header)
             sep = help(sniffer.get_delimiter)
-            lterm = help(sniffer.get_lineterminator)
+            lineterminator = help(sniffer.get_lineterminator)
     """
     inpt = get_bytes(inpt)
     encoding = [encoding if encoding else get_bencod(inpt)][0]
     hdr = [hdr if hdr != None else get_has_header(inpt, encoding)][0]
     sep = get_delimiter(inpt, encoding)
-    lterm = get_lineterminator(inpt)
+    lineterminator = get_lineterminator(inpt)
     try:
         dupind = get_dup_index(inpt)
     except IndexError:
@@ -489,7 +436,7 @@ def scan_bytes(
     return dict(zip(
                 ("encoding", "delimiter", "has_header", "dup_index",
                   "lineterminator", "nfields", "width", "nrows"),
-                (encoding, sep, hdr, dupind, lterm,
+                (encoding, sep, hdr, dupind, lineterminator,
                  get_nfields(inpt, hdr),
                  get_widths(inpt, encoding, hdr),
                  len(inpt.splitlines()),
@@ -497,8 +444,44 @@ def scan_bytes(
             )
         )
 
+
+def fix_na_reps(
+    inpt: Union[bytes, bytearray, str, os.PathLike, object],
+    encoding: str = None,
+    delimiter: bytes = None,
+    lineterminator: bytes = None
+) -> bytes:
+    """ Returns a version of the bytes buffer replacing any missing 'missing'
+        values by automatically.
+        To do so, the np.nan value, padded between whitespaces - all
+        converted into native file encoding, are inserted where two or
+        more consecutive delimiters are found.
+        
+        Parameters
+        ----------
+        inpt: Bytes stream from buffer or file
+                - See help(snif.get_bytes).
+                
+        - Optional
+          --------
+        encoding: Character encoding of the bytes in buffer.
+        
+        delimiter: Bytes (in native file encoding) representation
+                   of the value used as delimiter.
+                   
+        lineterminator: Bytes (in native file encoding) representation
+                   of the value used as line terminator.
+    """
+    inpt = get_bytes(inpt)
+    encoding = [encoding if encoding else get_bencod(inpt)][0]
+    delimiter = [delimiter if delimiter else get_delimiter(inpt, encoding)][0]
+    lineterminator = [lineterminator if lineterminator else get_lineterminator(inpt, encoding)][0]
+    return lineterminator.join(re.sub(delimiter+'{2,}'.encode(encoding),
+                      delimiter+str(np.nan).encode(encoding)+delimiter,
+                      line) for line in inpt.splitlines())
+
 def fix_dup_index(
-    inpt: Union[bytes, str, os.PathLike],
+    inpt: Union[bytes, bytearray, str, os.PathLike, object],
     encoding: str = None,
     hdr: bool = False,
     delimiter: bytes = None,
@@ -528,7 +511,8 @@ def fix_dup_index(
     inpt = get_bytes(inpt)
     encoding = [encoding if encoding else get_bencod(inpt)][0]
     nfields = [nfields if nfields else get_nfields(inpt, hdr)]
-    evdf, oddf = (df(line.split() for line in lines) for lines
+    evdf, oddf = (df((line.split() for line in lines),
+                     dtype = object) for lines
                   in evenodd(inpt.splitlines()))
     booltest = [itm[0] for itm in enumerate(
                    tuple(zip([itm[1] for itm in
@@ -538,11 +522,11 @@ def fix_dup_index(
                 if all(itm[1][0].values == itm[1][1].values)]
     
     datas = pd.concat((evdf[booltest],
-                      pd.Series((int(len(row[1].values)) \
-                                 == nfields[0] -1)
-                                for row in evdf.iterrows()),
-                      pd.concat(list(itm[1] for itm in
-                                     oddf.iteritems())[booltest[-1]:],
+                       pd.concat(list(itm[1] for itm in
+                                      evdf.iteritems())[booltest[-1]+1:-1],
+                                 axis = 1),
+                       pd.concat(list(itm[1] for itm in
+                                     oddf.iteritems())[booltest[-1]+1:],
                                 axis = 1)),
                       axis = 1)
     return b'\n'.join(b'\t'.join(itm if type(itm) == bytes
@@ -551,13 +535,15 @@ def fix_dup_index(
                       for row in datas.iterrows())
 
 
-def clean_bytes(inpt: bytes,
-                encoding: str = None,
-                hdr: bool = None,
-                delimiter: bytes = None,
-                lineterminator: bytes = None,
-                dup_index: bool = None, nfields: bytes = None
-               ) -> bytes:
+def clean_bytes(
+    inpt: Union[bytes, bytearray, str, os.PathLike, object],
+    encoding: str = None,
+    hdr: bool = None,
+    delimiter: bytes = None,
+    lineterminator: bytes = None,
+    dup_index: bool = None,
+    nfields: bytes = None
+) -> bytes:
     """ Returns a clean (suitable for StringIO and Pandas modules)
         bytes stream buffer with fixed 'missing' missing values.
         
@@ -592,13 +578,12 @@ def clean_bytes(inpt: bytes,
                         of the line termination character.
         
         dup_index: True if 'inpt' has duplicated index values, else False.
-    """                   
+    """     
     newsheet = b'\n'.join([b'\t'.join(itm.strip(b'\\s') for itm in re.sub(b'\\s{2,}',
                                          b'\\s'+delimiter+b'\\s',
                                          line).split(delimiter))
-                       for line in fix_na_reps(inpt.lower(), encoding,
-                                               delimiter,
-                                               lineterminator).decode(
+                       for line in fix_na_reps(get_bytes(inpt).lower(), encoding,
+                                               delimiter).decode(
                            "utf8", "replace").replace("�", "").strip().encode(
                            "utf8").splitlines()])
     return [fix_dup_index(newsheet, encoding, hdr, delimiter, nfields)
@@ -621,6 +606,28 @@ def stream2file(inpt: Union[str, bytes],
         binary_file.write(inpt)
         binary_file.close()
         
+################## Unused Yet #########################################        
+def bytes_printable(inpt: bytes, encoding: str = None) -> bytes:
+    ''' Same as is_printable, but for bytes in native file encoding '''
+    encoding = [encoding if encoding else get_bencod(inpt)][0]
+    b_printable = ''.encode(encoding).join([ch.encode(encoding)
+                              for ch in list(string.printable)])
+    return ''.encode(encoding).join([chr(val).encode(encoding) for val in
+                                     list(inpt) if chr(val).encode(encoding)
+                                     in b_printable])
+
+
+def force_ascii(inpt: Union[str, bytes],
+                encoding: str = None) -> Union[str, bytes]:
+    """
+    Source: https://stackoverflow.com/questions/8689795/how-can-i-remove-non-ascii-characters-but-leave-periods-and-spaces-using-python
+    """
+    encoding = [encoding if encoding else get_bencod(inpt)][0]
+    return "".encode(encoding).join(filter(lambda x: x in \
+        set([chr(int.from_bytes(itm, sys.byteorder)).encode(encoding)
+             for itm in [itm.encode(encoding) for itm in
+                         list(string.printable)]]), inpt))
+
 
 # To be re-evaluated
 def scansniff(folderpath: Union[str, os.PathLike]) -> object:
@@ -630,6 +637,43 @@ def scansniff(folderpath: Union[str, os.PathLike]) -> object:
         [pd.Series(scan_bytes(fpath), dtype = object)
          for fpath in tqdm(contents.fpaths, desc="sniffing")]
     return contents
+
+
+def sortmap(info_df: object, patterns: object) -> object:
+    """Identifies files in info_df with boolean values
+    True: Pattern is in filename; False: It is not"""
+    patterns = df(patterns, columns=["ids", "patterns"])
+    for row in patterns.iterrows():
+        cmplr = re.compile(row[1]["patterns"])
+        info_df[row[1]["ids"]] = [
+            cmplr.search(row[1]["patterns"]).group()
+            in fname for fname in info_df.fname
+        ]
+    return info_df
+
+
+def get_all_bitems(inpt: Union[bytes, str, os.PathLike], encoding: str = None):
+    """ Returns a unidimensional list containg all non-null items
+        within the bytes stream buffer
+
+        Parameters
+        ----------
+        inpt: Bytes stream from buffer or file
+                - See help(snif.get_bytes)
+                
+        - Optional
+          --------
+        encoding: Character encoding of the bytes in buffer
+    """        
+    inpt = get_bytes(inpt)
+    encoding = [encoding if encoding else get_bencod(inpt)][0]
+    return [
+        line.replace(bytes("\x00", encoding), bytes("n\a", encoding)).split()
+        for line in bytes("\\n", encoding)
+        .join(inpt.splitlines())
+        .split(bytes("\\n", encoding))
+    ]
+
 
 ######### String Manipulation ########################################
 
