@@ -48,8 +48,10 @@ def getnametuple(myzip):
 def scanzip(archv_path: Union[os.PathLike, str],
             ntpl: Union[str, list, tuple] = [],
             exclude: Union[str, list, tuple] = [],
+            include: Union[str, list, tuple] = [],
             to_xtrct: Union[str, list, tuple] = [],
-            dst_path: Union[str, os.PathLike] = None) -> object:
+            dst_path: Union[str, os.PathLike] = None,
+            to_sniff: bool = False) -> object:
     ''' Scans contents of ZipFile object as bytes
         Returns DataFrame containing typical ZipFile.ZipInfos
         objects informations along with a raw bytes buffer
@@ -69,11 +71,11 @@ def scanzip(archv_path: Union[os.PathLike, str],
                 pjoin(os.getcwd(),
                       os.path.splitext(bname(archv_path))[1])][0]
     os.makedirs(dst_path, exist_ok = True)
-    [myzip.extract(nm, pjoin(dst_path, nm.lower().replace(' ', '_').strip()))
+    [myzip.extract(nm, pjoin(dst_path, nm.lower().replace(' ', '_').replace('/', '_').strip()))
      for nm in snif.filter_lst_inc(to_xtrct, getnametuple(myzip))]
-    ntpl = [ntpl if ntpl else snif.filter_lst_exc(
+    ntpl = [ntpl if ntpl else snif.filter_lst_inc(include, snif.filter_lst_exc(
                exclude + snif.filter_lst_inc(to_xtrct, getnametuple(myzip)),
-               getnametuple(myzip))][0]
+               getnametuple(myzip)))][0]
 
     vals = df(
             tuple(
@@ -102,13 +104,15 @@ def scanzip(archv_path: Union[os.PathLike, str],
                         for row in vals.iterrows()]
     vals['src_names'] = sorted(ntpl)
     vals['bsheets'] = [myzip.open(row[1].src_names).read()
-                       for row in vals.iterrows()]
+                           for row in vals.iterrows()]
     
     myzip.close()
-    sniffed = df((snif.sniff_bytes(row[1].bsheets)
-                 for row in vals.iterrows())).astype(object).to_dict()
-    return df.from_dict({**vals.to_dict(), **sniffed},
-                        orient = 'index').astype(object)
+    if to_sniff:
+        sniffed = df((snif.sniff_bytes(row[1].bsheets)
+                     for row in vals.iterrows())).astype(object).to_dict()
+        vals = df.from_dict({**vals.to_dict(), **sniffed},
+                            orient = 'index').astype(object)
+    return vals
 
 def main():    
     if __name__ == "__main__":
