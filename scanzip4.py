@@ -2,6 +2,7 @@
 
 import os
 import pandas as pd
+import shutil
 
 import sniffbytes as snif
 
@@ -17,6 +18,8 @@ from sniffbytes import filter_lst_exc
 from sniffbytes import filter_lst_inc
 
 from sniffbytes import evenodd
+
+from removeEmptyFolders import removeEmptyFolders
 
 def getnametuple(myzip):
     """
@@ -45,7 +48,7 @@ def getnametuple(myzip):
         )
     )
 
-def scanzip(archv_path: Union[os.PathLike, str],
+def scanzip4(archv_path: Union[os.PathLike, str],
             ntpl: Union[str, list, tuple] = [],
             exclude: Union[str, list, tuple] = [],
             include: Union[str, list, tuple] = [],
@@ -71,13 +74,9 @@ def scanzip(archv_path: Union[os.PathLike, str],
                 pjoin(os.getcwd(),
                       os.path.splitext(bname(archv_path))[1])][0]
     os.makedirs(dst_path, exist_ok = True)
-#     [snif.stream2file(myzip.open(nm).read().lower(),
-#                  pjoin(dst_path, nm.lower().replace(' ', '_').replace('/', '_').strip()))
-#      for nm in snif.filter_lst_inc(to_xtrct, getnametuple(myzip))]
-    ntpl = [ntpl if ntpl else snif.filter_lst_exc(
-               exclude,# + snif.filter_lst_inc(to_xtrct, getnametuple(myzip)),
-               getnametuple(myzip))][0]
 
+    ntpl = [ntpl if ntpl else snif.filter_lst_exc(exclude,
+                                                  getnametuple(myzip))][0]
     vals = df(
             tuple(
                 dict(zip(snif.evenodd(itm)[0], snif.evenodd(itm)[1]))
@@ -101,31 +100,19 @@ def scanzip(archv_path: Union[os.PathLike, str],
                 )
             )
         ).astype(object).sort_values("filename").reset_index(drop=True)
-    vals['filename'] = [row[1].filename.replace("/", "_")
+    vals['filename'] = [row[1].filename.replace("/", "_").lower()
                         for row in vals.iterrows()]
     vals['src_names'] = sorted(ntpl)
+#     removeEmptyFolders(dst_path)   
     vals['bsheets'] = [myzip.open(row[1].src_names).read()
                            for row in vals.iterrows()]
     myzip.close()
     os.makedirs(dst_path, exist_ok = True)
-    [snif.stream2file(row[1].bsheets, pjoin(dst_path, bname(row[1].filename).lower()))
-     for row in vals.iterrows() if row[1].src_names in
-     snif.filter_lst_inc(to_xtrct, vals.src_names)]
-    vals = vals.drop([row[0] for row in vals.iterrows() if row[1].src_names in
-     snif.filter_lst_inc(to_xtrct, vals.src_names)], axis = 0)    
-    
-#     [snif.stream2file(row[1].bsheets, pjoin(dst_path, "_".join(bname(
-#         dname(row[1].filename)).split("_")[:2]) + "_" + bname(row[1].filename)))
-#      for row in vals.iterrows() if row[1].filename in
-#      snif.filter_lst_inc(to_xtrct, vals.filename)]
-#     vals = vals.drop([row[0] for row in vals.iterrows() if row[1].filename in
-#                       snif.filter_lst_inc(to_xtrct, vals.filename)], axis = 0) 
-
-#     [snif.stream2file(row[1].bsheets, pjoin(dst_path, row[1].filename))
-#      for row in vals.iterrows() if row[1].filename in
-#      snif.filter_lst_inc(to_xtrct, vals.src_names)]
-#     vals  = vals.drop([row[0] for row in vals.iterrows() if row[1].src_names in
-#                        snif.filter_lst_inc(to_xtrct, vals.src_names)])
+    [snif.stream2file(row[1].bsheets, pjoin(dst_path, row[1].filename))
+     for row in vals.iterrows() if row[1].filename in
+     snif.filter_lst_inc(to_xtrct, vals.filename)]
+    vals = vals.drop([row[0] for row in vals.iterrows() if row[1].filename in
+                      snif.filter_lst_inc(to_xtrct, vals.filename)], axis = 0)
     
     if to_sniff:
         sniffed = df((snif.sniff_bytes(row[1].bsheets)
@@ -136,4 +123,4 @@ def scanzip(archv_path: Union[os.PathLike, str],
 
 def main():    
     if __name__ == "__main__":
-        scan_zip(archv_path, ntpl, exclude, to_xtrct, dst_path)
+        scanzip4(archv_path, ntpl, exclude, to_xtrct, dst_path)

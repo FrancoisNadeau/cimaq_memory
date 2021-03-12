@@ -620,7 +620,6 @@ def stream2file(inpt: Union[str, bytes],
         
         dst_path: Path pointing to desired save location
     """
-    os.makedirs(dst_path, exist_ok=True)
     with open(dst_path, "wb") as binary_file:
         binary_file.write(inpt)
         binary_file.close()
