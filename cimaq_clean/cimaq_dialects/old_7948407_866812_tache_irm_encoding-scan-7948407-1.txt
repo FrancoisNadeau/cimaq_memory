@@ -1,8 +1,0 @@
-	0
-encoding	ascii
-delimiter	b'\n'
-has_header	True
-dup_index	False
-lineterminator	b'\n'
-width	533
-nrows	9623

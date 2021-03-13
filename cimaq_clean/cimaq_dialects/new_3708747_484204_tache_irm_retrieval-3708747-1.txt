@@ -1,8 +1,0 @@
-	0
-encoding	UTF-16
-delimiter	b'\r'
-has_header	False
-dup_index	False
-lineterminator	b'\r'
-width	1071
-nrows	5489
