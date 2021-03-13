@@ -158,7 +158,7 @@ def megamerge(dflist: list, howto: str, onto: str = None) -> object:
     )
 
 
-def get_bytes(inpt: Union[str, os.PathLike]):
+def get_bytes(inpt: Union[bytes, bytearray, str, os.PathLike, object]):
     if type(inpt) == bytes or bytearray:
         outpt = [inpt.lower() if bool(len(inpt.splitlines()) > \
                   0 and inpt != None) else b"1"][0]
@@ -192,6 +192,7 @@ def get_bencod(
         if (
             not detector.done \
             and not detector.result \
+            and detector.confidence > 0.75
             and detector.result["encoding"] != None
         ):
             continue
@@ -278,7 +279,8 @@ def get_lineterminator(
 
 def get_delimiter(
     inpt: Union[bytes, bytearray, str, os.PathLike, object],
-    encoding: str = None
+    encoding: str = None,
+    lineterminator: bytes = None
 ) -> bytes:
     """ Returns the character used as delimiter within
         the bytes stream buffer in native character encoding
@@ -339,7 +341,8 @@ def get_delimiter(
     try:
         delimiter = list(delimiters)[0][0]
     except IndexError:
-        delimiter = get_lineterminator(inpt, encoding)
+        delimiter = [lineterminator if lineterminator != None
+                     else get_lineterminator(inpt, encoding)][0]
     return [delimiter if delimiter != b"" else " ".encode(encoding)][0]
 
 
@@ -407,9 +410,9 @@ def sniff_bytes(
     inpt: Union[bytes, bytearray, str, os.PathLike, object],
     encoding: str = None,
     has_header: bool = None,
-    delimiter: bytes = None,
-    lineterminator: bytes = None,
-    dup_index: bool = None
+#     delimiter: bytes = None,
+#     lineterminator: bytes = None,
+#     dup_index: bool = None
 ) -> dict:
     """ Returns a dictionary containing informations about datas from
         a readable file or buffer of raw bytes.
@@ -430,6 +433,7 @@ def sniff_bytes(
             has_header = help(sniffer.get_has_header)
             delimiter = help(sniffer.get_delimiter)
             lineterminator = help(sniffer.get_lineterminator)
+            dup_index = help(snif.dup_index)
     """
     inpt = get_bytes(inpt)
     encoding = [encoding if encoding else get_bencod(inpt)][0]
@@ -437,14 +441,11 @@ def sniff_bytes(
                   else get_has_header(inpt, encoding)][0]
     return dict(zip(
                 ("encoding", "delimiter", "has_header", "dup_index",
-                  "lineterminator", "nfields", "width", "nrows"),
-                (encoding, [delimiter if delimiter != None else
-                            get_delimiter(inpt, encoding)][0],
-                 has_header, [dup_index if dup_index != None else
-                              get_dup_index(inpt, encoding, has_header)][0],
-                 [lineterminator if lineterminator != None
-                  else get_lineterminator(inpt, encoding)][0],
-                 get_nfields(inpt, has_header),
+                  "lineterminator", "width", "nrows"),
+                (encoding, get_delimiter(inpt, encoding),
+                 has_header, get_dup_index(inpt, encoding, has_header),
+                 get_lineterminator(inpt, encoding),
+#                  get_nfields(inpt, has_header),
                  get_widths(inpt, encoding, has_header),
                  len(inpt.splitlines()),
                 ),
@@ -504,11 +505,7 @@ def fix_dup_index(
         encoding: Character encoding of the bytes in buffer.
         
         delimiter: Bytes (in native file encoding) representation
-                   of the value used as delimiter.
-                   
-        nfields: Bytes representation of an integer corresponding
-                 to the maximal number of fields in the bytes stream.
-                 - For lines that are not a header.                     
+                   of the value used as delimiter.                
     """                   
     inpt = get_bytes(inpt)
     encoding = [encoding if encoding else get_bencod(inpt)][0]
@@ -543,8 +540,13 @@ def clean_bytes(
     delimiter: bytes = None,
     lineterminator: bytes = None,
     dup_index: bool = None,
-    nfields: bytes = None
+    *args: Union[bytes, bytearray, str, dict, object, map,
+                 tuple, os.PathLike, pd.DataFrame],
+    **kwargs: Union[bytes, bytearray, str, dict, object, map,
+                    tuple, os.PathLike, pd.DataFrame]
+#     nfields: bytes = None
 ) -> bytes:
+    
     """ Returns a clean (suitable for StringIO and Pandas modules)
         bytes stream buffer with fixed 'missing' missing values.
         
@@ -600,7 +602,17 @@ def clean_bytes(
     return [fix_dup_index(newsheet, encoding)
             if dup_index else newsheet][0]
 
-def bytes2df(inpt, **kwargs):
+def bytes2df(inpt: Union[bytes, bytearray, str, os.PathLike, object],
+             encoding: str = None,
+             delimiter: bytes = None,
+             has_header: bool = None,
+             dup_index: bool = None,
+             lineterminator: bytes = None,
+             *args: Union[bytes, bytearray, str, dict, object, map,
+                          list, tuple, os.PathLike, pd.DataFrame],
+             **kwargs: Union[bytes, bytearray, str, dict, object, map,
+                             list, tuple, os.PathLike, pd.DataFrame]):
+    
     return [df((line.split('\t') for line in unidecode(
                   clean_bytes(inpt, **kwargs).decode()).split('\n')),
                  dtype = object).T.set_index(0, drop = True).T
@@ -609,7 +621,7 @@ def bytes2df(inpt, **kwargs):
                  clean_bytes(inpt, **kwargs).decode()).split('\n')),
                                    dtype = object)][0]
 
-def stream2file(inpt: Union[str, bytes],
+def stream2file(inpt: Union[bytes, bytearray, str, os.PathLike, object],
                 dst_path: Union[str, os.PathLike]) -> None:
     """ Save bytes stream buffer to file.
     

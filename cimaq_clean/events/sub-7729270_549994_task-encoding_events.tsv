@@ -1,0 +1,121 @@
+0	1	2	3	4	5	6	7	8	stim_resp	stim_rt	stim_acc
+1	enc	enc00		encoding	0.084	fixation	3.093	4.5	1.0	1684	0
+2	enc	enc000		encoding	7.59	fixation	10.599	0.5	1.0	1514	0
+3	ctl	ctl0		control	11.1	fixation	14.109	0.5	1.0	2060	0
+4	enc	enc01	old58	encoding	14.611	fixation	17.62	6.5	1.0	2093	0
+5	enc	enc02	old03	encoding	24.122	fixation	27.131	2.0	1.0	1757	0
+6	enc	enc03	old18	encoding	29.121	fixation	32.129	1.5	1.0	2566	0
+7	enc	enc04	old75	encoding	33.617	fixation	36.626	1.0	1.0	2382	0
+8	enc	enc05	old54	encoding	37.613	fixation	40.621	8.5	1.0	1922	0
+9	enc	enc06	old52	encoding	49.113	fixation	52.122	2.0	1.0	1845	0
+10	enc	enc07	old31	encoding	54.112	fixation	57.121	2.5	1.0	1646	0
+11	ctl	ctl01		control	59.611	fixation	62.62	1.5	1.0	1051	0
+12	ctl	ctl02		control	64.108	fixation	67.117	1.5	1.0	1106	0
+13	enc	enc08	old43	encoding	68.605	fixation	71.614	0.5	1.0	1937	0
+14	ctl	ctl03		control	72.115	fixation	75.124	0.5	1.0	1659	0
+15	enc	enc09	old22	encoding	75.626	fixation	78.635	2.0	1.0	1771	0
+16	enc	enc10	old39	encoding	80.624	fixation	83.633	1.5	1.0	1253	0
+17	ctl	ctl04		control	85.121	fixation	88.13	2.0	1.0	1060	0
+18	enc	enc11	old04	encoding	90.119	fixation	93.128	7.5	1.0	1758	0
+19	enc	enc12	old14	encoding	100.617	fixation	103.626	5.0	1.0	1492	0
+20	enc	enc13	old66	encoding	108.624	fixation	111.633	1.5	1.0	1732	0
+21	enc	enc14	old17	encoding	113.121	fixation	116.13	3.0	1.0	1563	0
+22	enc	enc15	old33	encoding	119.122	fixation	122.131	1.0	1.0	1266	0
+23	enc	enc16	old29	encoding	123.134	fixation	126.143	1.5	1.0	2030	0
+24	enc	enc17	old23	encoding	127.631	fixation	130.64	8.5		0	1
+25	enc	enc18	old13	encoding	139.132	fixation	142.141	2.0	1.0	839	0
+26	ctl	ctl05		control	144.13	fixation	147.139	1.0	1.0	689	0
+27	ctl	ctl06		control	148.142	fixation	151.151	1.5	1.0	821	0
+28	enc	enc19	old47	encoding	152.639	fixation	155.647	6.5	1.0	1572	0
+29	enc	enc20	old76	encoding	162.15	fixation	165.159	1.5	1.0	1005	0
+30	enc	enc21	old57	encoding	166.647	fixation	169.656	6.5	1.0	1371	0
+31	ctl	ctl07		control	176.159	fixation	179.168	3.5	1.0	827	0
+32	enc	enc22	old69	encoding	182.661	fixation	185.67	8.0	1.0	733	0
+33	enc	enc23	old08	encoding	193.661	fixation	196.67	13.0	1.0	1060	0
+34	ctl	ctl08		control	209.658	fixation	212.667	1.0	1.0	751	0
+35	enc	enc24	old10	encoding	213.654	fixation	216.663	2.5	1.0	1091	0
+36	enc	enc25	old40	encoding	219.153	fixation	222.162	1.5	1.0	1736	0
+37	enc	enc26	old53	encoding	223.65	fixation	226.659	3.5	1.0	1566	0
+38	enc	enc27	old42	encoding	230.153	fixation	233.162	2.0	1.0	1239	0
+39	enc	enc28	old19	encoding	235.151	fixation	238.16	3.0	1.0	1713	0
+40	enc	enc29	old36	encoding	241.152	fixation	244.161	7.0	1.0	1936	0
+41	enc	enc30	old59	encoding	251.149	fixation	254.158	1.0	1.0	1978	0
+42	ctl	ctl09		control	255.161	fixation	258.17	0.5	1.0	942	0
+43	ctl	ctl10		control	258.671	fixation	261.68	1.0	1.0	1296	0
+44	enc	enc31	old12	encoding	262.683	fixation	265.692	0.5	1.0	1188	0
+45	enc	enc32	old74	encoding	266.193	fixation	269.202	7.0	1.0	1518	0
+46	enc	enc33	old15	encoding	276.19	fixation	279.199	4.0	1.0	1049	0
+47	enc	enc34	old21	encoding	283.194	fixation	286.203	2.0	1.0	1412	0
+48	ctl	ctl11		control	288.192	fixation	291.201	2.5	1.0	862	0
+49	enc	enc35	old71	encoding	293.692	fixation	296.701	4.5	1.0	1226	0
+50	enc	enc36	old06	encoding	301.198	fixation	304.207	0.5	1.0	1144	0
+51	ctl	ctl12		control	304.708	fixation	307.717	3.0	1.0	770	0
+52	enc	enc37	old07	encoding	310.709	fixation	313.718	2.0	1.0	1080	0
+53	ctl	ctl13		control	315.708	fixation	318.717	0.5	1.0	713	0
+54	ctl	ctl14		control	319.218	fixation	322.227	1.0	1.0	851	0
+55	ctl	ctl15		control	323.23	fixation	326.239	2.5	1.0	671	0
+56	ctl	ctl16		control	328.73	fixation	331.739	6.5	1.0	755	0
+57	enc	enc38	old44	encoding	338.241	fixation	341.25	9.5	1.0	1635	0
+58	enc	enc39	old63	encoding	350.745	fixation	353.754	3.0	1.0	2203	0
+59	enc	enc40	old61	encoding	356.747	fixation	359.756	3.0	1.0	1969	0
+60	enc	enc41	old67	encoding	362.748	fixation	365.757	1.0	1.0	1496	0
+61	enc	enc42	old60	encoding	366.76	fixation	369.769	2.0	1.0	2339	0
+62	enc	enc43	old25	encoding	371.758	fixation	374.767	1.0	1.0	1949	0
+63	enc	enc44	old32	encoding	375.77	fixation	378.779	0.5	1.0	1313	0
+64	enc	enc45	old16	encoding	379.28	fixation	382.289	2.5	1.0	1883	0
+65	enc	enc46	old30	encoding	384.78	fixation	387.789	8.5	1.0	2167	0
+66	enc	enc47	old37	encoding	396.281	fixation	399.29	5.5	1.0	1162	0
+67	enc	enc48	old02	encoding	404.79	fixation	407.799	2.0	1.0	1732	0
+68	enc	enc49	old46	encoding	409.788	fixation	412.797	6.0	1.0	1158	0
+69	enc	enc50	old51	encoding	418.798	fixation	421.807	6.0	1.0	1156	0
+70	enc	enc51	old09	encoding	427.808	fixation	430.817	1.5	1.0	2145	0
+71	ctl	ctl17		control	432.305	fixation	435.314	2.0	1.0	832	0
+72	enc	enc52	old48	encoding	437.303	fixation	440.312	1.5	1.0	1570	0
+73	ctl	ctl18		control	441.8	fixation	444.809	4.0	1.0	961	0
+74	ctl	ctl19		control	448.804	fixation	451.813	0.5	1.0	629	0
+75	ctl	ctl20		control	452.315	fixation	455.324	6.0	1.0	774	0
+76	enc	enc53	old62	encoding	461.325	fixation	464.334	0.5	1.0	1179	0
+77	enc	enc54	old41	encoding	464.835	fixation	467.844	2.5	1.0	1461	0
+78	enc	enc55	old65	encoding	470.335	fixation	473.344	1.5	1.0	1057	0
+79	enc	enc56	old35	encoding	474.832	fixation	477.841	2.5	1.0	1584	0
+80	ctl	ctl21		control	480.331	fixation	483.34	5.5	1.0	893	0
+81	enc	enc57	old55	encoding	488.84	fixation	491.849	4.5	1.0	1223	0
+82	ctl	ctl22		control	496.346	fixation	499.355	2.5	1.0	869	0
+83	enc	enc58	old72	encoding	501.845	fixation	504.854	6.5	1.0	1914	0
+84	ctl	ctl23		control	511.34	fixation	514.349	6.5	1.0	907	0
+85	ctl	ctl24		control	520.835	fixation	523.844	1.5	1.0	875	0
+86	ctl	ctl25		control	525.332	fixation	528.341	4.5	1.0	714	0
+87	ctl	ctl26		control	532.838	fixation	535.847	1.5	1.0	704	0
+88	enc	enc59	old64	encoding	537.335	fixation	540.344	0.5	1.0	1919	0
+89	ctl	ctl27		control	540.845	fixation	543.854	10.5	1.0	913	0
+90	ctl	ctl28		control	554.352	fixation	557.361	4.5	1.0	957	0
+91	enc	enc60	old56	encoding	561.858	fixation	564.867	2.0	1.0	1691	0
+92	ctl	ctl29		control	566.856	fixation	569.865	1.5	1.0	845	0
+93	enc	enc61	old11	encoding	571.353	fixation	574.362	12.5	1.0	2116	0
+94	enc	enc62	old28	encoding	586.849	fixation	589.858	2.0	1.0	1691	0
+95	enc	enc63	old77	encoding	591.847	fixation	594.856	1.0	1.0	1917	0
+96	ctl	ctl30		control	595.859	fixation	598.868	4.0	1.0	809	0
+97	enc	enc64	old73	encoding	602.863	fixation	605.872	0.5	1.0	1084	0
+98	enc	enc65	old78	encoding	606.374	fixation	609.383	4.0	1.0	941	0
+99	enc	enc66	old68	encoding	613.378	fixation	616.387	3.5	1.0	1017	0
+100	ctl	ctl31		control	619.88	fixation	622.889	1.0	1.0	795	0
+101	ctl	ctl32		control	623.876	fixation	626.885	0.5	1.0	807	0
+102	enc	enc67	old05	encoding	627.386	fixation	630.395	2.5	1.0	1241	0
+103	ctl	ctl33		control	632.886	fixation	635.895	0.5	1.0	852	0
+104	ctl	ctl34		control	636.396	fixation	639.405	9.0	1.0	750	0
+105	ctl	ctl35		control	648.399	fixation	651.408	2.0	1.0	691	0
+106	enc	enc68	old01	encoding	653.397	fixation	656.406	0.5	1.0	1285	0
+107	ctl	ctl36		control	656.907	fixation	659.916	2.0	1.0	1495	0
+108	ctl	ctl37		control	661.906	fixation	664.915	4.5	1.0	703	0
+109	ctl	ctl38		control	669.411	fixation	672.42	4.5	1.0	598	0
+110	enc	enc69	old27	encoding	676.917	fixation	679.926	3.5	1.0	940	0
+111	enc	enc70	old49	encoding	683.42	fixation	686.429	1.5	1.0	2181	0
+112	enc	enc71	old38	encoding	687.916	fixation	690.925	4.5	1.0	2381	0
+113	enc	enc72	old20	encoding	695.422	fixation	698.431	0.5	1.0	1402	0
+114	enc	enc73	old70	encoding	698.933	fixation	701.942	0.5	1.0	1643	0
+115	ctl	ctl39		control	702.443	fixation	705.452	5.0	1.0	965	0
+116	enc	enc74	old50	encoding	710.45	fixation	713.459	4.5	1.0	1142	0
+117	enc	enc75	old45	encoding	717.956	fixation	720.965	5.5	1.0	1924	0
+118	enc	enc76	old26	encoding	726.465	fixation	729.474	1.0	1.0	1126	0
+119	enc	enc77	old34	encoding	730.477	fixation	733.486	0.5	1.0	2818	0
+120	enc	enc78	old24	encoding	733.987	fixation	736.996	13.5	1.0	2652	0
