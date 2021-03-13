@@ -1,0 +1,8 @@
+	0
+encoding	windows-1251
+delimiter	b'\n'
+has_header	True
+dup_index	False
+lineterminator	b'\n'
+width	1061
+nrows	854

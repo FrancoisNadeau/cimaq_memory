@@ -1,0 +1,8 @@
+	0
+encoding	ascii
+delimiter	b'\t'
+has_header	True
+dup_index	False
+lineterminator	b'\n'
+width	56
+nrows	118
