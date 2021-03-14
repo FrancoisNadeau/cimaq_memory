@@ -1,0 +1,118 @@
+category	stim	oldnumber	recognition_acc	recognition_resp	recognition_rt	spatial_resp	spatial_rt	spatial_acc( corriger voir output-encodage)
+new	vegie_broccoli.bmp	new36	1	2	3809	nan	0	
+new	food_bagel01.bmp	new17	1	2	1864	nan	0	
+new	musical_bongo drum.bmp	new23	1	2	1228	nan	0	
+new	kitchen_toaster_old.bmp	new30	1	2	1393	nan	0	
+old	food_bottleofredwine01.bmp	old15	1	1	1232	6	2310	
+new	animal_ostrich.bmp	new26	1	2	2105	6	2310	
+old	food_shellpasta.bmp	old25	1	1	1812	5	922	
+new	sporting_flippers.bmp	new02	1	2	1716	5	922	
+old	vegie_mushroom.bmp	old76	1	1	1623	5	1405	
+old	hard_musical_recorder.bmp	old40	1	1	1915	6	598	
+new	musical_tambourine_new.bmp	new06	1	2	1676	6	598	
+new	vegie_pumpkin.bmp	new21	1	2	1128	6	598	
+old	food_pickle01a.bmp	old22	1	1	1274	5	1422	
+old	fruit_watermelon_old.bmp	old71	1	1	1308	9	2222	
+old	musical_harp_new.bmp	old43	1	1	1165	5	1453	
+new	sporting_windsurf.bmp	new31	1	2	2346	5	1453	
+old	kitchen_peppermill.bmp	old33	0	2	1387	5	1453	
+old	animal_farm pig.bmp	old05	1	1	1371	5	626	
+old	musical_xylophone_old.bmp	old52	1	1	1471	9	1587	
+new	food_walnut01c.bmp	new34	1	2	2178	9	1587	
+old	musical_triangle.bmp	old49	1	1	1251	8	1400	
+old	sporting_rollerblade.bmp	old62	1	1	1943	6	1104	
+new	musical_bagpipes.bmp	new35	1	2	1802	6	1104	
+old	musical_piano_old.bmp	old48	1	1	1793	5	2056	
+old	food_pecan02.bmp	old21	1	1	1901	5	497	
+old	kitchen_martini glass.bmp	old32	1	1	1291	6	486	
+new	musical_uculele_new.bmp	new39	1	2	2609	6	486	
+old	kitchen_wooden spoon_old.bmp	old39	1	1	1352	5	849	
+old	fruit_blackberry_new.bmp	old66	1	1	1214	9	1493	
+old	animal_parrot.bmp	old09	1	1	1800	9	2007	
+old	kitchen_pitcher.bmp	old34	1	1	1430	6	940	
+old	sporting_boxing_gloves.bmp	old56	1	1	1493	5	815	
+new	food_drink.bmp	new05	1	2	2534	5	815	
+old	fruit_pineapple_old.bmp	old70	1	1	1136	5	1762	
+old	sporting_bicycle_old.bmp	old55	0	2	1763	5	1762	
+old	fruit_green grapes.bmp	old68	0	2	1235	5	1762	
+new	kitchen_fork_old.bmp	new18	1	2	1481	5	1762	
+old	food_toast.bmp	old26	0	2	2093	5	1762	
+old	food_baguette01.bmp	old14	1	1	1184	8	1088	
+old	animal_zebra_old.bmp	old13	0	2	12210	8	1088	
+new	musical_zamponia windflute.bmp	new29	1	2	2645	8	1088	
+old	musical_violin_old.bmp	old51	1	1	3330	9	373	
+old	food_croissant01.bmp	old19	1	1	1141	5	614	
+new	food_cookie01.bmp	new11	1	2	1700	5	614	
+new	musical_french horn_old.bmp	new12	1	2	1823	5	614	
+old	kitchen_ladle.bmp	old31	1	1	1270	5	601	
+old	food_frenchfries.bmp	old20	1	1	1097	5	1291	
+new	sporting_golf ball.bmp	new19	1	2	2078	5	1291	
+old	vegie_garlic01a.bmp	old74	1	1	1051	5	824	
+old	musical_drums_old.bmp	old46	0	2	1629	5	824	
+old	sporting_karate clothing.bmp	old60	1	1	1579	5	2211	
+new	animal_pigeon.bmp	new32	1	2	1122	5	2211	
+old	musical_double bass.bmp	old45	1	1	1980	5	1356	
+new	food_pizza.bmp	new22	1	2	1180	5	1356	
+old	sporting_americanfootball.bmp	old53	0	2	1108	5	1356	
+old	animal_siamese cat.bmp	old12	0	2	6550	5	1356	
+old	food_chocolatemilk.bmp	old17	0	2	1113	5	1356	
+old	kitchen_white strainer.bmp	old38	1	1	1211	5	986	
+old	animal_camel_new.bmp	old01	1	1	1297	6	1213	
+old	sporting_skipping rope.bmp	old63	1	1	1211	8	633	
+old	vegie_green capsicum.bmp	old75	1	1	1319	5	1169	
+old	animal_dalmation_old.bmp	old04	0	2	1504	5	1169	
+old	kitchen_tea cup and saucer.bmp	old37	0	2	1187	5	1169	
+new	sporting_basketball_new.bmp	new14	1	2	1770	5	1169	
+old	musical_tuba.bmp	old50	1	1	1610	9	1305	
+old	animal_chimpanzee.bmp	old03	0	2	2635	9	1305	
+old	sporting_badminton racquet.bmp	old54	1	1	1153	5	2482	
+old	sporting_fishing rod.bmp	old59	1	1	1726	8	632	
+old	sporting_soccer ball_new.bmp	old65	1	1	1293	6	736	
+new	sporting_baseball bat_new.bmp	new08	1	2	1529	6	736	
+old	kitchen_apron.bmp	old27	1	1	1395	8	1330	
+old	sporting_mini-trampoline.bmp	old61	1	1	1532	8	622	
+old	musical_clarinet_new.bmp	old44	1	1	1268	6	1144	
+new	animal_seal.bmp	new38	1	2	1314	6	1144	
+old	kitchen_coffee pot.bmp	old29	0	2	1068	6	1144	
+old	musical_acoustic guitar_new.bmp	old42	1	1	1153	8	8473	
+old	animal_sheep.bmp	old11	1	1	2839	8	1981	
+new	kitchen_ramekin.bmp	new13	1	2	1493	8	1981	
+new	vegie_cucumber.bmp	new33	0	1	1065	5	885	
+new	kitchen_garlic press.bmp	new07	1	2	1297	5	885	
+old	animal_monarch_old.bmp	old08	1	1	1028	8	2082	
+new	food_bread.bmp	new28	1	2	1318	8	2082	
+old	food_candy.bmp	old16	1	1	1584	6	536	
+old	musical_harmonica_new.bmp	old47	1	1	1304	8	491	
+old	kitchen_scrubbing brush.bmp	old36	0	2	1326	8	491	
+old	sporting_footballhelmet.bmp	old57	1	1	6184	8	802	
+new	vegie_snowpea01.bmp	new27	1	2	1257	8	802	
+old	animal_lion_new.bmp	old07	1	1	1637	6	1338	
+new	fruit_rasberry.bmp	new10	1	2	3244	6	1338	
+old	sporting_hockey stick_old.bmp	old58	1	1	1409	8	7055	
+new	kitchen_spatula_old.bmp	new37	1	2	1166	8	7055	
+new	sporting_weighlifting.bmp	new25	1	2	926	8	7055	
+old	animal_penguin.bmp	old10	0	2	1616	8	7055	
+old	food_softcheese.bmp	old24	1	1	1607	6	734	
+new	fruit_granny smith apple.bmp	new16	1	2	2007	6	734	
+old	vegie_carrot.bmp	old78	1	1	1326	5	472	
+old	vegie_cauliflower.bmp	old72	1	1	1363	6	723	
+old	vegie_corn02.bmp	old73	1	1	1445	6	2410	
+old	kitchen_cookie cutter.bmp	old30	1	1	1457	8	1422	
+old	animal_frog.bmp	old06	1	1	6060	5	1106	
+old	vegie_radish.bmp	old77	1	1	1956	6	1485	
+old	food_rawchicken.bmp	old23	1	1	4520	5	1995	
+new	kitchen_baking spatula.bmp	new01	1	2	1475	5	1995	
+old	animal_cheetah.bmp	old02	1	1	5959	9	1977	
+old	food_cracker02.bmp	old18	1	1	2961	8	1722	
+new	animal_gorilla.bmp	new15	1	2	1468	8	1722	
+old	fruit_lemon_new.bmp	old69	0	2	4129	8	1722	
+new	fruit_cherry.bmp	old67	1	1	2923	6	2181	
+new	animal_horse.bmp	new20	1	2	1309	6	2181	
+new	animal_giraffe.bmp	new03	1	2	1024	6	2181	
+old	kitchen_big cooking pot.bmp	old28	1	1	1478	8	914	
+old	sporting_snow shoes_old.bmp	old64	1	1	2396	6	1228	
+new	animal_dolphin_old.bmp	new09	1	2	1762	6	1228	
+old	musical_accordion_old.bmp	old41	1	1	1250	5	1416	
+new	kitchen_kettle_new.bmp	new24	1	2	1397	5	1416	
+new	fruit_apricot_new.bmp	new04	1	2	1252	5	1416	
+old	kitchen_plate.bmp	old35	1	1	1161	8	1026	

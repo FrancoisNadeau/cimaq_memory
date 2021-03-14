@@ -46,12 +46,13 @@ def getnametuple(myzip):
     )
 
 def scanzip(archv_path: Union[os.PathLike, str],
-            ntpl: Union[str, list, tuple] = [],
-            exclude: Union[str, list, tuple] = [],
-            include: Union[str, list, tuple] = [],
-            to_xtrct: Union[str, list, tuple] = [],
-            dst_path: Union[str, os.PathLike] = None,
-            to_sniff: bool = False) -> object:
+            ntpl: Union[str, list, tuple] = None,
+            exclude: Union[str, list, tuple] = None,
+#             include: Union[str, list, tuple] = None,
+            to_xtrct: Union[str, list, tuple] = None,
+            dst_path: Union[str, os.PathLike] = None
+#             to_sniff: bool = False
+           ) -> object:
     ''' Scans contents of ZipFile object as bytes
         Returns DataFrame containing typical ZipFile.ZipInfos
         objects informations along with a raw bytes buffer
@@ -104,7 +105,7 @@ def scanzip(archv_path: Union[os.PathLike, str],
     vals['filename'] = [row[1].filename.replace("/", "_")
                         for row in vals.iterrows()]
     vals['src_names'] = sorted(ntpl)
-    vals['bsheets'] = [myzip.open(row[1].src_names).read()
+    vals['bsheets'] = [myzip.open(row[1].src_names).read().lower()
                            for row in vals.iterrows()]
     myzip.close()
     os.makedirs(dst_path, exist_ok = True)
@@ -113,7 +114,12 @@ def scanzip(archv_path: Union[os.PathLike, str],
      snif.filter_lst_inc(to_xtrct, vals.src_names)]
     vals = vals.drop([row[0] for row in vals.iterrows() if row[1].src_names in
      snif.filter_lst_inc(to_xtrct, vals.src_names)], axis = 0)    
-    
+    return vals
+
+def main():    
+    if __name__ == "__main__":
+        scan_zip(archv_path, ntpl, exclude, to_xtrct, dst_path)
+
 #     [snif.stream2file(row[1].bsheets, pjoin(dst_path, "_".join(bname(
 #         dname(row[1].filename)).split("_")[:2]) + "_" + bname(row[1].filename)))
 #      for row in vals.iterrows() if row[1].filename in
@@ -127,13 +133,9 @@ def scanzip(archv_path: Union[os.PathLike, str],
 #     vals  = vals.drop([row[0] for row in vals.iterrows() if row[1].src_names in
 #                        snif.filter_lst_inc(to_xtrct, vals.src_names)])
     
-    if to_sniff:
-        sniffed = df((snif.sniff_bytes(row[1].bsheets)
-                     for row in vals.iterrows())).astype(object).to_dict()
-        vals = df.from_dict({**vals.to_dict(), **sniffed},
-                            orient = 'index').astype(object)
-    return vals
+#     if to_sniff:
+#         sniffed = df((snif.sniff_bytes(row[1].bsheets)
+#                      for row in vals.iterrows())).astype(object).to_dict()
+#         vals = df.from_dict({**vals.to_dict(), **sniffed},
+#                             orient = 'index').astype(object)
 
-def main():    
-    if __name__ == "__main__":
-        scan_zip(archv_path, ntpl, exclude, to_xtrct, dst_path)

@@ -91,11 +91,12 @@ def flatten(nested_seq) -> list:
 
 def loadfiles(pathlist: Union[list, tuple]) -> object:
     return (df(((bname(sheet).split(".", 1)[0],
-                "." + bname(sheet).split(".", 1)[1], sheet,)
+                "." + bname(sheet).split(".", 1)[1],
+                 bname(dname(sheet)), sheet,)
                 for sheet in pathlist),
                 dtype = object,
-                columns=["fname", "ext", "fpaths"],
-        ).sort_values("fname").reset_index(drop=True))
+                columns=["filename", "ext", "parent", "fpaths"],
+        ).sort_values("filename").reset_index(drop=True))
 
 
 def evenodd(inpt) -> tuple:
