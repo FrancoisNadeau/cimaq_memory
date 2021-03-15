@@ -1,0 +1,1 @@
+{"FLAIR": "definition", "PD": "definition", "T1w": "definition", "T2star": "definition", "T2w": "definition", "dwi": "definition", "epi": "definition", "magnitude1": "definition", "magnitude2": "definition", "phasediff": "definition", "bold": "definition", "fieldmap": "definition", "magnitude": "definition"}

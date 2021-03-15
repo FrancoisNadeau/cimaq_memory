@@ -1,0 +1,45 @@
+	0
+sizeof_hdr	348
+data_type	b''
+db_name	b''
+extents	0
+session_error	0
+regular	b'r'
+dim_info	57
+dim	[ 4 74 74 41  4  1  1  1]
+intent_p1	0.0
+intent_p2	0.0
+intent_p3	0.0
+intent_code	0
+datatype	4
+bitpix	16
+slice_start	0
+pixdim	"[-1.         3.         3.         3.3000002  2.5        0.
+  0.         0.       ]"
+vox_offset	0.0
+scl_slope	nan
+scl_inter	nan
+slice_end	0
+slice_code	2
+xyzt_units	10
+cal_max	0.0
+cal_min	0.0
+slice_duration	0.0
+toffset	0.0
+glmax	0
+glmin	0
+descrip	b'TE=25;Time=140930.728;phase=1'
+aux_file	b''
+qform_code	1
+sform_code	1
+quatern_b	0.0
+quatern_c	0.9993284
+quatern_d	0.036643706
+qoffset_x	112.81598
+qoffset_y	-91.375
+qoffset_z	-80.391075
+srow_x	[ -3.        0.       -0.      112.81598]
+srow_y	[ -0.           2.9919434   -0.24168606 -91.375     ]
+srow_z	[  0.           0.21971458   3.291138   -80.391075  ]
+intent_name	b''
+magic	b'n+1'

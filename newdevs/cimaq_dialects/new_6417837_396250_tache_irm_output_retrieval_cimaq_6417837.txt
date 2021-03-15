@@ -1,8 +1,0 @@
-	0
-encoding	ISO-8859-1
-delimiter	b'\t'
-has_header	True
-dup_index	False
-lineterminator	b'\r\n'
-width	58
-nrows	118
