@@ -1,4 +1,4 @@
-trialnumber	category	trialcode	oldnumber	correctsource	stim_resp	stim_rt	stim_acc	stim_onset	fix_onset	duration
+trialnumber	category	trialcode	oldnumber	correctsource	stim_resp	stim_rt	stim_acc	stim_onset	fix_onset	fix_duration
 1	ctl	ctl0	nan	5	1	1184	0	4.512	7.521	0.5
 2	enc	enc00	nan	8	1	768	0	8.023	11.032	0.5
 3	enc	enc000	nan	9	1	1520	0	11.533	14.542	5.5
