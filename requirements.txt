@@ -1,12 +1,13 @@
-
 chardet
+jupyter
 matplotlib
 nibabel
 nilearn>=0.6.0a
+git+https://github.com/nipy/nipype.git
+git+https://github.com/dipy/dipy.git
 numpy
 pandas
 regex
 sklearn
 tqdm
-typing
 unidecode
