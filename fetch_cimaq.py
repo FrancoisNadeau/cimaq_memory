@@ -3,6 +3,9 @@
 import os
 import pandas as pd
 import numpy as np
+import shutil
+
+from io import StringIO
 from os.path import basename as bname
 from os.path import dirname as dname
 from os.path import expanduser as xpu
@@ -17,8 +20,36 @@ from bidsify_utils import bidsify_names
 from scanzip import scanzip
 import sniffbytes as snif
 
-def xtrct_cimaq(cimaq_dir: Union[str, os.PathLike]) -> np.ndarray:
-    return df(tuple(scanzip(apath,
+def instantiate_cimaq(reset: bool = False) -> None:
+    if reset:
+        try:
+            shutil.rmtree(pjoin(os.getcwd(), 'newtest'))
+            [os.makedirs(pjoin(os.getcwd(), 'newtest', item), exist_ok = True)
+             for item in  ['events', 'behavioural',
+                           'cimaq_uzeprimes', 'nilearn_events']]            
+        except FileNotFoundError:
+            [os.makedirs(pjoin(os.getcwd(), 'newtest', item), exist_ok = True)
+             for item in  ['events', 'behavioural',
+                           'cimaq_uzeprimes', 'nilearn_events']]
+    else:
+        [os.makedirs(pjoin(os.getcwd(), 'newtest', item), exist_ok = True)
+         for item in  ['events', 'behavioural',
+                       'cimaq_uzeprimes', 'nilearn_events']]
+
+def get_cimaq_qc(cimaq_dir):
+    return snif.clean_bytes(
+                        xpu(pjoin(cimaq_dir, 'derivatives/CIMAQ_fmri_memory/data',
+                                  'participants/sub_list_TaskQC.tsv'))).decode(
+                        ).split()[1:]
+
+def get_cimaq_zeprime(cimaq_dir: Union[str, os.PathLike]) -> pd.DataFrame:
+    return snif.loadfiles(snif.filter_lst_inc(get_cimaq_qc(cimaq_dir),
+                                              snif.loadimages(xpu(pjoin(
+                        cimaq_dir, 'derivatives/CIMAQ_fmri_memory/data',
+                        'task_files/zipped_eprime')))))
+
+def xtrct_cimaq(cimaq_dir: Union[str, os.PathLike]) -> pd.DataFrame:
+    return pd.concat([scanzip(apath,
                             exclude = ['Practice', 'Pratique',
                                        'PRATIQUE', 'PRACTICE', 'READ',
                                        'Encoding-scan', 'Retrieval-'],
@@ -26,89 +57,90 @@ def xtrct_cimaq(cimaq_dir: Union[str, os.PathLike]) -> np.ndarray:
                             dst_path = pjoin(os.getcwd(), 'newdevs',
                                              'cimaq_uzeprimes'))
                     for apath in
-                    tqdm(snif.filter_lst_inc(snif.clean_bytes(
-                        xpu(pjoin(cimaq_dir, 'derivatives/CIMAQ_fmri_memory/data',
-                                  'participants/sub_list_TaskQC.tsv'))).decode(
-                        ).split()[1:], snif.loadimages(xpu(pjoin(
-                        cimaq_dir, 'derivatives/CIMAQ_fmri_memory/data',
-                        'task_files/zipped_eprime')))))),
-             dtype = object)[0].values.flat
+                      tqdm(get_cimaq_zeprime(cimaq_dir).fpaths,
+                           desc = 'scanning archive')],
+                     ignore_index = True).sort_values('filename').reset_index(drop = True)
 
-def fix_cimaq(cimaq_dir: Union[str, os.PathLike]) -> None:
-    os.makedirs(pjoin(os.getcwd(), 'newtest', 'events'), exist_ok = True)
-    os.makedirs(pjoin(os.getcwd(), 'newtest', 'behavioural'), exist_ok = True)
-    os.makedirs(pjoin(os.getcwd(), 'newdevs', 'cimaq_uzeprimes'), exist_ok = True)
-    for val in tqdm(xtrct_cimaq(cimaq_dir), 'fixing cimaq'):
-        # creating events files
-        (pd.concat([snif.bytes2df(val['bsheets'].values[1],
-                                  has_header = None),
-                    snif.bytes2df(val['bsheets'].values[0]).loc[:snif.bytes2df(
-                        val['bsheets'].values[1],
-                        has_header = None).shape[0] -1, :].drop(
-                        columns = [0,1,2,3, 4, 6],
-                        index = 0).rename(columns = {5: 'onset',
-                                                     7: 'fix_onset',
-                                                     8: 'fix_duration'})],
-                   axis = 1).to_csv(pjoin(os.getcwd(), 'newtest', 'events', 'sub-_' + \
-                                          '_'.join(val['filename'].values[0].replace('-', '_').split(
-            '_')[:2])+'_run-01_task-encoding_events.tsv'), sep = '\t', index = None),
-         # creating behavioural files
-         snif.bytes2df(val['bsheets'].values[2], has_header = True).to_csv(pjoin(
-             os.getcwd(), 'newtest', 'behavioural', 'sub-_' + '_'.join(
-                 val['filename'].values[0].replace('-', '_').split('_')[:2]) + \
-                 '_run-01_task-encoding_behavioural.tsv'), sep = '\t', index = None))
+def index_cimaq(vals: pd.DataFrame) -> pd.DataFrame:
+    vals[['has_header', 'subid', 'pscid', 'dccid']] = \
+        [[snif.get_has_header(row[1].bsheets)] + \
+         ['_'.join(row[1].src_names.replace('-', '_').split('_')[:2])] + \
+         row[1].src_names.replace('-', '_').split('_')[:2]
+         for row in tqdm(vals.iterrows(), desc = 'indexing participants')]
+    return vals
 
-def cimaq2nilearn(cimaq_dir: Union[str, os.PathLike]) -> None:
-    fix_cimaq(cimaq_dir)
-    events = snif.loadfiles(snif.loadimages(pjoin(
-                           os.getcwd(), 'newtest', 'events')))
-    os.makedirs(pjoin(os.getcwd(), 'newtest', 'nilearn_events'), exist_ok = True)
-    for row in tqdm(events.iterrows(), desc = 'conforming events.tsv files'):
-        sheet = pd.read_csv(row[1].fpaths, sep = '\t')
-        
-        sheet['duration'] = sheet['onset'] + \
-                                    sheet['fix_duration'] + \
-                                    sheet['onset'].sub(
-                                    sheet['fix_onset']).round(0)
-        sheet.rename(columns = {'category': 'trial_type'}).set_index(
-            'trialnumber').to_csv(pjoin(os.getcwd(), 'newtest',
-                                        'nilearn_events', row[1].filename + '.tsv'),
-                                  sep = '\t', index = None)
 
-def fetch_cimaq(cimaq_dir: Union[str, os.PathLike]) -> dict:
-    cimaq2nilearn(cimaq_dir)    
-    scan_infos = bidsify_load_scans(cimaq_dir, snif.clean_bytes(xpu(pjoin(
-            cimaq_dir, 'derivatives/CIMAQ_fmri_memory/data',
-            'participants/sub_list_TaskQC.tsv'))).decode().split()[1:])
+def clean_cimaq(vals: pd.DataFrame) -> pd.DataFrame:
+    vals['clean_sheets'] = [pd.read_csv(StringIO(snif.clean_bytes(row[1].bsheets
+#                                                                   **snif.sniff_bytes(row[1].bsheets)
+#                                                                   has_header = \
+#                                                                   row[1].has_header
+                                                                 ).decode()),
+                                        header = [0 if row[1].has_header else None][0],
+                                        sep = '\t', dtype = object)
+                            for row in tqdm(vals.iterrows(),
+                                            desc = 'cleaning')]
+    return vals
 
+def group_cimaq(vals: pd.DataFrame) -> np.flatiter:
+    return df.from_dict((dict((grp, vals.groupby('subid').get_group(
+               grp).sort_values('filename').reset_index(drop = True))
+                              for grp in tqdm(vals.groupby('subid').groups,
+                                              desc = 'grouping participants'))),
+                        orient = 'index').values.flat
+
+def load_cimaq(cimaq_dir: Union[str, os.PathLike]) -> np.flatiter:
+    instantiate_cimaq(reset = True)
+    valus = group_cimaq(clean_cimaq(index_cimaq(xtrct_cimaq(cimaq_dir))))
+    return df((((vals.iloc[0].subid,
+                 next((pd.concat([vals.iloc[1].clean_sheets.rename(
+                     columns = {'category': 'trial_type'}),
+                                  vals.iloc[0].clean_sheets.loc[:, 5:8],
+                                 pd.Series(vals.iloc[0].clean_sheets[8].astype(float) + 3.0,
+                                           name = 'duration').round(0)],
+                        axis = 1).drop(6, axis = 1).rename(
+                            columns = {5: 'onset', 7: 'fix_onset', 8: 'fix_duration'}),
+                       pd.concat([vals.iloc[1].clean_sheets,
+                                  vals.iloc[0].clean_sheets.loc[:, 5:8]],
+                                 axis = 1).drop(6, axis = 1).rename(
+                           columns = {5: 'onset', 7: 'fix_onset', 8: 'fix_duration'}).to_csv(
+                           pjoin(os.getcwd(), 'newtest', 'events', 'sub-_' + \
+                                 vals.iloc[0].subid + \
+                                 '_run-01_task-encoding_events.tsv'))).__iter__()),
+                 next((vals.iloc[2].clean_sheets,
+                       vals.iloc[2].clean_sheets.to_csv(pjoin(
+                           os.getcwd(), 'newtest', 'behavioural', 'sub-_' + \
+                           vals.iloc[2].subid + \
+                           '_run-01_task-encoding_behavioural.tsv'))).__iter__())).__iter__()
+                for vals in tqdm(valus,
+                                 desc = 'fetching CIMAQ')))).values.flat
+
+def load_cimaq_scans(cimaq_dir: Union[str, os.PathLike]) -> np.flatiter:
+    scan_infos = bidsify_load_scans(cimaq_dir, get_cimaq_qc(cimaq_dir))
     scan_infos['dccid'] = sorted([(filename, filename.split('-')[1].split('_')[0])[1]
                                   for filename in scan_infos.filename])
-    behav = snif.loadfiles(snif.loadimages(pjoin(
-                           os.getcwd(), 'newtest', 'behavioural')))
-    behav[['pscid', 'dccid']] = [filename.split('_')[1:3]
-                                  for filename in behav.filename]
-    events = snif.loadfiles(snif.loadimages(pjoin(
-                           os.getcwd(), 'newtest', 'nilearn_events')))
-    events[['pscid', 'dccid']] = [filename.split('_')[1:3]
-                                  for filename in events.filename]
-
-    confounds = snif.loadfiles(snif.filter_lst_inc(
-        snif.clean_bytes(xpu(pjoin(cimaq_dir, 'derivatives/CIMAQ_fmri_memory/data',
-                                   'participants/sub_list_TaskQC.tsv'))).decode().split()[1:],
-        snif.loadimages( pjoin(cimaq_dir, 'derivatives/CIMAQ_fmri_memory/data',
-                                  'confounds', 'resample'))))
-    confounds['bids_names'] = [bidsify_names(filename) for
-                               filename in confounds.filename]
-    
-    subs = df(((grp, scan_infos.groupby('dccid').get_group(grp))
+    return df(((grp, scan_infos.groupby('dccid').get_group(grp))
                for grp in tqdm(scan_infos.groupby('dccid').groups,
-                               desc = 'loading subjects')),
-              columns = ['subject', 'scans']).set_index(
-                            'subject').sort_index().reset_index(
-                         drop = False)
-    return dict(zip(['scans', 'behavior', 'confounds', 'events'],
-                    [subs, behav, confounds, events]))
+                               desc = 'loading subjects'))).set_index(
+            0).sort_index().reset_index(
+                         drop = False).values.flat
 
+
+def get_cimaq_confounds(cimaq_dir: Union[str, os.PathLike]) -> np.flatiter:
+    return df((pd.read_csv(apath, sep = '\t') for apath in
+                           tqdm(snif.filter_lst_inc(get_cimaq_qc(cimaq_dir),
+                                    snif.loadimages(pjoin(cimaq_dir,
+                              'derivatives/CIMAQ_fmri_memory/data',
+                                  'confounds', 'resample'))),
+               desc = 'loading confounds'))).values.flat
+
+def fetch_cimaq(cimaq_dir: Union[str, os.PathLike]) -> pd.DataFrame:
+    return pd.concat([df(load_cimaq(cimaq_dir).base),
+                      df(get_cimaq_confounds(cimaq_dir).base),
+                      df(load_cimaq_scans(cimaq_dir).base)],
+                     axis = 1).rename(columns = {0: 'subid', 1: 'events',
+                                                 2: 'behav', 3:'confounds',
+                                                 4: 'scans'})
 def main():    
     if __name__ == "__main__":
-        fetch_cimaq(cimaq_dir)
+        return fetch_cimaq(cimaq_dir)
