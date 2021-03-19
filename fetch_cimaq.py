@@ -36,11 +36,17 @@ def instantiate_cimaq(reset: bool = False) -> None:
          for item in  ['events', 'behavioural',
                        'cimaq_uzeprimes', 'nilearn_events']]
 
-def get_cimaq_qc(cimaq_dir):
+def get_cimaq_qc(cimaq_dir: Union[str, os.PathLike]):
     return snif.clean_bytes(
                         xpu(pjoin(cimaq_dir, 'derivatives/CIMAQ_fmri_memory/data',
                                   'participants/sub_list_TaskQC.tsv'))).decode(
                         ).split()[1:]
+
+def get_cimaq_ids(cimaq_dir: Union[str, os.PathLike]):
+    return snif.filter_lst_inc(get_cimaq_qc(cimaq_dir),
+                         ['_'.join(str(itm) for itm in row[1].values) for row in pd.read_csv(
+        pjoin(cimaq_dir, 'derivatives/CIMAQ_fmri_memory/data/participants/Participants_bids.tsv'),
+                sep = '\t').iloc[:, [0, -2]].reset_index(drop = True).iterrows()])
 
 def get_cimaq_zeprime(cimaq_dir: Union[str, os.PathLike]) -> pd.DataFrame:
     return snif.loadfiles(snif.filter_lst_inc(get_cimaq_qc(cimaq_dir),
@@ -61,14 +67,28 @@ def xtrct_cimaq(cimaq_dir: Union[str, os.PathLike]) -> pd.DataFrame:
                            desc = 'scanning archive')],
                      ignore_index = True).sort_values('filename').reset_index(drop = True)
 
-def index_cimaq(vals: pd.DataFrame) -> pd.DataFrame:
-    vals[['has_header', 'subid', 'pscid', 'dccid']] = \
+def index_cimaq(vals: pd.DataFrame,
+                cimaq_dir: Union[str, os.PathLike]) -> pd.DataFrame:
+    vals[['has_header', 'subid']] = \
         [[snif.get_has_header(row[1].bsheets)] + \
-         ['_'.join(row[1].src_names.replace('-', '_').split('_')[:2])] + \
-         row[1].src_names.replace('-', '_').split('_')[:2]
+         ['_'.join(row[1].src_names.replace('-', '_').split('_')[:2])]
+#          snif.filter_lst_inc([row[1].filename.split('-')[1].split('_')[0]],
+#         ['_'.join(row[1].src_names.replace('-', '_').split('_')[:2])],
+#                              get_cimaq_ids(cimaq_dir))
+#          row[1].src_names.replace('-', '_').split('_')[:2]
          for row in tqdm(vals.iterrows(), desc = 'indexing participants')]
     return vals
 
+# def index_cimaq(vals: pd.DataFrame,
+#                 cimaq_dir: Union[str, os.PathLike]) -> pd.DataFrame:
+#     vals[['has_header', 'subid']] = \
+#          [(snif.get_has_header(row[1].bsheets),
+#            snif.filter_lst_inc([str(row[1].filename.split('_')[0].split('-')[1])],
+#                                 get_cimaq_ids(cimaq_dir)))
+#           for row in tqdm(
+#               vals.iterrows(),
+#               desc = 'indexing participants')]
+#     return vals
 
 def clean_cimaq(vals: pd.DataFrame) -> pd.DataFrame:
     vals['clean_sheets'] = [pd.read_csv(StringIO(snif.clean_bytes(row[1].bsheets
@@ -91,7 +111,7 @@ def group_cimaq(vals: pd.DataFrame) -> np.flatiter:
 
 def load_cimaq(cimaq_dir: Union[str, os.PathLike]) -> np.flatiter:
     instantiate_cimaq(reset = True)
-    valus = group_cimaq(clean_cimaq(index_cimaq(xtrct_cimaq(cimaq_dir))))
+    valus = group_cimaq(clean_cimaq(index_cimaq(xtrct_cimaq(cimaq_dir), cimaq_dir)))
     return df((((vals.iloc[0].subid,
                  next((pd.concat([vals.iloc[1].clean_sheets.rename(
                      columns = {'category': 'trial_type'}),
@@ -106,11 +126,13 @@ def load_cimaq(cimaq_dir: Union[str, os.PathLike]) -> np.flatiter:
                            columns = {5: 'onset', 7: 'fix_onset', 8: 'fix_duration'}).to_csv(
                            pjoin(os.getcwd(), 'newtest', 'events', 'sub-_' + \
                                  vals.iloc[0].subid + \
+#                                  vals.iloc[0].dccid + '_' + vals.iloc[0].pscid + \
                                  '_run-01_task-encoding_events.tsv'))).__iter__()),
                  next((vals.iloc[2].clean_sheets,
                        vals.iloc[2].clean_sheets.to_csv(pjoin(
                            os.getcwd(), 'newtest', 'behavioural', 'sub-_' + \
                            vals.iloc[2].subid + \
+#                            vals.iloc[2].dccid + '_' + vals.iloc[2].pscid + \
                            '_run-01_task-encoding_behavioural.tsv'))).__iter__())).__iter__()
                 for vals in tqdm(valus,
                                  desc = 'fetching CIMAQ')))).values.flat
@@ -119,11 +141,13 @@ def load_cimaq_scans(cimaq_dir: Union[str, os.PathLike]) -> np.flatiter:
     scan_infos = bidsify_load_scans(cimaq_dir, get_cimaq_qc(cimaq_dir))
     scan_infos['dccid'] = sorted([(filename, filename.split('-')[1].split('_')[0])[1]
                                   for filename in scan_infos.filename])
-    return df(((grp, scan_infos.groupby('dccid').get_group(grp))
-               for grp in tqdm(scan_infos.groupby('dccid').groups,
-                               desc = 'loading subjects'))).set_index(
-            0).sort_index().reset_index(
-                         drop = False).values.flat
+    scan_infos = df(((grp, scan_infos.groupby('dccid').get_group(grp))
+                     for grp in tqdm(scan_infos.groupby('dccid').groups,
+                                     desc = 'loading subjects'))).set_index(
+                        0).sort_index().reset_index(drop = False)
+    scan_infos['subid'] = [[itm for itm in get_cimaq_ids(cimaq_dir) if
+                           itm in str(row[0])] for row in scan_infos.iterrows()]
+    return scan_infos.set_index('subid', drop = True).values.flat
 
 
 def get_cimaq_confounds(cimaq_dir: Union[str, os.PathLike]) -> np.flatiter:
