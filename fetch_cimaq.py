@@ -138,9 +138,9 @@ def fetch_cimaq(cimaq_dir: Union[str, os.PathLike]) -> pd.DataFrame:
     return pd.concat([df(load_cimaq(cimaq_dir).base),
                       df(get_cimaq_confounds(cimaq_dir).base),
                       df(load_cimaq_scans(cimaq_dir).base)],
-                     axis = 1).rename(columns = {0: 'subid', 1: 'events',
+                     axis = 1).T.reset_index(drop = True).T.rename(columns = {0: 'subid', 1: 'events',
                                                  2: 'behav', 3:'confounds',
-                                                 4: 'scans'})
+                                                 4: 'dccid', 5: 'scans'})
 def main():    
     if __name__ == "__main__":
         return fetch_cimaq(cimaq_dir)

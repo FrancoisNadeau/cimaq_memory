@@ -71,12 +71,6 @@ def scanzip_f(
              to be excluded from 'scanzip' return value
     """
     myzip = ZipFile(archv_path)
-    dst_path = [
-        dst_path
-        if dst_path
-        else pjoin(os.getcwd(), os.path.splitext(bname(archv_path))[1])
-    ][0]
-    os.makedirs(dst_path, exist_ok=True)
     ntpl = [ntpl if ntpl else snif.filter_lst_exc(exclude, getnametuple(myzip))][0]
 
     vals = (
@@ -117,6 +111,9 @@ def scanzip_f(
     ]
     myzip.close()
     if to_xtrct:
+        dst_path = [dst_path if dst_path
+                    else pjoin(os.getcwd(),
+                               os.path.splitext(bname(archv_path))[1])][0]        
         os.makedirs(dst_path, exist_ok=True)
         [
             snif.stream2file(
