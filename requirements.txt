@@ -3,8 +3,9 @@ jupyter
 matplotlib
 nibabel
 nilearn>=0.6.0a
+git+https://github.com/GNOME/gnome-terminal.git
 git+https://github.com/nipy/nipype.git
-git+https://github.com/dipy/dipy.git
+dipy
 numpy
 pandas
 regex
