@@ -137,6 +137,31 @@ def load_cimaq(cimaq_dir: Union[str, os.PathLike]) -> np.flatiter:
                 for vals in tqdm(valus,
                                  desc = 'fetching CIMAQ')))).values.flat
 
+# def load_cimaq(cimaq_dir: Union[str, os.PathLike]) -> np.flatiter:
+#     instantiate_cimaq(reset = True)
+#     valus = group_cimaq(clean_cimaq(index_cimaq(xtrct_cimaq(cimaq_dir), cimaq_dir)))
+#     return df((((vals.iloc[0].subid,
+#                  pjoin(os.getcwd(), 'newtest', 'events', 'sub-_' + \
+#                                  vals.iloc[0].subid + \
+#                                  '_run-01_task-encoding_events.tsv'),
+#                        pd.concat([vals.iloc[1].clean_sheets,
+#                                   vals.iloc[0].clean_sheets.loc[:, 5:8]],
+#                                  axis = 1).drop(6, axis = 1).rename(
+#                            columns = {5: 'onset', 7: 'fix_onset', 8: 'fix_duration'}).to_csv(
+#                            pjoin(os.getcwd(), 'newtest', 'events', 'sub-_' + \
+#                                  vals.iloc[0].subid + \
+#                                  '_run-01_task-encoding_events.tsv'))).__iter__(),
+#                  (pjoin(
+#                            os.getcwd(), 'newtest', 'behavioural', 'sub-_' + \
+#                            vals.iloc[2].subid + \
+#                            '_run-01_task-encoding_behavioural.tsv'),
+#                        vals.iloc[2].clean_sheets.to_csv(pjoin(
+#                            os.getcwd(), 'newtest', 'behavioural', 'sub-_' + \
+#                            vals.iloc[2].subid + \
+#                            '_run-01_task-encoding_behavioural.tsv'))))
+#                 for vals in tqdm(valus,
+#                                  desc = 'fetching CIMAQ'))).values.flat
+
 def load_cimaq_scans(cimaq_dir: Union[str, os.PathLike]) -> np.flatiter:
     scan_infos = bidsify_load_scans(cimaq_dir, get_cimaq_qc(cimaq_dir))
     scan_infos['dccid'] = sorted([(filename, filename.split('-')[1].split('_')[0])[1]
@@ -151,7 +176,7 @@ def load_cimaq_scans(cimaq_dir: Union[str, os.PathLike]) -> np.flatiter:
 
 
 def get_cimaq_confounds(cimaq_dir: Union[str, os.PathLike]) -> np.flatiter:
-    return df((pd.read_csv(apath, sep = '\t') for apath in
+    return df((apath for apath in
                            tqdm(snif.filter_lst_inc(get_cimaq_qc(cimaq_dir),
                                     snif.loadimages(pjoin(cimaq_dir,
                               'derivatives/CIMAQ_fmri_memory/data',
