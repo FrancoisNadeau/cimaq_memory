@@ -1,0 +1,37 @@
+Web references of functions borrowed or adapted from different websites
+defined in the sniffbytes.py module
+
+Other functions were created by the author. Either use help(function_name)
+or see https://docs.python.org/3/library/<module_name>.html
+for documentation
+
+evenodd
+    Source: https://www.geeksforgeeks.org/python-split-even-odd-elements-two-different-lists
+    Source: https://stackoverflow.com/questions/18272160/access-multiple-elements-of-list-knowing-their-index
+    
+find_key
+    Source: https://stackoverflow.com/questions/16588328/return-key-by-value-in-dictionary
+    
+filter_lst_exc and filter_lst_inc
+    Source: https://www.geeksforgeeks.org/python-filter-list-of-strings-based-on-the-substring-list
+
+find_key
+    Source: https://stackoverflow.com/questions/16588328/return-key-by-value-in-dictionary
+    
+force_ascii
+    Source: https://stackoverflow.com/questions/8689795/how-can-i-remove-non-ascii-characters-but-leave-periods-and-spaces-using-python
+
+has_header
+    Source: https://stackoverflow.com/questions/15670760/built-in-function-in-python-to-check-header-in-a-text-file/15671103#15671103
+    
+is_printable
+    Source: https://stackoverflow.com/questions/8689795/how-can-i-remove-non-ascii-characters-but-leave-periods-and-spaces-using-python
+
+letters
+    Source: https://stackoverflow.com/questions/12400272/how-do-you-filter-a-string-to-only-contain-letters    
+    
+megamerge
+    Source: https://stackoverflow.com/questions/44327999/python-pandas-merge-multiple-dataframes
+    
+sizeof_fmt
+    Source: https://stackoverflow.com/questions/1094841/get-human-readable-version-of-file-size

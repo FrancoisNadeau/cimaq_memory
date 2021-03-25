@@ -10,5 +10,7 @@ class cimaq:
         return fetch_cimaq(cimaq_dir)
 
 def main():
-    if __name__ == "__main__":
-        return cimaq.fetch(cimaq_dir)
+    return cimaq.fetch(cimaq_dir)
+ 
+if __name__ == "__main__":
+    main()

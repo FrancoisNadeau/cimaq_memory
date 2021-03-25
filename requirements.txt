@@ -3,11 +3,11 @@ jupyter
 matplotlib
 nibabel
 nilearn>=0.6.0a
-git+https://github.com/GNOME/gnome-terminal.git
 git+https://github.com/nipy/nipype.git
 dipy
 numpy
 pandas
+pgrep
 regex
 sklearn
 tqdm

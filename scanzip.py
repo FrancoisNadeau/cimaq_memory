@@ -2,11 +2,13 @@
 
 import os
 import pandas as pd
+import zipfile
 
 import sniffbytes as snif
 
 from os.path import basename as bname
 from os.path import dirname as dname
+from os.path import expanduser as xpu
 from os.path import join as pjoin
 from pandas import DataFrame as df
 from tqdm import tqdm
@@ -19,7 +21,9 @@ from sniffbytes import filter_lst_inc
 from sniffbytes import evenodd
 from sniffbytes import stream2file
 
-def getnametuple(myzip):
+def getnametuple(
+    myzip: zipfile.ZipFile
+) -> tuple:
     """
     Adjustment to ZipFile.namelist() function to prevent MAC-exclusive
     '__MACOSX' and '.DS_Store' files from interfering.
@@ -46,14 +50,74 @@ def getnametuple(myzip):
         )
     )
 
-def scanzip(archv_path: Union[os.PathLike, str],
-            ntpl: Union[str, list, tuple] = None,
-            exclude: Union[str, list, tuple] = None,
-#             include: Union[str, list, tuple] = None,
-            to_xtrct: Union[str, list, tuple] = None,
-            dst_path: Union[str, os.PathLike] = None
-#             to_sniff: bool = False
-           ) -> object:
+def get_ntpl(
+    myzip: zipfile.ZipFile,
+    ntpl: Union[list, tuple] = None,
+    exclude: Union[str, list, tuple] = None
+) -> list:
+    return [ntpl if ntpl else
+            [snif.filter_lst_exc(exclude,
+                                 getnametuple(myzip))
+             if exclude else getnametuple(myzip)][0]][0]
+
+def zscanner(
+    myzip: Union[str, zipfile.ZipFile],
+    ntpl: Union[list, tuple] = None,
+    exclude: Union[str, list, tuple] = None
+) -> pd.DataFrame:
+    return df(tuple(dict((zip(snif.evenodd(itm)[0],
+                              snif.evenodd(itm)[1])))
+                    for itm in tuple(tuple(
+                        snif.is_printable(repr(itm.lower()))
+                        .strip()
+                        .replace("'", "")
+                        .replace("'", "")
+                        .replace("=", " ")[:-2]
+                        .split())[1:] for itm in tqdm(
+                        set(repr(myzip.getinfo(itm)).strip(" ")
+                            .replace(itm, itm.replace(" ", "_"))
+                            if " " in itm
+                            else repr(myzip.getinfo(itm)).strip(" ")
+                            for itm in get_ntpl(myzip, ntpl, exclude)),
+                        desc = "scanning archive"))),
+              dtype = object).sort_values("filename").reset_index(drop=True)
+
+def get_dst_path(
+    archv_path: Union[os.PathLike, str],
+    dst_path: Union[str, os.PathLike] = None
+) -> os.PathLike:
+    return [dst_path if dst_path
+            else pjoin(os.getcwd(),
+                       os.path.splitext(bname(archv_path))[1])][0]
+
+def save_archv(
+    vals: pd.DataFrame,
+    to_xtrct: Union[str, list, tuple],
+    dst_path: Union[str, os.PathLike]
+) -> None:
+    [stream2file(row[1].bsheets,
+                 pjoin(get_dst_path(dst_path),
+                       bname(row[1].filename).lower()))
+     for row in vals.iterrows() if row[1].src_names in
+     tqdm(filter_lst_inc(to_xtrct, vals.src_names),
+          "extracting archive")]
+
+def xtrct_archv(
+    vals: pd.DataFrame,
+    to_xtrct: Union[str, os.PathLike],
+    dst_path: Union[str, os.PathLike]
+) -> pd.DataFrame:
+    return vals.loc[[row[0] for row in vals.iterrows()
+                     if row[1].src_names not in
+                     filter_lst_inc(to_xtrct, vals.src_names)]]
+
+def scanzip(
+    archv_path: Union[os.PathLike, str],
+    ntpl: Union[str, list, tuple] = None,
+    exclude: Union[str, list, tuple] = None,
+    to_xtrct: Union[str, list, tuple] = None,
+    dst_path: Union[str, os.PathLike] = None
+) -> object:
     ''' Scans contents of ZipFile object as bytes
         Returns DataFrame containing typical ZipFile.ZipInfos
         objects informations along with a raw bytes buffer
@@ -69,48 +133,21 @@ def scanzip(archv_path: Union[os.PathLike, str],
                  to be excluded from 'scanzip' return value
     '''
     myzip = ZipFile(archv_path)
-    dst_path = [dst_path if dst_path else
-                pjoin(os.getcwd(),
-                      os.path.splitext(bname(archv_path))[1])][0]
-    ntpl = [ntpl if ntpl else snif.filter_lst_exc(
-               exclude,
-               getnametuple(myzip))][0]
-
-    vals = df(tuple(
-                dict((zip(snif.evenodd(itm)[0], snif.evenodd(itm)[1])))
-                for itm in tuple(
-                    tuple(
-                        snif.is_printable(repr(itm.lower()))
-                        .strip()
-                        .replace("'", "")
-                        .replace("'", "")
-                        .replace("=", " ")[:-2]
-                        .split()
-                    )[1:]
-                    for itm in set(repr(myzip.getinfo(itm)).strip(" ")
-                        .replace(itm, itm.replace(" ", "_"))
-                        if " " in itm
-                        else repr(myzip.getinfo(itm)).strip(" ")
-                        for itm in ntpl)))
-        ).sort_values("filename").reset_index(drop=True)
-              
+    ntpl = get_ntpl(myzip, ntpl, exclude)
+    vals = zscanner(myzip, ntpl)
     vals['filename'] = [row[1].filename.replace("/", "_")
                         for row in vals.iterrows()]
     vals['src_names'] = sorted(ntpl)
     vals['bsheets'] = [myzip.open(row[1].src_names).read().lower()
-                           for row in vals.iterrows()]
-    myzip.close()
+                       for row in tqdm(vals.iterrows(),
+                                       desc = "reading archive")]
+    myzip.close()    
+
     if to_xtrct:
-        dst_path = [dst_path if dst_path else os.getcwd()][0]
-        os.makedirs(dst_path, exist_ok = True)
-        [stream2file(row[1].bsheets,
-                          pjoin(dst_path, bname(row[1].filename).lower()))
-         for row in vals.iterrows() if row[1].src_names in
-         filter_lst_inc(to_xtrct, vals.src_names)]
-        vals = vals.loc[[row[0] for row in vals.iterrows()
-                         if row[1].src_names not in
-                         filter_lst_inc(to_xtrct, vals.src_names)]]
-    return vals
+        save_archv(vals, to_xtrct, dst_path)
+        return xtrct_archv(vals, to_xtrct, dst_path)
+    else:
+        return vals
 
 def main():    
     if __name__ == "__main__":
