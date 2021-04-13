@@ -3,7 +3,9 @@ jupyter
 matplotlib
 nibabel
 nilearn>=0.6.0a
-git+https://github.com/nipy/nipype.git
+git+https://github.com/FrancoisNadeau/sniffbytes.git
+git+https://github.com/FrancoisNadeau/load_utils.git
+git+https://github.com/FrancoisNadeau/scanzip.git
 dipy
 numpy
 pandas
